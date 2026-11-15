@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+#
+# CodeRabbit review settings for netctl (Beaver Cloud networking planner).
+# Reference: https://docs.coderabbit.ai/reference/configuration
+language: "en-US"
+
+reviews:
+  profile: "chill" # raise to "assertive" if reviews feel too light
+  high_level_summary: true
+  request_changes_workflow: false
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "main"
+      - "develop"
+
+  # Not worth reviewing: generated, binary or golden output.
+  path_filters:
+    - "!**/*.pdf"
+    - "!go.sum"
+    - "!testdata/golden/**"
+
+  path_instructions:
+    - path: "**/*.go"
+      instructions: |
+        This module is a pure Go library that decides what the Beaver network should look like.
+        Flag any change that breaks these rules:
+        - Purity: outside package main and *_test.go there must be no file, clock, environment or
+          network access: no os.Open/ReadFile/Getenv, time.Now(), os/exec, syscall, net/http,
+          database/sql, netlink, WireGuard or nftables imports. Time comes in through the Clock
+          interface; I/O belongs to the caller.
+        - Determinism: the same input must give byte-identical output. Never let map iteration order,
+          goroutine scheduling or unseeded randomness reach output; sort before iterating.
+        - Addresses: use net/netip, never net.IP. Prefixes must be masked (cidr.Canonical) once at
+          the boundary.
+        - Errors: return typed errors with a stable code (OVERLAP, POOL_EXHAUSTED, ...) and wrap
+          with %w. Tests must assert with errors.Is on the code, not on error strings. Functions
+          that check many things should report every problem, not just the first.
+        - Dependencies: the only runtime dependency is gopkg.in/yaml.v3. Flag any new one.
+    - path: "**/*.go"
+      instructions: |
+        Documentation: every exported identifier needs a doc comment that starts with its name,
+        says what goes in, what comes out and which error codes mean what, and includes a
+        tab-indented "Example:" block so it reads well in an editor hover popup. Exported
+        functions should also have a runnable ExampleXxx test with an // Output: line.
+    - path: "**/*_test.go"
+      instructions: |
+        Tests must be deterministic: no real clock, no network, fixed seeds for property tests.
+        A bug fix needs a test that fails without it. Prefer table-driven tests. Golden files
+        change only with the -update flag, and the diff must be explained.
+
+chat:
+  auto_reply: true
