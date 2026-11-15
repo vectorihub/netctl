@@ -1,13 +1,13 @@
-# beaver-netctl
+# netctl
 
 **The network planner for Beaver Cloud.**
 
 Beaver Cloud connects machines in different places (a cloud server, your own servers, a GPU box, a Mac)
-so they behave like one private network. `beaver-netctl` is the part that **decides** how that network
+so they behave like one private network. `netctl` is the part that **decides** how that network
 should look. It does not touch any real machine. It works out the plan, checks the plan, and hands the
 result to other programs that carry it out.
 
-> **Status: early. Only the project scaffold exists today.** The planner itself is not built yet. See
+> **Status: early. Only the project scaffold exists today (V3).** The planner itself is not built yet. See
 > [What works today](#what-works-today) and [Roadmap](#roadmap).
 
 ---
@@ -23,7 +23,7 @@ Without a single place that decides the network, small mistakes become outages:
 | A backup route is added by hand | It loops, or replies come back a different way and get dropped |
 | A change is made on one machine | Another machine breaks, and you find out in production |
 
-`beaver-netctl` removes the guessing. It builds the whole plan on paper first, tests it with pretend
+`netctl` removes the guessing. It builds the whole plan on paper first, tests it with pretend
 traffic, and refuses to produce anything if the plan is broken.
 
 ## What it does
@@ -64,7 +64,7 @@ from noise.
 ```mermaid
 flowchart LR
     U["Operator<br/>dashboard or CLI"] --> B["Backend<br/>stores state, calls the planner"]
-    B -->|"topology, addresses,<br/>link health"| N["beaver-netctl<br/>the planner (decides)"]
+    B -->|"topology, addresses,<br/>link health"| N["netctl<br/>the planner (decides)"]
     N -->|"one instruction sheet<br/>per machine"| B
     B --> A1["Agent on machine A<br/>(does)"]
     B --> A2["Agent on machine B<br/>(does)"]
@@ -87,30 +87,21 @@ milliseconds, and lets the same decisions drive Linux today and other systems la
 
 ## What works today
 
-Very little, on purpose. The repo currently contains:
+Nothing you can run, on purpose. This is a **library, not a program**: it has no command line, no server and
+no `package main` (decision D18). Command-line commands are built later in `beaver-cli`.
 
-- a Go module named `beaver-netctl`
-- a small program with two commands, `version` and `help`
+The repo currently contains:
+
+- a Go module, `github.com/VectorIHub/netctl`, that builds and passes `go vet`
+- an empty folder for each part of the planner (addresses, topology, routing, simulation, health, failover,
+  configuration, validation, planning), each with a one-paragraph description
 - a plan for everything else (see [Roadmap](#roadmap))
 
-Try it:
+Check that it builds:
 
 ```sh
-go run . version
-# beaver-netctl dev
-
-go run . help
+go build ./... && go vet ./...
 ```
-
-Run the tests:
-
-```sh
-go test ./...
-```
-
-**Open decision:** the plan describes `beaver-netctl` as a library that other Beaver programs import
-(the backend, the agent, the CLI). The root of this repo is currently a program (`package main`), and a
-program cannot be imported. Whether the library lives in a subfolder or elsewhere is still to be decided.
 
 ## How other programs will use it (planned)
 
@@ -164,13 +155,18 @@ source documents are the three PDFs in the repo root, which are also kept out of
 ## Project layout
 
 ```
-beaver-netctl/
-├── main.go                 the command today (version, help)
-├── main_test.go
-├── go.mod
+netctl/                     module github.com/VectorIHub/netctl
+├── doc.go                  the library's front door (Plan arrives in V74)
+├── types/ cidr/ ipam/ topology/ route/ sim/ health/ failover/ config/ validate/ plan/
+│                           one folder per job, empty for now
+├── policy/ identity/       Phase 3, empty for now
+├── internal/               test helpers; never public
+├── test/e2e/phase1/        end-to-end suite
+├── testdata/               topologies, golden outputs, signals
+├── docs/                   decision records (adr/) and phase gates (gates/)
 ├── .coderabbit.yaml        automated code review settings
 ├── .greptile/              automated code review settings
-└── features/netctl/        the plan, by phase, era and version
+└── features/netctl/        the plan, by phase, era and version (not tracked in git)
 ```
 
 ## Writing code in this repo
