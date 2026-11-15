@@ -1,0 +1,37 @@
+{
+  "strictness": 2,
+  "commentTypes": ["logic", "syntax", "style"],
+  "ignorePatterns": "*.pdf\ngo.sum\ntestdata/golden/**",
+  "rules": [
+    {
+      "id": "library-stays-pure",
+      "severity": "high",
+      "rule": "Outside package main and *_test.go, code must do no file, clock, environment or network access. Flag os.Open, os.ReadFile, os.Getenv, time.Now(), and imports of os/exec, syscall, net/http, database/sql, netlink, WireGuard or nftables. Time must come in through the Clock interface; the caller does all I/O."
+    },
+    {
+      "id": "deterministic-output",
+      "severity": "high",
+      "rule": "The same input must produce byte-identical output on any OS, time zone and GOMAXPROCS. Flag any place where map iteration order, goroutine scheduling or unseeded randomness can reach output, and any sort that is not total (ties not broken)."
+    },
+    {
+      "id": "netip-and-masked-prefixes",
+      "severity": "medium",
+      "rule": "Use net/netip for every address and prefix, never net.IP. Prefixes must be masked once at the boundary (cidr.Canonical); flag comparisons or map keys built from unmasked prefixes."
+    },
+    {
+      "id": "typed-errors",
+      "severity": "medium",
+      "rule": "Errors a caller might act on must carry a stable code (OVERLAP, POOL_EXHAUSTED, NOT_FOUND, ...) and be wrapped with %w. Tests must check them with errors.Is on the code, never by error string. Validators should report every problem at once, not stop at the first."
+    },
+    {
+      "id": "hover-quality-docs",
+      "severity": "low",
+      "rule": "Every exported identifier needs a doc comment that begins with its name, describes inputs, outputs and error codes, and includes a tab-indented 'Example:' block. Exported functions should have a runnable ExampleXxx test with an Output comment."
+    },
+    {
+      "id": "no-new-dependencies",
+      "severity": "medium",
+      "rule": "The only runtime dependency allowed is gopkg.in/yaml.v3 (go-cmp is allowed in tests). Flag any other new module in go.mod and ask for a decision record."
+    }
+  ]
+}
