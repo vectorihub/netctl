@@ -1,7 +1,7 @@
 # netctl — developer and CI entry points. CI runs exactly these targets, so a
 # green `make check` locally means a green CI.
 
-STATICCHECK_VERSION := 2026.2.2
+STATICCHECK_VERSION := v0.7.0
 
 .PHONY: check fmt-check vet lint test race arch fuzz e2e-phase1 repro windows
 
