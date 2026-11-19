@@ -7,7 +7,7 @@ so they behave like one private network. `netctl` is the part that **decides** h
 should look. It does not touch any real machine. It works out the plan, checks the plan, and hands the
 result to other programs that carry it out.
 
-> **Status: early. Only the project scaffold exists today (V3).** The planner itself is not built yet. See
+> **Status: early. Only the project scaffold, CI, the architecture guard and the first decision records exist today (V3 to V7).** The planner itself is not built yet. See
 > [What works today](#what-works-today) and [Roadmap](#roadmap).
 
 ---
@@ -95,6 +95,10 @@ The repo currently contains:
 - a Go module, `github.com/VectorIHub/netctl`, that builds and passes `go vet`
 - an empty folder for each part of the planner (addresses, topology, routing, simulation, health, failover,
   configuration, validation, planning), each with a one-paragraph description
+- an architecture guard (`make arch`) that fails the build if the planner ever gains the ability to run
+  programs, use the network, open a database or touch the operating system, plus a lint check that
+  forbids reading the clock, files or environment
+- decision records in `docs/adr/` and the release rules in `docs/versioning.md`
 - a plan for everything else (see [Roadmap](#roadmap))
 
 Check that it builds:
@@ -183,6 +187,12 @@ These rules apply once real code lands. They are also what the automated reviewe
 - **Write comments people can hover.** Every exported function has a comment that starts with its name,
   explains inputs, outputs and errors, and includes a short `Example:`. Add a runnable `Example` test too.
 
+## Versioning
+
+How releases are numbered and what may change between them is in [docs/versioning.md](docs/versioning.md).
+What changed in each release is in [CHANGELOG.md](CHANGELOG.md).
+Decision records are in [docs/adr/](docs/adr/).
+
 ## Automated review
 
 Pull requests are reviewed by [CodeRabbit](https://coderabbit.ai) and [Greptile](https://www.greptile.com).
@@ -196,3 +206,7 @@ installed on the repository by an owner.
 ## Getting help
 
 Open an issue on this repository, or read the plan in `features/netctl/` (start with `00-architecture.docs`).
+
+## License
+
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
