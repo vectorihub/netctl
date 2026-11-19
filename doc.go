@@ -21,10 +21,13 @@
 //     system.
 //   - Strict: ambiguous or invalid input is refused rather than guessed at, and
 //     every problem is reported at once, not one per run.
-//   - Typed errors: every failure carries a stable
-//     [github.com/vectorihub/netctl/types.Code], so callers match errors with
-//     [github.com/vectorihub/netctl/types.HasCode] or [errors.Is] instead of
-//     message text.
+//   - Typed errors: failures caused by the network or its state, such as an
+//     overlap, an exhausted pool or an invalid topology, carry a stable
+//     [github.com/vectorihub/netctl/types.Code], so callers match them with
+//     [github.com/vectorihub/netctl/types.HasCode] instead of message text.
+//     Programming mistakes, such as a nil clock or an empty owner, and
+//     malformed JSON return plain errors, so always handle a non-nil error
+//     even when no code matches.
 //   - Standard types: addresses and prefixes are [net/netip] values throughout.
 //
 // # Packages
