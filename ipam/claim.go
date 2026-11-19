@@ -11,8 +11,8 @@ import (
 // imported ranges that Allocate would not have picked.
 //
 // The prefix may be any size inside a pool: the pool's ChildBits applies only
-// to Allocate (R3). A prefix with host bits set is masked and a warning is
-// recorded (R1, see Warnings). Errors:
+// to Allocate. A prefix with host bits set is masked and a warning is
+// recorded (see Warnings). Errors:
 //   - INVALID_PREFIX: not a valid IPv4 prefix, or not inside any pool.
 //   - OUT_OF_SUPERNET: outside the supernet.
 //   - RESERVED: the pool is reserved and no override reason was given, or the
@@ -37,7 +37,7 @@ func (registry *IPAM) AllocateSpecific(prefix netip.Prefix, owner Owner, opts ..
 // WithOverride, like any other allocation. All other rules are those of
 // AllocateSpecific. Reserving a prefix the owner already holds changes nothing.
 //
-// Example: Reserve(10.42.248.0/24, infra:dns, "DNS anycast", WithOverride("ADR 7")).
+// Example: Reserve(10.42.248.0/24, infra:dns, "DNS anycast", WithOverride("approved by network team")).
 func (registry *IPAM) Reserve(prefix netip.Prefix, owner Owner, note string, opts ...Option) (Allocation, error) {
 	return registry.claim(prefix, owner, Reserved, append([]Option{WithNote(note)}, opts...))
 }
@@ -94,7 +94,7 @@ func (registry *IPAM) claim(prefix netip.Prefix, owner Owner, want State, opts [
 	return made, nil
 }
 
-// warnIfMasked records the R1 warning for a prefix that arrived with host bits set.
+// warnIfMasked records a warning for a prefix that arrived with host bits set.
 func (registry *IPAM) warnIfMasked(given, masked netip.Prefix, changed bool) {
 	if changed {
 		registry.warnings = append(registry.warnings, given.String()+" has host bits set; stored as "+masked.String())
@@ -102,6 +102,6 @@ func (registry *IPAM) warnIfMasked(given, masked netip.Prefix, changed bool) {
 }
 
 // Warnings returns the warnings recorded so far, oldest first, as a copy.
-// Today the only warning is a prefix given with host bits set (R1). Warnings
+// Today the only warning is a prefix given with host bits set. Warnings
 // are not part of the Snapshot: they describe calls, not state.
 func (registry *IPAM) Warnings() []string { return append([]string(nil), registry.warnings...) }

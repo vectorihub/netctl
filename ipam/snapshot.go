@@ -26,10 +26,10 @@ func (registry *IPAM) Snapshot() Snapshot {
 }
 
 // Marshal writes snapshot as indented JSON with a trailing newline. It does no
-// file access: the caller stores the bytes (D7).
+// file access: the caller stores the bytes.
 //
 // The output is byte-stable: allocations are sorted, times are written in UTC,
-// empty lists are written as [] and nothing derived is included (R12), so equal
+// empty lists are written as [] and nothing derived is included, so equal
 // states always give equal bytes. snapshot itself is not changed. It fails if
 // the schema is not Schema or an owner is not valid. It does not check the
 // rules New checks; New does that when the snapshot is loaded back.

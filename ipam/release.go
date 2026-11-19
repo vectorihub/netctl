@@ -8,7 +8,7 @@ import (
 	"github.com/vectorihub/netctl/types"
 )
 
-// DefaultQuarantine is the recommended quarantine period (R8, ADR 0004). New
+// DefaultQuarantine is the recommended quarantine period. New
 // takes the period as an argument; callers pass this unless they have a reason
 // not to.
 const DefaultQuarantine = 24 * time.Hour
@@ -16,13 +16,13 @@ const DefaultQuarantine = 24 * time.Hour
 // Release gives owner's prefix back. The prefix is quarantined, not freed: it
 // stays taken until the quarantine period (given to New) has passed on the
 // injected clock, so stale routes and caches that still point at the old owner
-// can never reach a new one (R8). A period of zero frees it at once.
+// can never reach a new one. A period of zero frees it at once.
 //
 // Errors:
 //   - NOT_FOUND: owner does not hold exactly this prefix, or it is already
-//     quarantined. Nothing changes (R9).
+//     quarantined. Nothing changes.
 //   - INVALID_TOPOLOGY: owner is a site and a node or link still holds addresses
-//     inside the block. The error lists every such holder (R10).
+//     inside the block. The error lists every such holder.
 //
 // Example: after Release(10.42.240.1/32, node:a) with a 24-hour quarantine, an
 // Allocate for node:b gets 10.42.240.2/32; once 24 hours have passed an Allocate

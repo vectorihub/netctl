@@ -9,7 +9,7 @@ import (
 )
 
 // ImportPeers turns each node's Peers list into links, then clears the lists.
-// It closes the one-sided-link hole at the boundary (AC6): a link is one object
+// It closes the one-sided-link hole at the boundary: a link is one object
 // with two ends, but some sources (a Packet Tracer export, an older format) say
 // "I am connected to X" from each side separately, and the two sides can
 // disagree.

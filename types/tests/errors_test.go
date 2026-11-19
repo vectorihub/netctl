@@ -146,28 +146,3 @@ func TestErrorJSON(t *testing.T) {
 		t.Errorf("got %s want %s", b, want)
 	}
 }
-
-// ExampleErrf shows Errf in use; `go test` runs it and checks the "Output:" comment, so the
-// example in the documentation cannot go stale.
-func ExampleErrf() {
-	err := fmt.Errorf("allocating: %w", types.Errf(types.ErrOverlap, "site aws", "overlaps site builder"))
-	fmt.Println(types.HasCode(err, types.ErrOverlap), types.HasCode(err, types.ErrNotFound))
-	fmt.Println(err)
-	// Output:
-	// true false
-	// allocating: OVERLAP: site aws: overlaps site builder
-}
-
-// ExampleList shows List in use; `go test` runs it and checks the "Output:" comment, so the
-// example in the documentation cannot go stale.
-func ExampleList() {
-	var l types.List
-	l.Add(types.Errf(types.ErrNotFound, "node x", "missing"))
-	l.Add(types.Errf(types.ErrNoRoute, "a to b", "unreachable"))
-	fmt.Println(l.Err())
-	fmt.Println(types.HasCode(l.Err(), types.ErrNoRoute))
-	// Output:
-	// NOT_FOUND: node x: missing
-	// NO_ROUTE: a to b: unreachable
-	// true
-}

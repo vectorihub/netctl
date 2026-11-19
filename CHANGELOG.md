@@ -9,6 +9,27 @@ changes, and each one is listed under **Breaking Changes** for that release.
 
 ## [Unreleased]
 
+# Release 2026-11-19 (v0.3.1)
+
+## Announcements
+A documentation release. The API is unchanged. The package documentation on
+[pkg.go.dev](https://pkg.go.dev/github.com/vectorihub/netctl) now explains what netctl is and how to use each
+package, with runnable examples.
+
+## Documentation
+* The root package documentation explains what netctl is, its guarantees, and how the packages fit together.
+* `ipam` has a full package overview and runnable examples for `New`, `Allocate`, `AllocateSpecific`,
+  `AllocateTransit`, `Reserve`, `Release`, `Lookup`, `OwnerOf`, `ByOwner`, `Accounting`, `Marshal` and `Owner`.
+* `topology` has runnable examples for `Load`, `Check`, `ParseSelector`, `BuildGraph` and `Hash`.
+* The existing `types` and `cidr` examples now appear on pkg.go.dev. They moved into `example_test.go` files
+  beside the code.
+* New README, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md` and `.github/CODEOWNERS`.
+
+## Removed
+* Empty placeholder packages that had no API: `config`, `failover`, `health`, `identity`, `plan`, `policy`,
+  `route`, `sim`, `validate`, and the `test/e2e/phase1` suite with its `make e2e-phase1` target. Nothing could
+  import anything from them. Each package returns when it is implemented.
+
 # Release 2026-11-19 (v0.3.0)
 
 ## Announcements

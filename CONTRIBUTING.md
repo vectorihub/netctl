@@ -65,6 +65,9 @@ CI runs the same targets on Linux and macOS, so a green local run means a green 
 - Every change in behaviour needs a test.
 - Tests exercise the exported API from the package's `tests/` directory, for example `ipam/tests/`.
 - A test that must reach unexported state may sit beside the code, with a comment at the top of the file saying why.
+- Runnable examples are the one exception to the `tests/` rule. They live in an `example_test.go` file beside the
+  code, declared as `package <name>_test`, because pkg.go.dev only shows examples from the package's own directory.
+  Every example ends with an `// Output:` comment, so `go test` checks it.
 
 ## Commit messages
 

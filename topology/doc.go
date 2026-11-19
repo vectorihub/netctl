@@ -1,11 +1,11 @@
 // Package topology models what a network is made of: sites, nodes, links and
-// intents. It reads that description from YAML bytes and, later, checks it and
-// exposes the graph that routing walks.
+// intents. It reads that description from YAML bytes, checks it against a set
+// of rules, and exposes it as a graph.
 //
 // # The model
 //
 // A Topology is plain data (types.go). Build one in Go code or read one with
-// Decode; the rest of netctl cannot tell the difference (D7). Roles and link
+// Decode; the rest of netctl cannot tell the difference. Roles and link
 // kinds come from package types. A Link is one object with two ends, so it
 // cannot be declared on one side only.
 //

@@ -21,7 +21,7 @@ import (
 const DefaultMaxBytes = 5 << 20
 
 // Decode reads a topology from YAML bytes. The caller reads the file; netctl
-// never does (D7). name is only used to label errors, usually the file name.
+// never does. name is only used to label errors, usually the file name.
 //
 // Decoding is strict, so a file that could mean two things is refused instead of
 // guessed at:
@@ -42,8 +42,8 @@ const DefaultMaxBytes = 5 << 20
 // whose Subject is "name:line", in line order. On success the result is
 // normalised (see Topology.Normalize): defaults filled in, links stored with A
 // before B, and sites, nodes and links sorted by ID, so two files that describe
-// the same network decode to the same Topology. Rules T1 to T11 come in V25, so a
-// wrong schema string or a duplicate ID is not an error here.
+// the same network decode to the same Topology. Decode checks the shape of
+// the file, not the network rules (see Check), so a wrong schema string or a duplicate ID is not an error here.
 //
 // Example: a file with "rol: hub" on line 17 fails with
 // "INVALID_TOPOLOGY: three-site.yaml:17: nodes[0]: unknown field "rol"; did you mean "role"?".
