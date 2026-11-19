@@ -1,4 +1,4 @@
-package cidr
+package tests
 
 import (
 	"fmt"
@@ -7,14 +7,17 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/vectorihub/netctl/cidr"
 	"github.com/vectorihub/netctl/types"
 )
 
 var prefixOf = netip.MustParsePrefix
 
 // P1-CIDR-001
+//
+// TestSplit checks that a /16 splits into sixteen /20 children, in address order.
 func TestSplit(t *testing.T) {
-	s, err := Split(prefixOf("10.42.0.0/16"), 20)
+	s, err := cidr.Split(prefixOf("10.42.0.0/16"), 20)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,22 +31,27 @@ func TestSplit(t *testing.T) {
 	}
 }
 
+// TestSplitSameLengthAndHostBits checks that splitting a block into its own size returns just that
+// block.
 func TestSplitSameLengthAndHostBits(t *testing.T) {
-	s, err := Split(prefixOf("10.42.16.0/20"), 20)
+	s, err := cidr.Split(prefixOf("10.42.16.0/20"), 20)
 	if err != nil || len(s) != 1 || s[0] != prefixOf("10.42.16.0/20") {
 		t.Fatalf("%v %v", s, err)
 	}
-	s, err = Split(prefixOf("10.42.16.5/20"), 21) // host bits ignored
+	s, err = cidr.Split(prefixOf("10.42.16.5/20"), 21) // host bits ignored
 	if err != nil || len(s) != 2 || s[0] != prefixOf("10.42.16.0/21") || s[1] != prefixOf("10.42.24.0/21") {
 		t.Fatalf("%v %v", s, err)
 	}
-	s, err = Split(prefixOf("10.42.0.7/32"), 32)
+	s, err = cidr.Split(prefixOf("10.42.0.7/32"), 32)
 	if err != nil || len(s) != 1 || s[0] != prefixOf("10.42.0.7/32") {
 		t.Fatalf("%v %v", s, err)
 	}
 }
 
 // P1-CIDR-002
+//
+// TestSplitBadSizes checks that Split refuses sizes that are shorter than the block, over 32, or
+// absurdly many pieces.
 func TestSplitBadSizes(t *testing.T) {
 	cases := []struct {
 		name string
@@ -59,40 +67,43 @@ func TestSplitBadSizes(t *testing.T) {
 		{"just over the cap", prefixOf("10.0.0.0/8"), 29},
 	}
 	for _, c := range cases {
-		out, err := Split(c.p, c.bits)
+		out, err := cidr.Split(c.p, c.bits)
 		if !types.HasCode(err, types.ErrInvalidPrefix) || out != nil {
 			t.Errorf("%s: want INVALID_PREFIX, got %v, %v", c.name, out, err)
 		}
-		if seq, err := Children(c.p, c.bits); c.name != "too many pieces" && c.name != "just over the cap" {
+		if seq, err := cidr.Children(c.p, c.bits); c.name != "too many pieces" && c.name != "just over the cap" {
 			if !types.HasCode(err, types.ErrInvalidPrefix) || seq != nil {
 				t.Errorf("%s: Children want INVALID_PREFIX, got %v", c.name, err)
 			}
 		}
 	}
 	// exactly at the cap is allowed
-	if s, err := Split(prefixOf("10.0.0.0/8"), 28); err != nil || len(s) != 1<<20 {
+	if s, err := cidr.Split(prefixOf("10.0.0.0/8"), 28); err != nil || len(s) != 1<<20 {
 		t.Errorf("cap boundary: %d %v", len(s), err)
 	}
 }
 
 // P1-CIDR-007
+//
+// TestCanonical checks that host bits are cleared and that the caller is told they were there.
 func TestCanonical(t *testing.T) {
-	c, had := Canonical(prefixOf("10.42.16.5/20"))
+	c, had := cidr.Canonical(prefixOf("10.42.16.5/20"))
 	if c != prefixOf("10.42.16.0/20") || !had {
 		t.Fatal(c, had)
 	}
-	c, had = Canonical(prefixOf("10.42.16.0/20"))
+	c, had = cidr.Canonical(prefixOf("10.42.16.0/20"))
 	if c != prefixOf("10.42.16.0/20") || had {
 		t.Fatal(c, had)
 	}
-	if c, had := Canonical(netip.Prefix{}); c.IsValid() || had {
+	if c, had := cidr.Canonical(netip.Prefix{}); c.IsValid() || had {
 		t.Fatal("invalid prefix must pass through unchanged", c, had)
 	}
-	if c, had := Canonical(prefixOf("fd00::1/64")); c != prefixOf("fd00::/64") || !had {
+	if c, had := cidr.Canonical(prefixOf("fd00::1/64")); c != prefixOf("fd00::/64") || !had {
 		t.Fatal(c, had)
 	}
 }
 
+// TestContains checks parent/child containment, including equal blocks and unrelated blocks.
 func TestContains(t *testing.T) {
 	cases := []struct {
 		parent, child string
@@ -109,15 +120,16 @@ func TestContains(t *testing.T) {
 		{"10.42.0.0/16", "fd00::/64", false},
 	}
 	for _, c := range cases {
-		if got := Contains(prefixOf(c.parent), prefixOf(c.child)); got != c.want {
+		if got := cidr.Contains(prefixOf(c.parent), prefixOf(c.child)); got != c.want {
 			t.Errorf("Contains(%s,%s) = %v", c.parent, c.child, got)
 		}
 	}
-	if Contains(netip.Prefix{}, prefixOf("10.0.0.0/8")) || Contains(prefixOf("10.0.0.0/8"), netip.Prefix{}) {
+	if cidr.Contains(netip.Prefix{}, prefixOf("10.0.0.0/8")) || cidr.Contains(prefixOf("10.0.0.0/8"), netip.Prefix{}) {
 		t.Error("invalid prefixes must never match")
 	}
 }
 
+// TestOverlaps checks that two blocks overlap exactly when one contains the other.
 func TestOverlaps(t *testing.T) {
 	cases := []struct {
 		a, b string
@@ -132,29 +144,32 @@ func TestOverlaps(t *testing.T) {
 		{"10.42.0.0/16", "fd00::/16", false},
 	}
 	for _, c := range cases {
-		if got := Overlaps(prefixOf(c.a), prefixOf(c.b)); got != c.want {
+		if got := cidr.Overlaps(prefixOf(c.a), prefixOf(c.b)); got != c.want {
 			t.Errorf("Overlaps(%s,%s) = %v", c.a, c.b, got)
 		}
 	}
-	if Overlaps(netip.Prefix{}, prefixOf("10.0.0.0/8")) {
+	if cidr.Overlaps(netip.Prefix{}, prefixOf("10.0.0.0/8")) {
 		t.Error("invalid prefix must not overlap")
 	}
 }
 
+// TestSize checks the address count of blocks from /0 to /32, and 0 for IPv6.
 func TestSize(t *testing.T) {
 	for s, want := range map[string]uint64{
 		"10.42.16.0/20": 4096, "10.42.0.1/32": 1, "10.42.0.0/31": 2, "10.42.0.0/30": 4,
 		"10.42.0.0/16": 65536, "0.0.0.0/0": 1 << 32, "fd00::/64": 0,
 	} {
-		if got := Size(prefixOf(s)); got != want {
+		if got := cidr.Size(prefixOf(s)); got != want {
 			t.Errorf("Size(%s) = %d want %d", s, got, want)
 		}
 	}
-	if Size(netip.Prefix{}) != 0 {
+	if cidr.Size(netip.Prefix{}) != 0 {
 		t.Error("Size of an invalid prefix must be 0")
 	}
 }
 
+// TestCompare checks that Compare orders blocks by address, then by length, and agrees with itself
+// both ways.
 func TestCompare(t *testing.T) {
 	ordered := []string{"10.42.0.0/16", "10.42.0.0/20", "10.42.0.0/32", "10.42.16.0/20", "10.43.0.0/16", "192.168.0.0/24"}
 	for i, a := range ordered {
@@ -165,13 +180,13 @@ func TestCompare(t *testing.T) {
 			} else if i > j {
 				want = 1
 			}
-			if got := Compare(prefixOf(a), prefixOf(b)); got != want {
+			if got := cidr.Compare(prefixOf(a), prefixOf(b)); got != want {
 				t.Errorf("Compare(%s,%s) = %d want %d", a, b, got, want)
 			}
 		}
 	}
 	shuffled := []netip.Prefix{prefixOf("192.168.0.0/24"), prefixOf("10.42.16.0/20"), prefixOf("10.42.0.0/20"), prefixOf("10.42.0.0/16"), prefixOf("10.43.0.0/16"), prefixOf("10.42.0.0/32")}
-	slices.SortFunc(shuffled, Compare)
+	slices.SortFunc(shuffled, cidr.Compare)
 	for i, s := range shuffled {
 		if s != prefixOf(ordered[i]) {
 			t.Fatalf("sorted[%d] = %s want %s", i, s, ordered[i])
@@ -181,7 +196,7 @@ func TestCompare(t *testing.T) {
 
 // A /21 of /32s costs nothing until iterated, and stopping early is free.
 func TestChildrenIsLazy(t *testing.T) {
-	seq, err := Children(prefixOf("10.0.0.0/8"), 32) // 16,777,216 children
+	seq, err := cidr.Children(prefixOf("10.0.0.0/8"), 32) // 16,777,216 children
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,7 +214,7 @@ func TestChildrenIsLazy(t *testing.T) {
 	// Starting a split costs the same however many children it has.
 	cost := func(parent netip.Prefix, bits int) float64 {
 		return testing.AllocsPerRun(100, func() {
-			s, _ := Children(parent, bits)
+			s, _ := cidr.Children(parent, bits)
 			for range s {
 				break
 			}
@@ -211,8 +226,10 @@ func TestChildrenIsLazy(t *testing.T) {
 	}
 }
 
+// TestChildrenOverlayPoolAndReiterate checks the overlay pool's /32 children and that the sequence
+// can be walked twice.
 func TestChildrenOverlayPoolAndReiterate(t *testing.T) {
-	seq, err := Children(prefixOf("10.42.240.0/21"), 32)
+	seq, err := cidr.Children(prefixOf("10.42.240.0/21"), 32)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -229,7 +246,7 @@ func TestChildrenOverlayPoolAndReiterate(t *testing.T) {
 			t.Fatalf("pass %d: %d children, last %s", pass, n, last)
 		}
 	}
-	seq, _ = Children(prefixOf("0.0.0.0/0"), 32) // top of the range must not wrap
+	seq, _ = cidr.Children(prefixOf("0.0.0.0/0"), 32) // top of the range must not wrap
 	n := 0
 	for range seq {
 		n++
@@ -237,7 +254,7 @@ func TestChildrenOverlayPoolAndReiterate(t *testing.T) {
 			break
 		}
 	}
-	seq, _ = Children(prefixOf("255.255.255.252/30"), 32)
+	seq, _ = cidr.Children(prefixOf("255.255.255.252/30"), 32)
 	var last netip.Prefix
 	for _, c := range seq {
 		last = c
@@ -257,7 +274,7 @@ func TestChildrenPartitionProperty(t *testing.T) {
 		if child-bits > 12 {
 			child = bits + 12
 		}
-		seq, err := Children(p, child)
+		seq, err := cidr.Children(p, child)
 		if err != nil {
 			t.Fatalf("seed 1,2 case %d: %v", i, err)
 		}
@@ -265,39 +282,45 @@ func TestChildrenPartitionProperty(t *testing.T) {
 		var prev netip.Prefix
 		n := 0
 		for idx, c := range seq {
-			if idx != n || !Contains(p, c) || c.Bits() != child || c != c.Masked() {
+			if idx != n || !cidr.Contains(p, c) || c.Bits() != child || c != c.Masked() {
 				t.Fatalf("seed 1,2 case %d: bad child %d %s of %s", i, idx, c, p)
 			}
-			if n > 0 && (Compare(prev, c) >= 0 || Overlaps(prev, c)) {
+			if n > 0 && (cidr.Compare(prev, c) >= 0 || cidr.Overlaps(prev, c)) {
 				t.Fatalf("seed 1,2 case %d: %s then %s", i, prev, c)
 			}
-			total, prev, n = total+Size(c), c, n+1
+			total, prev, n = total+cidr.Size(c), c, n+1
 		}
-		if total != Size(p) {
-			t.Fatalf("seed 1,2 case %d: children cover %d of %d", i, total, Size(p))
+		if total != cidr.Size(p) {
+			t.Fatalf("seed 1,2 case %d: children cover %d of %d", i, total, cidr.Size(p))
 		}
 	}
 }
 
 // P1-CIDR-003
+//
+// TestSubtractNothingUsed checks that subtracting nothing returns the whole parent.
 func TestSubtractNothingUsed(t *testing.T) {
 	parent := prefixOf("10.42.0.0/16")
 	for _, used := range [][]netip.Prefix{nil, {}} {
-		if got := Subtract(parent, used); !slices.Equal(got, []netip.Prefix{parent}) {
+		if got := cidr.Subtract(parent, used); !slices.Equal(got, []netip.Prefix{parent}) {
 			t.Fatalf("got %v want [%s]", got, parent)
 		}
 	}
 }
 
 // P1-CIDR-004
+//
+// TestSubtract checks the free blocks left after removing one /20 from a /16.
 func TestSubtract(t *testing.T) {
-	got := fmt.Sprint(Subtract(prefixOf("10.42.0.0/16"), []netip.Prefix{prefixOf("10.42.16.0/20")}))
+	got := fmt.Sprint(cidr.Subtract(prefixOf("10.42.0.0/16"), []netip.Prefix{prefixOf("10.42.16.0/20")}))
 	want := "[10.42.0.0/20 10.42.32.0/19 10.42.64.0/18 10.42.128.0/17]"
 	if got != want {
 		t.Fatalf("got %s want %s", got, want)
 	}
 }
 
+// TestSubtractEdgeCases checks Subtract on duplicates, nesting, blocks outside the parent, and a
+// fully used parent.
 func TestSubtractEdgeCases(t *testing.T) {
 	parent := prefixOf("10.42.0.0/20")
 	cases := []struct {
@@ -318,26 +341,26 @@ func TestSubtractEdgeCases(t *testing.T) {
 		for _, text := range tc.used {
 			used = append(used, prefixOf(text))
 		}
-		if got := fmt.Sprint(Subtract(parent, used)); got != tc.want {
+		if got := fmt.Sprint(cidr.Subtract(parent, used)); got != tc.want {
 			t.Errorf("%s: got %s want %s", tc.name, got, tc.want)
 		}
 	}
-	if got := Subtract(parent, []netip.Prefix{{}}); !slices.Equal(got, []netip.Prefix{parent}) {
+	if got := cidr.Subtract(parent, []netip.Prefix{{}}); !slices.Equal(got, []netip.Prefix{parent}) {
 		t.Errorf("invalid used prefix must be ignored, got %v", got)
 	}
-	if got := Subtract(prefixOf("10.42.0.7/20"), nil); !slices.Equal(got, []netip.Prefix{parent}) {
+	if got := cidr.Subtract(prefixOf("10.42.0.7/20"), nil); !slices.Equal(got, []netip.Prefix{parent}) {
 		t.Errorf("parent host bits must be masked, got %v", got)
 	}
-	if Subtract(netip.Prefix{}, nil) != nil || Subtract(prefixOf("fd00::/64"), nil) != nil {
+	if cidr.Subtract(netip.Prefix{}, nil) != nil || cidr.Subtract(prefixOf("fd00::/64"), nil) != nil {
 		t.Error("invalid parent must give nil")
 	}
-	if got := Subtract(parent, []netip.Prefix{prefixOf("10.42.0.0/20")}); got == nil {
+	if got := cidr.Subtract(parent, []netip.Prefix{prefixOf("10.42.0.0/20")}); got == nil {
 		t.Error("an empty result must be non-nil")
 	}
 	// the input slice must not be modified
 	used := []netip.Prefix{prefixOf("10.42.8.0/21"), prefixOf("10.42.0.0/22")}
 	before := slices.Clone(used)
-	Subtract(parent, used)
+	cidr.Subtract(parent, used)
 	if !slices.Equal(used, before) {
 		t.Error("Subtract modified its input")
 	}
@@ -365,9 +388,9 @@ func TestSubtractMatchesBruteForce(t *testing.T) {
 			}
 		}
 		var isFree [256]bool
-		free := Subtract(parent, used)
+		free := cidr.Subtract(parent, used)
 		for index, block := range free {
-			if index > 0 && Compare(free[index-1], block) >= 0 {
+			if index > 0 && cidr.Compare(free[index-1], block) >= 0 {
 				t.Fatalf("seed 7,11 case %d: not sorted: %v", caseNumber, free)
 			}
 			if index > 0 && canMerge(free[index-1], block) {
@@ -400,6 +423,9 @@ func canMerge(first, second netip.Prefix) bool {
 }
 
 // P1-CIDR-006
+//
+// TestUsable checks which addresses of small blocks are usable (network and broadcast excluded,
+// /31 and /32 special-cased).
 func TestUsable(t *testing.T) {
 	cases := []struct {
 		prefix string
@@ -412,24 +438,25 @@ func TestUsable(t *testing.T) {
 		{"10.42.0.0/29", "[10.42.0.1 10.42.0.2 10.42.0.3 10.42.0.4 10.42.0.5 10.42.0.6]"},
 	}
 	for _, tc := range cases {
-		got, err := Usable(prefixOf(tc.prefix))
+		got, err := cidr.Usable(prefixOf(tc.prefix))
 		if err != nil || fmt.Sprint(got) != tc.want {
 			t.Errorf("Usable(%s) = %v, %v want %s", tc.prefix, got, err, tc.want)
 		}
 	}
-	whole, err := Usable(prefixOf("10.42.1.0/24"))
+	whole, err := cidr.Usable(prefixOf("10.42.1.0/24"))
 	if err != nil || len(whole) != 254 || whole[0] != netip.MustParseAddr("10.42.1.1") || whole[253] != netip.MustParseAddr("10.42.1.254") {
 		t.Errorf("/24: %d addresses, %v", len(whole), err)
 	}
 }
 
+// TestUsableRefusals checks that Usable refuses blocks that are too large or not IPv4.
 func TestUsableRefusals(t *testing.T) {
 	for _, text := range []string{"10.42.0.0/23", "10.42.0.0/16", "0.0.0.0/0", "fd00::/120"} {
-		if got, err := Usable(prefixOf(text)); !types.HasCode(err, types.ErrInvalidPrefix) || got != nil {
+		if got, err := cidr.Usable(prefixOf(text)); !types.HasCode(err, types.ErrInvalidPrefix) || got != nil {
 			t.Errorf("Usable(%s) = %v, %v want INVALID_PREFIX", text, got, err)
 		}
 	}
-	if got, err := Usable(netip.Prefix{}); !types.HasCode(err, types.ErrInvalidPrefix) || got != nil {
+	if got, err := cidr.Usable(netip.Prefix{}); !types.HasCode(err, types.ErrInvalidPrefix) || got != nil {
 		t.Errorf("zero prefix: %v, %v", got, err)
 	}
 }
@@ -441,71 +468,89 @@ func TestUsableAtTopOfAddressSpace(t *testing.T) {
 		"255.255.255.254/31": "[255.255.255.254 255.255.255.255]",
 		"255.255.255.252/30": "[255.255.255.253 255.255.255.254]",
 	} {
-		got, err := Usable(prefixOf(text))
+		got, err := cidr.Usable(prefixOf(text))
 		if err != nil || fmt.Sprint(got) != want {
 			t.Errorf("Usable(%s) = %v, %v want %s", text, got, err, want)
 		}
 	}
-	if got, err := Usable(prefixOf("255.255.255.0/24")); err != nil || len(got) != 254 || got[253] != netip.MustParseAddr("255.255.255.254") {
+	if got, err := cidr.Usable(prefixOf("255.255.255.0/24")); err != nil || len(got) != 254 || got[253] != netip.MustParseAddr("255.255.255.254") {
 		t.Errorf("top /24: %d addresses, %v", len(got), err)
 	}
 }
 
+// ExampleSubtract shows Subtract in use; `go test` runs it and checks the "Output:" comment, so the
+// example in the documentation cannot go stale.
 func ExampleSubtract() {
-	free := Subtract(prefixOf("10.42.0.0/16"), []netip.Prefix{prefixOf("10.42.16.0/20")})
+	free := cidr.Subtract(prefixOf("10.42.0.0/16"), []netip.Prefix{prefixOf("10.42.16.0/20")})
 	fmt.Println(free)
 	// Output: [10.42.0.0/20 10.42.32.0/19 10.42.64.0/18 10.42.128.0/17]
 }
 
+// ExampleUsable shows Usable in use; `go test` runs it and checks the "Output:" comment, so the
+// example in the documentation cannot go stale.
 func ExampleUsable() {
-	addrs, _ := Usable(prefixOf("10.42.252.0/30"))
+	addrs, _ := cidr.Usable(prefixOf("10.42.252.0/30"))
 	fmt.Println(addrs)
 	// Output: [10.42.252.1 10.42.252.2]
 }
 
+// ExampleCanonical shows Canonical in use; `go test` runs it and checks the "Output:" comment, so the
+// example in the documentation cannot go stale.
 func ExampleCanonical() {
-	c, hadHostBits := Canonical(netip.MustParsePrefix("10.42.16.5/20"))
+	c, hadHostBits := cidr.Canonical(netip.MustParsePrefix("10.42.16.5/20"))
 	fmt.Println(c, hadHostBits)
 	// Output: 10.42.16.0/20 true
 }
 
+// ExampleContains shows Contains in use; `go test` runs it and checks the "Output:" comment, so the
+// example in the documentation cannot go stale.
 func ExampleContains() {
-	fmt.Println(Contains(prefixOf("10.42.0.0/16"), prefixOf("10.42.16.0/20")))
-	fmt.Println(Contains(prefixOf("10.42.16.0/20"), prefixOf("10.42.0.0/16")))
+	fmt.Println(cidr.Contains(prefixOf("10.42.0.0/16"), prefixOf("10.42.16.0/20")))
+	fmt.Println(cidr.Contains(prefixOf("10.42.16.0/20"), prefixOf("10.42.0.0/16")))
 	// Output:
 	// true
 	// false
 }
 
+// ExampleOverlaps shows Overlaps in use; `go test` runs it and checks the "Output:" comment, so the
+// example in the documentation cannot go stale.
 func ExampleOverlaps() {
-	fmt.Println(Overlaps(prefixOf("10.42.0.0/16"), prefixOf("10.42.16.0/20")))
-	fmt.Println(Overlaps(prefixOf("10.42.0.0/20"), prefixOf("10.42.16.0/20")))
+	fmt.Println(cidr.Overlaps(prefixOf("10.42.0.0/16"), prefixOf("10.42.16.0/20")))
+	fmt.Println(cidr.Overlaps(prefixOf("10.42.0.0/20"), prefixOf("10.42.16.0/20")))
 	// Output:
 	// true
 	// false
 }
 
+// ExampleSize shows Size in use; `go test` runs it and checks the "Output:" comment, so the
+// example in the documentation cannot go stale.
 func ExampleSize() {
-	fmt.Println(Size(prefixOf("10.42.16.0/20")))
+	fmt.Println(cidr.Size(prefixOf("10.42.16.0/20")))
 	// Output: 4096
 }
 
+// ExampleCompare shows Compare in use; `go test` runs it and checks the "Output:" comment, so the
+// example in the documentation cannot go stale.
 func ExampleCompare() {
-	fmt.Println(Compare(prefixOf("10.42.0.0/16"), prefixOf("10.42.0.0/20")))
-	fmt.Println(Compare(prefixOf("10.42.16.0/20"), prefixOf("10.42.0.0/20")))
+	fmt.Println(cidr.Compare(prefixOf("10.42.0.0/16"), prefixOf("10.42.0.0/20")))
+	fmt.Println(cidr.Compare(prefixOf("10.42.16.0/20"), prefixOf("10.42.0.0/20")))
 	// Output:
 	// -1
 	// 1
 }
 
+// ExampleSplit shows Split in use; `go test` runs it and checks the "Output:" comment, so the
+// example in the documentation cannot go stale.
 func ExampleSplit() {
-	s, _ := Split(prefixOf("10.42.0.0/16"), 18)
+	s, _ := cidr.Split(prefixOf("10.42.0.0/16"), 18)
 	fmt.Println(s)
 	// Output: [10.42.0.0/18 10.42.64.0/18 10.42.128.0/18 10.42.192.0/18]
 }
 
+// ExampleChildren shows Children in use; `go test` runs it and checks the "Output:" comment, so the
+// example in the documentation cannot go stale.
 func ExampleChildren() {
-	seq, _ := Children(prefixOf("10.42.252.0/22"), 30)
+	seq, _ := cidr.Children(prefixOf("10.42.252.0/22"), 30)
 	for i, c := range seq {
 		if i == 2 {
 			break

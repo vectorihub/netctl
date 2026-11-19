@@ -162,7 +162,9 @@ source documents are the three PDFs in the repo root, which are also kept out of
 netctl/                     module github.com/VectorIHub/netctl
 ├── doc.go                  the library's front door (Plan arrives in V74)
 ├── types/ cidr/ ipam/ topology/ route/ sim/ health/ failover/ config/ validate/ plan/
-│                           one folder per job, empty for now
+│                           one folder per job; each keeps its tests in its own tests/ folder
+│                           (cidr/tests, ipam/tests, ...). Empty for now where not built.
+├── arch/tests/             the architecture guard
 ├── policy/ identity/       Phase 3, empty for now
 ├── internal/               test helpers; never public
 ├── test/e2e/phase1/        end-to-end suite
@@ -184,6 +186,9 @@ These rules apply once real code lands. They are also what the automated reviewe
 - **Use typed errors** with a stable code (for example `OVERLAP`) and test them with `errors.Is`, not by
   comparing text.
 - **One runtime dependency:** `gopkg.in/yaml.v3`. Anything else needs a written reason.
+- **Keep tests in the package's `tests/` folder** (`ipam/tests`, `cidr/tests`, ...). They are black-box tests
+  of the exported API. Only a test that must corrupt private state to prove a defence may sit beside the code,
+  and it says why at the top of the file.
 - **Write comments people can hover.** Every exported function has a comment that starts with its name,
   explains inputs, outputs and errors, and includes a short `Example:`. Add a runnable `Example` test too.
 

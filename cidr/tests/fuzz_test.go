@@ -1,8 +1,10 @@
-package cidr
+package tests
 
 import (
 	"net/netip"
 	"testing"
+
+	"github.com/vectorihub/netctl/cidr"
 )
 
 // P1-CIDR-009: Canonical is idempotent and never panics, whatever text
@@ -20,21 +22,21 @@ func FuzzCanonical(f *testing.F) {
 		if err != nil {
 			return
 		}
-		canonical, _ := Canonical(prefix)
-		again, changed := Canonical(canonical)
+		canonical, _ := cidr.Canonical(prefix)
+		again, changed := cidr.Canonical(canonical)
 		if changed || again != canonical {
 			t.Fatalf("Canonical is not idempotent for %q: %s then %s", text, canonical, again)
 		}
 		if canonical.Bits() != prefix.Bits() || canonical != canonical.Masked() {
 			t.Fatalf("Canonical changed the length or left host bits for %q: %s", text, canonical)
 		}
-		if !Contains(canonical, canonical) && prefix.Addr().Is4() {
+		if !cidr.Contains(canonical, canonical) && prefix.Addr().Is4() {
 			t.Fatalf("a prefix must contain itself: %s", canonical)
 		}
 		// None of these may panic on any parsed prefix.
-		_ = Size(prefix)
-		_ = Overlaps(prefix, canonical)
-		_ = Compare(prefix, canonical)
+		_ = cidr.Size(prefix)
+		_ = cidr.Overlaps(prefix, canonical)
+		_ = cidr.Compare(prefix, canonical)
 	})
 }
 
@@ -52,10 +54,10 @@ func FuzzChildren(f *testing.F) {
 		if err != nil {
 			return
 		}
-		if children, err := Children(parent, childBits); err == nil {
+		if children, err := cidr.Children(parent, childBits); err == nil {
 			seen := 0
 			for index, child := range children {
-				if index != seen || !Contains(parent, child) || child.Bits() != childBits {
+				if index != seen || !cidr.Contains(parent, child) || child.Bits() != childBits {
 					t.Fatalf("bad child %d %s of %s into /%d", index, child, parent, childBits)
 				}
 				if seen++; seen == 64 {
@@ -63,8 +65,8 @@ func FuzzChildren(f *testing.F) {
 				}
 			}
 		}
-		_, _ = Split(parent, childBits)
-		_ = Subtract(parent, []netip.Prefix{parent})
-		_, _ = Usable(parent)
+		_, _ = cidr.Split(parent, childBits)
+		_ = cidr.Subtract(parent, []netip.Prefix{parent})
+		_, _ = cidr.Usable(parent)
 	})
 }
