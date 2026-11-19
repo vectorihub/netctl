@@ -1,0 +1,37 @@
+schema: beaver.topology/v1alpha1
+name: five-faults
+
+sites:
+  - id: aws
+  - id: builder
+
+nodes:
+  - id: aws-hub
+    site: aws
+    role: hub
+  - id: builder-1
+    site: builder
+    role: spoke
+  - id: orphan-1
+    site: mars              # fault 1: T3, no such site
+    role: spoke
+  - id: builder-1           # fault 2: T2, duplicate node ID
+    site: builder
+    role: spoke
+
+links:
+  - kind: hub-spoke
+    a: aws-hub
+    b: builder-1
+  - kind: hub-spoke
+    a: aws-hub
+    b: orphan-1
+  - kind: direct
+    a: builder-1
+    b: ghost                # fault 3: T4, unknown node
+  - kind: hub-spoke
+    a: builder-1
+    b: builder-1            # fault 4: T4, self-link (also T6 would be noise, so T4 only)
+
+intents:
+  - allow: { from: "site:venus", to: aws-hub }   # fault 5: T10

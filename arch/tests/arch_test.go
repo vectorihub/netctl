@@ -1,4 +1,4 @@
-package arch
+package tests
 
 import (
 	"bytes"
@@ -80,7 +80,7 @@ func violations(packages []goPackage) []string {
 func listPackages(t *testing.T) []goPackage {
 	t.Helper()
 	cmd := exec.Command("go", "list", "-deps", "-json", "./...")
-	cmd.Dir = ".."
+	cmd.Dir = "../.."
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()

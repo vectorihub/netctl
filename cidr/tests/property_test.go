@@ -1,4 +1,4 @@
-package cidr
+package tests
 
 import (
 	"fmt"
@@ -6,6 +6,8 @@ import (
 	"net/netip"
 	"slices"
 	"testing"
+
+	"github.com/vectorihub/netctl/cidr"
 )
 
 // Every random case is built from its own generator, seeded with (propertySeed,
@@ -16,8 +18,22 @@ const (
 	propertyCases = 5000
 )
 
+// caseRandom returns the random source for one numbered test case, so every case is reproducible
+// from the fixed seed.
 func caseRandom(caseNumber int) *rand.Rand {
 	return rand.New(rand.NewPCG(propertySeed, uint64(caseNumber)))
+}
+
+// addrToNumber and numberToAddr turn an IPv4 address into its number and back.
+// They are local copies: the tests reach cidr only through its exported names.
+func addrToNumber(addr netip.Addr) uint32 {
+	bytes := addr.As4()
+	return uint32(bytes[0])<<24 | uint32(bytes[1])<<16 | uint32(bytes[2])<<8 | uint32(bytes[3])
+}
+
+// numberToAddr turns a 32-bit number into the IPv4 address it stands for.
+func numberToAddr(number uint32) netip.Addr {
+	return netip.AddrFrom4([4]byte{byte(number >> 24), byte(number >> 16), byte(number >> 8), byte(number)})
 }
 
 // randomPrefixIn returns a random canonical prefix inside parent, between
@@ -38,11 +54,11 @@ type addressRange struct{ first, last uint64 }
 func unionSize(parent netip.Prefix, prefixes []netip.Prefix) uint64 {
 	var ranges []addressRange
 	for _, prefix := range prefixes {
-		if !Overlaps(parent, prefix) {
+		if !cidr.Overlaps(parent, prefix) {
 			continue
 		}
 		first := uint64(addrToNumber(prefix.Masked().Addr()))
-		ranges = append(ranges, addressRange{first, first + Size(prefix) - 1})
+		ranges = append(ranges, addressRange{first, first + cidr.Size(prefix) - 1})
 	}
 	slices.SortFunc(ranges, func(a, b addressRange) int {
 		if a.first != b.first {
@@ -54,7 +70,7 @@ func unionSize(parent netip.Prefix, prefixes []netip.Prefix) uint64 {
 	var current addressRange
 	started := false
 	parentFirst := uint64(addrToNumber(parent.Masked().Addr()))
-	parentLast := parentFirst + Size(parent) - 1
+	parentLast := parentFirst + cidr.Size(parent) - 1
 	for _, next := range ranges {
 		next.first, next.last = max(next.first, parentFirst), min(next.last, parentLast)
 		switch {
@@ -77,28 +93,28 @@ func unionSize(parent netip.Prefix, prefixes []netip.Prefix) uint64 {
 // cases found by the random tests are kept as plain unit tests that call it.
 func checkSubtract(t *testing.T, label string, parent netip.Prefix, used []netip.Prefix) {
 	t.Helper()
-	free := Subtract(parent, used)
+	free := cidr.Subtract(parent, used)
 	var freeSize uint64
 	for index, block := range free {
-		if block != block.Masked() || !Contains(parent, block) {
+		if block != block.Masked() || !cidr.Contains(parent, block) {
 			t.Fatalf("%s: free block %s is not canonical or not inside %s", label, block, parent)
 		}
 		for _, taken := range used {
-			if Overlaps(block, taken) {
+			if cidr.Overlaps(block, taken) {
 				t.Fatalf("%s: free %s overlaps used %s", label, block, taken)
 			}
 		}
 		if index > 0 {
-			if Compare(free[index-1], block) >= 0 || Overlaps(free[index-1], block) {
+			if cidr.Compare(free[index-1], block) >= 0 || cidr.Overlaps(free[index-1], block) {
 				t.Fatalf("%s: free blocks %s then %s are not sorted and separate", label, free[index-1], block)
 			}
 			if canMerge(free[index-1], block) {
 				t.Fatalf("%s: %s and %s should be one prefix (not minimal)", label, free[index-1], block)
 			}
 		}
-		freeSize += Size(block)
+		freeSize += cidr.Size(block)
 	}
-	if want := Size(parent) - unionSize(parent, used); freeSize != want {
+	if want := cidr.Size(parent) - unionSize(parent, used); freeSize != want {
 		t.Fatalf("%s: free space is %d addresses, want %d (used %v, free %v)", label, freeSize, want, used, free)
 	}
 }
@@ -115,20 +131,20 @@ func TestSubtractProperty(t *testing.T) {
 			candidate := randomPrefixIn(random, parent, 16, 32)
 			clashes := false
 			for _, taken := range used {
-				clashes = clashes || Overlaps(taken, candidate)
+				clashes = clashes || cidr.Overlaps(taken, candidate)
 			}
 			if !clashes {
-				used, usedSize = append(used, candidate), usedSize+Size(candidate)
+				used, usedSize = append(used, candidate), usedSize+cidr.Size(candidate)
 			}
 		}
 		label := fmt.Sprintf("seed %d case %d", propertySeed, caseNumber)
 		checkSubtract(t, label, parent, used)
 		var freeSize uint64
-		for _, block := range Subtract(parent, used) {
-			freeSize += Size(block)
+		for _, block := range cidr.Subtract(parent, used) {
+			freeSize += cidr.Size(block)
 		}
-		if usedSize+freeSize != Size(parent) {
-			t.Fatalf("%s: used %d + free %d != %d", label, usedSize, freeSize, Size(parent))
+		if usedSize+freeSize != cidr.Size(parent) {
+			t.Fatalf("%s: used %d + free %d != %d", label, usedSize, freeSize, cidr.Size(parent))
 		}
 	}
 }
@@ -143,7 +159,7 @@ func TestSubtractPropertyMessyInput(t *testing.T) {
 		for count := random.IntN(14); count > 0; count-- {
 			prefix := randomPrefixIn(random, parent, 12, 32)
 			if random.IntN(3) == 0 { // add host bits
-				host := addrToNumber(prefix.Addr()) | uint32(random.Uint64N(Size(prefix)))
+				host := addrToNumber(prefix.Addr()) | uint32(random.Uint64N(cidr.Size(prefix)))
 				prefix = netip.PrefixFrom(numberToAddr(host), prefix.Bits())
 			}
 			used = append(used, prefix)
@@ -155,6 +171,8 @@ func TestSubtractPropertyMessyInput(t *testing.T) {
 	}
 }
 
+// sign returns -1, 0 or 1 according to the sign of number, so comparisons can be checked without
+// caring about magnitude.
 func sign(number int) int {
 	switch {
 	case number < 0:
@@ -177,16 +195,16 @@ func TestCompareIsATotalOrder(t *testing.T) {
 		random := caseRandom(caseNumber)
 		a, b, c := randomPrefix(random), randomPrefix(random), randomPrefix(random)
 		label := fmt.Sprintf("seed %d case %d: a=%s b=%s c=%s", propertySeed, caseNumber, a, b, c)
-		if sign(Compare(a, b)) != -sign(Compare(b, a)) {
+		if sign(cidr.Compare(a, b)) != -sign(cidr.Compare(b, a)) {
 			t.Fatalf("%s: not antisymmetric", label)
 		}
-		if (Compare(a, b) == 0) != (a == b) {
+		if (cidr.Compare(a, b) == 0) != (a == b) {
 			t.Fatalf("%s: Compare(a,b)==0 must mean a==b", label)
 		}
-		if Compare(a, a) != 0 {
+		if cidr.Compare(a, a) != 0 {
 			t.Fatalf("%s: not reflexive", label)
 		}
-		if Compare(a, b) <= 0 && Compare(b, c) <= 0 && Compare(a, c) > 0 {
+		if cidr.Compare(a, b) <= 0 && cidr.Compare(b, c) <= 0 && cidr.Compare(a, c) > 0 {
 			t.Fatalf("%s: not transitive", label)
 		}
 	}
@@ -203,9 +221,9 @@ func TestCompareSortIsStable(t *testing.T) {
 			prefixes = append(prefixes, randomPrefixIn(random, parent, 16, 32))
 		}
 		sorted := slices.Clone(prefixes)
-		slices.SortFunc(sorted, Compare)
+		slices.SortFunc(sorted, cidr.Compare)
 		random.Shuffle(len(prefixes), func(i, j int) { prefixes[i], prefixes[j] = prefixes[j], prefixes[i] })
-		slices.SortFunc(prefixes, Compare)
+		slices.SortFunc(prefixes, cidr.Compare)
 		if !slices.Equal(sorted, prefixes) {
 			t.Fatalf("seed %d case %d: sort depends on input order", propertySeed, caseNumber)
 		}

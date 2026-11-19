@@ -1,0 +1,40 @@
+# builder-1 lists dgx-spark, dgx-spark does not list builder-1 (P1-TOPO-020).
+schema: beaver.topology/v1alpha1
+name: three-site
+addressing: { $ref: address-plan.yaml }
+
+sites:
+  - id: aws
+    provider: aws
+    region: eu-west-1
+  - id: builder
+    provider: owned
+  - id: dgx
+    provider: owned
+
+nodes:
+  - id: aws-hub
+    site: aws
+    role: hub
+    endpoints:                  # how other nodes can reach it (public)
+      - 203.0.113.10:51820
+    nat: none
+    peers: [builder-1, dgx-spark]
+  - id: builder-1
+    site: builder
+    role: spoke
+    nat: behind                 # behind NAT: cannot accept inbound
+    advertises: [site]          # announces its site /20 to the overlay
+    peers: [aws-hub, dgx-spark]
+  - id: dgx-spark
+    site: dgx
+    role: spoke
+    nat: behind
+    advertises: [site]
+    peers: [aws-hub]            # missing builder-1
+
+intents:
+  - allow: { from: builder-1, to: dgx-spark }
+  - allow: { from: dgx-spark, to: builder-1 }
+  - allow: { from: "*", to: aws-hub }
+  - deny: { from: "site:builder", to: "site:aws", ports: [5432] }   # modelled now, enforced in Phase 3
