@@ -9,6 +9,20 @@ changes, and each one is listed under **Breaking Changes** for that release.
 
 ## [Unreleased]
 
+## Package Highlights
+
+#### `route` (new, not yet complete)
+* The vocabulary of routing: `Route` (prefix, next hop, link, metric, source, path, active), `Source`
+  (`connected`, `computed`, `backup`, `static`), `Table` (one node's routes) and `Tables` (one table per node).
+  A route's source is never left unset: the zero value is `unknown` and refuses to be written as JSON.
+* `Compare` is a total order on routes, and `Table.Sort` uses it, so the same routes always sort the same way.
+* `Table.FIB` returns the routes in use; `Table.Routes` also holds backups waiting in reserve.
+* `Table.Lookup` is longest-prefix matching over active routes: the most specific route wins, then the lower
+  metric, and the answer never depends on the order of the table. An address with no matching route returns
+  false; there is no hidden default.
+* Computing the routes (shortest paths, backups, explanations) arrives in the rest of this release; the
+  package is not yet in the README or the root documentation for that reason.
+
 # Release 2026-11-19 (v0.3.1)
 
 ## Announcements
