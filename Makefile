@@ -3,7 +3,7 @@
 
 STATICCHECK_VERSION := v0.7.0
 
-.PHONY: check fmt-check vet lint purity test race arch fuzz bench e2e-phase1 repro windows
+.PHONY: check fmt-check vet lint purity test race arch fuzz bench repro windows
 
 ## check: the everyday gate — formatting, vet, tests. A red result fails CI.
 check: fmt-check vet test
@@ -63,10 +63,6 @@ fuzz:
 ## when its best run is over budget.
 bench:
 	go test ./ipam/tests ./topology/tests -run='^$$' -bench=. -benchtime=10x
-
-## e2e-phase1: the Phase 1 end-to-end suite (empty until Era 12).
-e2e-phase1:
-	go test -count=1 ./test/e2e/phase1/...
 
 ## repro: repeatability smoke test — the suite passes twice in shuffled order.
 ## The byte-for-byte determinism proof is V61.

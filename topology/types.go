@@ -16,7 +16,7 @@ const Schema = "beaver.topology/v1alpha1"
 // order they were written.
 //
 // It is plain data. Build one in Go code, or read one from YAML with Decode; the
-// rest of netctl cannot tell the difference (D7). This file imports no YAML
+// rest of netctl cannot tell the difference. This file imports no YAML
 // package, which keeps that true.
 type Topology struct {
 	// Schema must be Schema.
@@ -37,7 +37,7 @@ type Topology struct {
 }
 
 // Addressing is the address plan: either a reference to a separate plan file
-// or the plan itself. netctl never reads files (D7), so a reference is only
+// or the plan itself. netctl never reads files, so a reference is only
 // recorded here; the caller resolves it.
 type Addressing struct {
 	// Ref names a separate address-plan file, from "$ref". When set, Supernet
@@ -237,7 +237,7 @@ func (action Action) String() string {
 }
 
 // Intent says that traffic From one set of nodes To another is allowed or
-// denied. Phase 1 models intents; Phase 3 enforces them.
+// denied. netctl records intents; enforcing them is up to the caller.
 type Intent struct {
 	// Action is allow or deny.
 	Action Action

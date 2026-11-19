@@ -8,7 +8,7 @@ import (
 )
 
 // Accounting proves where every address in the supernet is: allocated,
-// reserved, quarantined or free, each exactly once (AC2, R11).
+// reserved, quarantined or free, each exactly once.
 //
 // It adds up the four kinds, finds the free space with cidr.Subtract, and
 // checks that allocated + reserved + quarantined + free equals the size of the
@@ -16,7 +16,7 @@ import (
 // registry built by New and changed only through its methods, Problems is
 // always empty.
 //
-// Example: on a fresh default plan Free is 65,536, everything else is 0 and
+// Example: on a fresh registry over 10.42.0.0/16 Free is 65,536, everything else is 0 and
 // FreeBlocks is [10.42.0.0/16].
 func (registry *IPAM) Accounting() Report {
 	registry.expire()

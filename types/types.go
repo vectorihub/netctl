@@ -53,8 +53,7 @@ func LinkIDOf(nodeA, nodeB NodeID) LinkID {
 
 // Role is what a node does in the topology.
 //
-// v1alpha1 has two roles. A relay role is reserved for Phase 5 and is
-// deliberately absent (D10).
+// The v1alpha1 schema has two roles: hub and spoke.
 type Role int
 
 const (
@@ -94,8 +93,7 @@ func ParseRole(text string) (Role, bool) {
 
 // LinkKind is the kind of a link between two nodes.
 //
-// v1alpha1 has two kinds. A transit kind is reserved for Phase 5 and is
-// deliberately absent (D10).
+// The v1alpha1 schema has two kinds: hub-spoke and direct.
 type LinkKind int
 
 const (

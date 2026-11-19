@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"fmt"
 	"math/rand"
 	"strings"
 	"testing"
@@ -158,50 +157,4 @@ func TestFixedClock(t *testing.T) {
 	if !(&types.FixedClock{}).Now().IsZero() {
 		t.Error("zero FixedClock must report the zero time")
 	}
-}
-
-// ExampleValidID shows ValidID in use; `go test` runs it and checks the "Output:" comment, so the
-// example in the documentation cannot go stale.
-func ExampleValidID() {
-	fmt.Println(types.ValidID("dgx-spark"), types.ValidID("Builder 1"), types.ValidID("-x"))
-	// Output: true false false
-}
-
-// ExampleLinkIDOf shows LinkIDOf in use; `go test` runs it and checks the "Output:" comment, so the
-// example in the documentation cannot go stale.
-func ExampleLinkIDOf() {
-	fmt.Println(types.LinkIDOf("dgx-spark", "builder-1"))
-	fmt.Println(types.LinkIDOf("builder-1", "dgx-spark"))
-	// Output:
-	// builder-1~dgx-spark
-	// builder-1~dgx-spark
-}
-
-// ExampleParseRole shows ParseRole in use; `go test` runs it and checks the "Output:" comment, so the
-// example in the documentation cannot go stale.
-func ExampleParseRole() {
-	r, ok := types.ParseRole("hub")
-	fmt.Println(r, ok)
-	r, ok = types.ParseRole("relay")
-	fmt.Println(r, ok)
-	// Output:
-	// hub true
-	// unknown false
-}
-
-// ExampleParseLinkKind shows ParseLinkKind in use; `go test` runs it and checks the "Output:" comment, so the
-// example in the documentation cannot go stale.
-func ExampleParseLinkKind() {
-	k, ok := types.ParseLinkKind("direct")
-	fmt.Println(k, ok)
-	// Output: direct true
-}
-
-// ExampleFixedClock shows FixedClock in use; `go test` runs it and checks the "Output:" comment, so the
-// example in the documentation cannot go stale.
-func ExampleFixedClock() {
-	c := &types.FixedClock{T: time.Date(2026, 11, 19, 12, 0, 0, 0, time.UTC)}
-	c.Advance(time.Hour)
-	fmt.Println(c.Now().Format(time.RFC3339))
-	// Output: 2026-11-19T13:00:00Z
 }

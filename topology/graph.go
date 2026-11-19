@@ -23,13 +23,9 @@ type Edge struct {
 	Usable bool
 }
 
-// Graph is the adjacency view that routing and the simulator walk. It is a
+// Graph is the adjacency view of a topology, for walking paths between nodes. It is a
 // snapshot: it holds copies, so changing the Topology afterwards does not change
 // it, and it is safe to read from many goroutines. Rebuild it when health changes.
-//
-// It has the methods route.Graph asks for (Nodes, Role, Edges, Adjacent), but
-// route does not exist yet and cannot be imported from here (route sits after
-// topology). When it does, V33 settles how Edge crosses that line.
 type Graph struct {
 	nodes []types.NodeID
 	roles map[types.NodeID]types.Role

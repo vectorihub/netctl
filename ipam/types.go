@@ -159,7 +159,7 @@ type Allocation struct {
 }
 
 // Snapshot is the complete IPAM state and the only thing that is persisted.
-// The caller stores it (D7); netctl never touches a file.
+// The caller stores it; netctl never touches a file.
 //
 // Allocations are kept sorted by cidr.Compare so that the same state always
 // serialises to the same bytes. Call SortAllocations after building one by hand.

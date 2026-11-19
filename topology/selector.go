@@ -24,8 +24,8 @@ const (
 )
 
 // Selector picks nodes. It is the parsed form of the text in a topology file;
-// Matches and Resolve say which nodes it picks. Policy (Phase 3) uses the same
-// type and the same resolution, so "site:builder" means one thing everywhere.
+// Matches and Resolve say which nodes it picks. Every part of netctl
+// resolves selectors the same way, so "site:builder" means one thing everywhere.
 type Selector struct {
 	// Kind says how nodes are picked.
 	Kind SelectorKind

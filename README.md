@@ -11,17 +11,41 @@
 
 <br>
 
-`netctl` models a private network, validates it, and returns plain data that other programs act on. It runs no
-daemon and needs no network or file access, and the same input always produces the same output.
+`netctl` is a Go library that plans private overlay networks. You describe the network, and it decides how the
+network should look, checks the result, and returns it as plain Go values that your own program stores or applies.
 
 The library requires a minimum of **Go 1.25**. Release notes are in the [changelog](CHANGELOG.md).
 
 **Jump to:**
+- [What is netctl?](#what-is-netctl)
 - [Getting started](#getting-started)
 - [Documentation](#documentation)
 - [Getting help](#getting-help)
 - [Contributing](#contributing)
 - [Security](#security)
+
+## What is netctl?
+
+An **overlay network** joins machines in different places (cloud regions, offices, data centres, a server under a
+desk) into one private network that runs on top of the internet. Before one can be built, someone has to decide
+how it should look:
+
+- which address block each site gets, and which address each machine gets;
+- which machines connect to which, and which connections are preferred;
+- who is allowed to reach whom.
+
+`netctl` makes those decisions and proves they are consistent. It hands out addresses that never overlap, checks a
+network description against a set of rules, and reports every problem at once with its location.
+
+`netctl` is a **planner, not an agent**. It never configures a machine, opens a connection, reads a file or starts a
+process. Everything it needs is passed in as values, and everything it decides comes back as values. That makes it:
+
+- **Deterministic.** The same input always produces the same output, byte for byte.
+- **Easy to test.** Plans are computed in memory, in milliseconds, with no infrastructure.
+- **Safe to embed.** It can run inside a control plane, a CLI, a CI check or a web service.
+
+Today `netctl` provides address management (`ipam`) and the network model (`topology`), with the supporting
+`types` and `cidr` packages.
 
 ## Status and version support
 

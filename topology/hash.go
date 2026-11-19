@@ -26,7 +26,8 @@ const hashVersion = 1
 //
 // Hash works on a copy, so it does not change t, and it needs no Normalize
 // first. Peers are imported on the copy when they can be. A nil Topology has a
-// hash too. The result is stable across releases until hashVersion changes.
+// hash too. The result is stable across releases unless the canonical form
+// changes, which would be called out in the changelog.
 //
 // Example: three-site.yaml and the same file with its nodes in another order
 // have the same Hash.

@@ -2,7 +2,8 @@
 // not provide, and uses netip types throughout (see ADR 0002). It imports only
 // the types package from this module.
 //
-// IPv4 only for now. The types are netip so IPv6 can follow in Phase 5.
+// Only IPv4 is supported today. The API uses netip types, so IPv6 support can
+// be added without changing it.
 //
 // # Canonical prefixes
 //

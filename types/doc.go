@@ -11,7 +11,7 @@
 //
 // # Roles and link kinds
 //
-// Role is hub or spoke, and LinkKind is hub-spoke or direct (D10). The zero
+// Role is hub or spoke, and LinkKind is hub-spoke or direct. The zero
 // value of each is "unknown", so a field that was never set cannot pass for a
 // real role or kind. Use ParseRole and ParseLinkKind to read them from text.
 //

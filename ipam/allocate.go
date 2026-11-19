@@ -63,7 +63,8 @@ func (registry *IPAM) holding(pool PoolName, owner Owner) *Allocation {
 //     allocated child by child.
 //   - POOL_EXHAUSTED: every child is taken or skipped.
 //
-// Example: on a fresh default plan, Allocate("sites", Site("aws")) returns
+// Example: on a fresh registry whose "sites" pool is 10.42.0.0/17
+// with ChildBits 20, Allocate("sites", Site("aws")) returns
 // 10.42.0.0/20, and calling it again returns the same allocation.
 func (registry *IPAM) Allocate(pool PoolName, owner Owner, opts ...Option) (Allocation, error) {
 	var chosen options
