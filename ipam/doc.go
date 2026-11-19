@@ -62,6 +62,8 @@
 //
 // # Errors
 //
-// Errors carry a stable code from package types, such as OVERLAP,
-// POOL_EXHAUSTED, RESERVED or NOT_FOUND. Match them with [types.HasCode].
+// Errors about addresses and pools carry a stable code from package types,
+// such as OVERLAP, POOL_EXHAUSTED, RESERVED or NOT_FOUND. Match them with
+// [types.HasCode]. Misuse, such as a nil clock or an owner with an empty ID,
+// and malformed snapshot JSON return plain errors without a code.
 package ipam
