@@ -1,51 +1,194 @@
 # netctl
 
-**The network planner for Beaver Cloud.**
+**A pure-Go library for planning private overlay networks.**
 
-Beaver Cloud connects machines in different places (a cloud server, your own servers, a GPU box, a Mac)
-so they behave like one private network. `netctl` is the part that **decides** how that network
-should look. It does not touch any real machine. It works out the plan, checks the plan, and hands the
-result to other programs that carry it out.
+[![CI](https://github.com/vectorihub/netctl/actions/workflows/ci.yaml/badge.svg)](https://github.com/vectorihub/netctl/actions/workflows/ci.yaml)
+[![Release](https://img.shields.io/github/v/release/vectorihub/netctl?sort=semver)](https://github.com/vectorihub/netctl/releases)
+[![Go Reference](https://pkg.go.dev/badge/github.com/vectorihub/netctl.svg)](https://pkg.go.dev/github.com/vectorihub/netctl)
+[![Go version](https://img.shields.io/github/go-mod/go-version/vectorihub/netctl)](go.mod)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
-> **Status: early. Only the project scaffold, CI, the architecture guard and the first decision records exist today (V3 to V7).** The planner itself is not built yet. See
-> [What works today](#what-works-today) and [Roadmap](#roadmap).
+`netctl` decides how a private network should look: which addresses belong to which machines, which links exist,
+and who may reach whom. It never touches a real machine. It reads a description of the network, checks it, and
+returns data that other programs carry out.
+
+It has no daemon, no command line, no network access and no file access. Everything it needs is passed in as
+values, and the same input always gives the same output, byte for byte. That makes it fast to test, easy to
+embed, and safe to run anywhere.
+
+`netctl` is the planner behind [Beaver Cloud](https://github.com/vectorihub), and is built to be useful on its own.
+
+> **Status: pre-1.0.** Address management and the topology model are released (`v0.3.0`). Routing, packet
+> simulation, failover and plan generation are on the [roadmap](#roadmap). Until `v1.0.0`, a minor release may
+> contain breaking changes; each one is listed in the [changelog](CHANGELOG.md).
+
+**Jump to:**
+[Getting started](#getting-started) ·
+[Packages](#packages) ·
+[Design principles](#design-principles) ·
+[Roadmap](#roadmap) ·
+[Development](#development) ·
+[Contributing](#contributing) ·
+[Getting help](#getting-help) ·
+[License](#license)
 
 ---
 
-## Why it exists
+## Getting started
 
-Without a single place that decides the network, small mistakes become outages:
+### Requirements
 
-| Mistake | What happens |
-|---|---|
-| Two machines get the same address | Both half-work, and nobody knows why |
-| An address is reused too soon | Old traffic reaches the wrong machine |
-| A backup route is added by hand | It loops, or replies come back a different way and get dropped |
-| A change is made on one machine | Another machine breaks, and you find out in production |
+- Go 1.25 or newer
 
-`netctl` removes the guessing. It builds the whole plan on paper first, tests it with pretend
-traffic, and refuses to produce anything if the plan is broken.
+### Install
 
-## What it does
+```sh
+go get github.com/vectorihub/netctl@v0.3.0
+```
 
-Given a description of your sites, machines and links, the planner will:
+### Quick start
 
-1. **Give out addresses.** Every site, machine and link gets a unique address, and no address is ever lost track of.
-2. **Work out routes.** For every machine, it finds the next step to reach every other place, plus a backup.
-3. **Test the plan.** It sends pretend packets through the plan to catch dead ends, loops and one-way roads.
-4. **Handle failures.** It prefers direct links, falls back to the hub when one breaks, and goes back only after the link has proven stable.
-5. **Write instructions.** It produces one instruction sheet per machine that does not depend on which operating system will apply it.
-6. **Say no.** If anything is wrong, it reports every problem and writes nothing.
+This program gives a site and a machine their addresses, then reads, checks and fingerprints a network
+description. Each part is independent, so use only what you need.
 
-How one plan is produced:
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/netip"
+	"os"
+	"time"
+
+	"github.com/vectorihub/netctl/ipam"
+	"github.com/vectorihub/netctl/topology"
+	"github.com/vectorihub/netctl/types"
+)
+
+func main() {
+	// Addresses: a supernet cut into pools, and a clock you control.
+	clock := &types.FixedClock{T: time.Date(2026, 11, 19, 9, 0, 0, 0, time.UTC)}
+	registry, err := ipam.New(ipam.Snapshot{
+		Schema:   ipam.Schema,
+		Supernet: netip.MustParsePrefix("10.42.0.0/16"),
+		Pools: []ipam.Pool{
+			{Name: "sites", Prefix: netip.MustParsePrefix("10.42.0.0/17"), ChildBits: 20},
+			{Name: "overlay", Prefix: netip.MustParsePrefix("10.42.240.0/21"), ChildBits: 32, SkipFirst: 1},
+		},
+	}, clock, ipam.DefaultQuarantine)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	site, _ := registry.Allocate("sites", ipam.Site("builder"))
+	node, _ := registry.Allocate("overlay", ipam.Node("builder-1"))
+	owner, _ := registry.OwnerOf(node.Prefix.Addr())
+	fmt.Println(site.Prefix, node.Prefix, owner) // 10.42.0.0/20 10.42.240.1/32 node:builder-1
+
+	// Topology: read, check and fingerprint a network description.
+	data, err := os.ReadFile("three-site.yaml") // you read the file; netctl never does
+	if err != nil {
+		log.Fatal(err)
+	}
+	network, report, err := topology.Load("three-site.yaml", data, 0)
+	if err != nil {
+		log.Fatal(err) // every problem at once, each with its rule and place
+	}
+	for _, warning := range report.Warnings() {
+		fmt.Println(warning)
+	}
+	graph := topology.BuildGraph(network, nil)
+	fmt.Println(len(network.Nodes), "nodes,", graph.EdgeCount(), "edges, hash", network.Hash()[:12])
+}
+```
+
+The topology file is plain YAML:
+
+```yaml
+schema: beaver.topology/v1alpha1
+name: three-site
+
+sites:
+  - { id: aws, provider: aws, region: eu-west-1 }
+  - { id: builder, provider: owned }
+  - { id: dgx, provider: owned }
+
+nodes:
+  - { id: aws-hub,   site: aws,     role: hub,   nat: none, endpoints: [203.0.113.10:51820] }
+  - { id: builder-1, site: builder, role: spoke, nat: behind, advertises: [site] }
+  - { id: dgx-spark, site: dgx,     role: spoke, nat: behind, advertises: [site] }
+
+links:
+  - { kind: hub-spoke, a: aws-hub,   b: builder-1 }
+  - { kind: hub-spoke, a: aws-hub,   b: dgx-spark }
+  - { kind: direct,    a: builder-1, b: dgx-spark, cost: 10 }
+
+intents:
+  - allow: { from: builder-1, to: dgx-spark }
+  - deny:  { from: "site:builder", to: "site:aws", ports: [5432] }
+```
+
+A mistake is reported with its file, line and a hint, and every mistake is reported at once:
+
+```text
+INVALID_TOPOLOGY: three-site.yaml:17: nodes[0]: unknown field "rol"; did you mean "role"?
+```
+
+---
+
+## Packages
+
+| Package | What it does | Status |
+|---|---|---|
+| [`types`](types) | Shared vocabulary: node, site and link IDs, roles, link kinds, coded errors (`OVERLAP`, `POOL_EXHAUSTED`, …) and an injectable clock. | Released |
+| [`cidr`](cidr) | Address-block maths on `net/netip`: canonicalise, split, subtract, compare, count usable addresses. | Released |
+| [`ipam`](ipam) | IP address management: pools, allocation, reservation, release with quarantine, lookup, accounting that proves no space is lost, and byte-stable snapshots. | Released |
+| [`topology`](topology) | The network model: strict YAML loading, defaults and ordering, validation rules, selectors, adjacency import, a graph view and a canonical hash. | Released |
+| `route` | Shortest paths, routing tables with backups, longest-prefix match. | Planned |
+| `sim` | A packet simulator that finds dead ends, loops and one-way paths in a plan. | Planned |
+| `health`, `failover` | Link health and the rules for failing over and back. | Planned |
+| `config`, `validate`, `plan` | Per-machine configuration, whole-plan validation, and `Plan`, the single entry point. | Planned |
+
+### What you can do today
+
+- **Hand out addresses safely.** Give every site, machine and link a unique block. No two owners overlap,
+  a released block rests in quarantine before reuse, and `Accounting()` shows allocated, reserved, quarantined
+  and free space adding up to the whole.
+- **Answer "who owns this address?"** `OwnerOf(10.42.240.2)` returns `node:builder-1`.
+- **Describe a network once, and trust it.** `topology.Load` refuses ambiguous input, applies defaults in one
+  place, and reports rule violations such as a duplicate node, a link to a missing machine, or a spoke with no path
+  to a hub. A direct link between two machines behind NAT is a warning, not an error.
+- **Resolve who an intent applies to.** `site:builder`, `label:env=prod`, `node:x` and `*` resolve to a sorted list.
+- **Import per-node adjacency lists.** If one side lists a peer and the other does not, the import is refused,
+  so a one-sided link can never get in.
+- **Fingerprint a network.** `Hash()` ignores ordering, comments and whitespace, and changes when the network does.
+
+---
+
+## Design principles
+
+- **Plan, never do.** `netctl` decides; a separate agent applies. This keeps the planner testable on a laptop in
+  milliseconds. An architecture test (`make arch`) fails the build if a package ever gains the ability to run
+  programs, use the network, open a database or touch the operating system.
+- **Pure and repeatable.** No clock, file, environment or network reads in library code (`make lint` enforces it).
+  Time and state are passed in. Output is sorted, so equal inputs give equal bytes.
+- **Refuse, don't guess.** Unknown fields, repeated fields, wrong types and unknown schema versions are errors.
+  Every problem is reported together, not one per run.
+- **Typed errors.** Failures carry a stable code. Match them with `errors.Is` or `types.HasCode`, never by message text.
+- **`net/netip` everywhere.** Addresses and prefixes are never `net.IP`. See [ADR 0002](docs/adr/0002-netip-everywhere.md).
+- **Small footprint.** One runtime dependency, `gopkg.in/yaml.v3`, used only by the topology loader. The types
+  in `topology/types.go` import no YAML, so a topology can be built in Go from database rows just as well.
+
+How one plan will be produced, once the later packages land:
 
 ```mermaid
 flowchart TD
     IN["Inputs<br/>topology, address state,<br/>link health, current time"] --> ADDR["1. Give out addresses"]
     ADDR --> ROUTE["2. Work out routes<br/>(primary and backup)"]
-    ROUTE --> CFG["3. Write one instruction sheet<br/>per machine"]
-    CFG --> CHECK["4. Check the plan<br/>rules and pretend traffic"]
-    CHECK -->|"all checks pass"| OUT["Result<br/>addresses, routes, sheets, reports"]
+    ROUTE --> CFG["3. Write one config<br/>per machine"]
+    CFG --> CHECK["4. Check the plan<br/>rules and simulated traffic"]
+    CHECK -->|"all checks pass"| OUT["Result<br/>addresses, routes, configs, reports"]
     CHECK -->|"anything wrong"| REF["Refuse<br/>list every problem, write nothing"]
 
     classDef ok fill:#e9f8ef,stroke:#1f9d55,color:#0b3d1f;
@@ -56,161 +199,90 @@ flowchart TD
     class IN,ADDR,ROUTE,CFG,CHECK step;
 ```
 
-The same input always gives the same output, byte for byte. That is what lets other programs tell a real change
-from noise.
+Step 1 is available now through `ipam`, and `topology` provides the network description that feeds it.
 
-## How it fits into Beaver Cloud
-
-```mermaid
-flowchart LR
-    U["Operator<br/>dashboard or CLI"] --> B["Backend<br/>stores state, calls the planner"]
-    B -->|"topology, addresses,<br/>link health"| N["netctl<br/>the planner (decides)"]
-    N -->|"one instruction sheet<br/>per machine"| B
-    B --> A1["Agent on machine A<br/>(does)"]
-    B --> A2["Agent on machine B<br/>(does)"]
-    B --> A3["Agent on machine C<br/>(does)"]
-    A1 -.->|"health reports"| B
-    A2 -.->|"health reports"| B
-    A3 -.->|"health reports"| B
-
-    classDef planner fill:#e8f1ff,stroke:#2f5bea,stroke-width:2px,color:#0b1f4d;
-    classDef actor fill:#f6f7f9,stroke:#8a93a3,color:#1f2937;
-    class N planner;
-    class U,B,A1,A2,A3 actor;
-```
-
-- **netctl decides.** It never configures a machine.
-- **The agent does.** A small program on each machine reads its sheet and makes the machine match it.
-
-Keeping these two apart is the main design rule of the project. It lets the planner be tested on a laptop in
-milliseconds, and lets the same decisions drive Linux today and other systems later.
-
-## What works today
-
-Nothing you can run, on purpose. This is a **library, not a program**: it has no command line, no server and
-no `package main` (decision D18). Command-line commands are built later in `beaver-cli`.
-
-The repo currently contains:
-
-- a Go module, `github.com/VectorIHub/netctl`, that builds and passes `go vet`
-- an empty folder for each part of the planner (addresses, topology, routing, simulation, health, failover,
-  configuration, validation, planning), each with a one-paragraph description
-- an architecture guard (`make arch`) that fails the build if the planner ever gains the ability to run
-  programs, use the network, open a database or touch the operating system, plus a lint check that
-  forbids reading the clock, files or environment
-- decision records in `docs/adr/` and the release rules in `docs/versioning.md`
-- a plan for everything else (see [Roadmap](#roadmap))
-
-Check that it builds:
-
-```sh
-go build ./... && go vet ./...
-```
-
-## How other programs will use it (planned)
-
-This is the intended shape. **It does not exist yet.**
-
-```go
-result, err := netctl.Plan(netctl.Inputs{
-    Topology: topology,   // sites, machines, links, who must reach whom
-    IPAM:     addresses,  // addresses already handed out
-    Health:   health,     // which links are known to be up or down
-    Clock:    clock,      // the current time, passed in
-})
-// result holds the addresses, routes, one config per machine,
-// and the validation and simulation reports.
-// If the plan is invalid, err says why and no configs are produced.
-```
-
-Everything it needs is passed in. It reads no files, no environment variables and no network. That is why it
-needs no `.env` file.
+---
 
 ## Roadmap
 
-Five phases, each ending with a pass/fail check. The next phase does not start until the check passes.
+Development runs in five phases, each ending in a pass/fail gate. The next phase does not start until the gate passes.
 
-| Phase | In plain English |
-|---|---|
-| **1. Network intelligence** | Plan the network on paper and prove the plan works. Pure logic, runs on a laptop. |
-| **2. Private connectivity** | Build real encrypted links between real machines. |
-| **3. Security** | ID cards for machines, a rulebook for who may talk to whom, and a guard on every machine. |
-| **4. Platform** | A control room that runs the planner continuously and sends out instructions automatically. |
-| **5. Reliability** | Survive failures, back up and restore, and prove it by breaking things on purpose. |
+| Phase | Goal | State |
+|---|---|---|
+| **1. Network intelligence** | Plan the network on paper and prove the plan works: addresses, topology, routing, simulation, failover, validation. Pure logic. | In progress: addresses and topology released |
+| **2. Private connectivity** | Build real encrypted links between real machines. | Planned |
+| **3. Security** | Machine identity, a policy engine for who may talk to whom, and host hardening. | Planned |
+| **4. Platform** | A control plane that runs the planner continuously and distributes configuration. | Planned |
+| **5. Reliability** | Survive failures, back up and restore, and prove it with chaos tests. | Planned |
 
-```mermaid
-flowchart LR
-    P1["Phase 1<br/>Plan on paper"] --> P2["Phase 2<br/>Build real links"]
-    P2 --> P3["Phase 3<br/>Lock it down"]
-    P3 --> P4["Phase 4<br/>Run it automatically"]
-    P4 --> P5["Phase 5<br/>Survive failures"]
+Released so far: [`v0.1.0`](CHANGELOG.md) (types, CIDR maths, tooling), [`v0.2.0`](CHANGELOG.md) (`ipam`) and
+[`v0.3.0`](CHANGELOG.md) (`topology`). Next is the routing engine.
 
-    classDef now fill:#e8f1ff,stroke:#2f5bea,stroke-width:2px,color:#0b1f4d;
-    classDef later fill:#f6f7f9,stroke:#8a93a3,color:#1f2937;
-    class P1 now;
-    class P2,P3,P4,P5 later;
+---
+
+## Development
+
+```sh
+make check      # formatting, vet and tests: the everyday gate
+make lint       # purity guard (no clock, files or environment) and staticcheck
+make race       # tests under the race detector
+make arch       # architecture guard and a Windows build check
+make bench      # performance budgets (IPAM allocation, topology load)
+make fuzz       # fuzz targets; FUZZTIME=120s for a longer run
 ```
 
-*Each arrow is a pass/fail gate. Blue marks where the project is today.*
+CI runs these same targets on Ubuntu and macOS, so a green `make check lint race arch` locally means a green build.
 
-The detailed plan (243 versions in 34 eras) is kept in `features/netctl/`. It is not tracked in git yet. The
-source documents are the three PDFs in the repo root, which are also kept out of git.
+### Repository layout
 
-## Project layout
-
-```
-netctl/                     module github.com/VectorIHub/netctl
-├── doc.go                  the library's front door (Plan arrives in V74)
-├── types/ cidr/ ipam/ topology/ route/ sim/ health/ failover/ config/ validate/ plan/
-│                           one folder per job; each keeps its tests in its own tests/ folder
-│                           (cidr/tests, ipam/tests, ...). Empty for now where not built.
-├── arch/tests/             the architecture guard
-├── policy/ identity/       Phase 3, empty for now
-├── internal/               test helpers; never public
-├── test/e2e/phase1/        end-to-end suite
-├── testdata/               topologies, golden outputs, signals
-├── docs/                   decision records (adr/) and phase gates (gates/)
-├── .coderabbit.yaml        automated code review settings
-├── .greptile/              automated code review settings
-└── features/netctl/        the plan, by phase, era and version (not tracked in git)
+```text
+netctl/
+├── types/ cidr/ ipam/ topology/      released packages
+├── route/ sim/ health/ failover/     planned packages (placeholders for now)
+├── config/ validate/ plan/
+├── <package>/tests/                  black-box tests for each package
+├── arch/tests/                       the architecture guard
+├── testdata/                         example topologies and fixtures
+└── docs/                             architecture decision records and the release policy
 ```
 
-## Writing code in this repo
+---
 
-These rules apply once real code lands. They are also what the automated reviewers check.
+## Contributing
 
-- **Stay pure.** No reading files, the clock, environment variables or the network, and no operating-system
-  packages. Callers pass everything in.
-- **Be repeatable.** Same input, same output. Sort before looping over a map, and pass time in.
-- **Use `net/netip`** for addresses, never `net.IP`.
-- **Use typed errors** with a stable code (for example `OVERLAP`) and test them with `errors.Is`, not by
-  comparing text.
-- **One runtime dependency:** `gopkg.in/yaml.v3`. Anything else needs a written reason.
-- **Keep tests in the package's `tests/` folder** (`ipam/tests`, `cidr/tests`, ...). They are black-box tests
-  of the exported API. Only a test that must corrupt private state to prove a defence may sit beside the code,
-  and it says why at the top of the file.
-- **Write comments people can hover.** Every exported function has a comment that starts with its name,
-  explains inputs, outputs and errors, and includes a short `Example:`. Add a runnable `Example` test too.
+Contributions are welcome. Open an issue to discuss a change before sending a large pull request.
 
-## Versioning
+Please follow the conventions the code already uses:
 
-How releases are numbered and what may change between them is in [docs/versioning.md](docs/versioning.md).
-What changed in each release is in [CHANGELOG.md](CHANGELOG.md).
-Decision records are in [docs/adr/](docs/adr/).
+- **Stay pure.** No reading files, the clock, environment variables or the network, and no operating-system packages.
+- **Be repeatable.** Same input, same output. Sort before ranging over a map, and pass time in.
+- **Use `net/netip`** for addresses, and **typed errors** with a stable code.
+- **Test the exported API** from the package's own `tests/` folder. Only a test that must corrupt private state to
+  prove a defence may sit beside the code, and it says why at the top of the file.
+- **Comment every function** clearly, including unexported helpers and tests. Exported functions start the comment
+  with their name, explain inputs, outputs and errors, and include a short example; add a runnable `Example` test too.
+- **One runtime dependency.** Anything new needs a written reason, ideally an ADR in [`docs/adr`](docs/adr).
 
-## Automated review
+Run `make check lint race arch` before opening a pull request. Pull requests are also reviewed automatically by
+[CodeRabbit](https://coderabbit.ai) and [Greptile](https://www.greptile.com) (see `.coderabbit.yaml` and
+`.greptile/config.json`).
 
-Pull requests are reviewed by [CodeRabbit](https://coderabbit.ai) and [Greptile](https://www.greptile.com).
-Their settings live in `.coderabbit.yaml` and `.greptile/config.json`. Both are GitHub apps that must be
-installed on the repository by an owner.
+### Versioning
 
-## Requirements
+netctl follows the rules in [docs/versioning.md](docs/versioning.md): `v0.N.0` for each new era until the
+Phase 5 gate, then normal semantic versioning from `v1.0.0`. File formats carry their own schema strings
+(`beaver.topology/v1alpha1`, `beaver.ipam/v1`) that change only on a breaking change to that format. What changed in
+each release is in [CHANGELOG.md](CHANGELOG.md).
 
-- Go 1.25 or newer
+---
 
 ## Getting help
 
-Open an issue on this repository, or read the plan in `features/netctl/` (start with `00-architecture.docs`).
+- Browse the [API documentation](https://pkg.go.dev/github.com/vectorihub/netctl) and the
+  [architecture decision records](docs/adr).
+- Search the [issues](https://github.com/vectorihub/netctl/issues), or open a new one with the input that
+  fails and the output you expected.
+- For a suspected security problem, please do not open a public issue; contact the maintainers privately.
 
 ## License
 
