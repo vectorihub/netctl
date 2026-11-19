@@ -49,7 +49,7 @@ windows:
 ## 60s for FuzzCanonical (P1-CIDR-009): make fuzz FUZZTIME=60s
 ## Go keeps any failing input under testdata/fuzz, where `make test` replays it.
 FUZZTIME ?= 10s
-FUZZ_TARGETS := cidr/tests:FuzzCanonical cidr/tests:FuzzChildren ipam/tests:FuzzSnapshot
+FUZZ_TARGETS := cidr/tests:FuzzCanonical cidr/tests:FuzzChildren ipam/tests:FuzzSnapshot topology/tests:FuzzDecode topology/tests:FuzzLoad
 fuzz:
 	@for target in $(FUZZ_TARGETS); do \
 	  pkg=$${target%%:*}; name=$${target##*:}; \
@@ -57,11 +57,12 @@ fuzz:
 	  go test ./$$pkg -run='^$$' -fuzz="^$$name$$" -fuzztime=$(FUZZTIME) || exit 1; \
 	done
 
-## bench: IPAM performance budgets (P1-IPAM-PERF-001: 2,000 overlay allocations under
+## bench: IPAM and topology performance budgets (P1-TOPO-041: loading 500 nodes and 1,500 links
+## under 300 ms; P1-IPAM-PERF-001: 2,000 overlay allocations under
 ## 200 ms; PERF-002: accounting at 5,000 allocations under 50 ms). A benchmark fails
 ## when its best run is over budget.
 bench:
-	go test ./ipam/tests -run='^$$' -bench=. -benchtime=10x
+	go test ./ipam/tests ./topology/tests -run='^$$' -bench=. -benchtime=10x
 
 ## e2e-phase1: the Phase 1 end-to-end suite (empty until Era 12).
 e2e-phase1:

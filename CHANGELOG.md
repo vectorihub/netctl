@@ -9,6 +9,62 @@ changes, and each one is listed under **Breaking Changes** for that release.
 
 ## [Unreleased]
 
+# Release 2026-11-19 (v0.3.0)
+
+## Announcements
+Release R3 adds `topology`, the one description of what the network is made of: sites, machines, links,
+and who must be allowed to reach whom. It reads YAML from bytes (never from a file), checks it against
+rules T1 to T11, and reports every problem at once with the file name and line.
+
+## Core Module Highlights
+* New package `topology`, with the input format `beaver.topology/v1alpha1`.
+* New runtime dependency: `gopkg.in/yaml.v3`, used only by the loader. `topology/types.go` imports no YAML,
+  so a `Topology` can be built in Go code (for example from database rows) and is treated the same.
+
+## Package Highlights
+
+#### `topology`
+* Types: `Topology`, `Site`, `Node`, `Link`, `Intent`, `Selector`, with `NATMode` and `HealthMode`. A zero
+  value always means "not said", so a missing field is never mistaken for a choice.
+* Strict loading: `Decode` refuses unknown fields (naming the line and suggesting the likely spelling,
+  `rol` to `role`), repeated fields, wrong kinds of value and merge keys. A 50 MB file or a "billion laughs"
+  file is refused at once.
+* Defaults and order: `Normalize` fills in cost and health, stores each link with its ends in order, derives
+  the link ID, and sorts sites, nodes and links, so the same network always looks the same. Intents keep
+  their written order.
+* Rules: `Check` and `Load` report rules T1 to T10 as a `Report` of `Finding`s, each naming its rule. T8
+  (a direct link between two nodes behind NAT) is a warning, not an error. T11 (unknown fields) is `Decode`'s.
+* Selectors: `*`, `node:`, `site:` and `label:k=v`, with `Selector.Resolve` returning sorted node IDs.
+* Adjacency import: a node may list `peers` instead of the file having `links`. `ImportPeers` turns agreeing
+  pairs into links and refuses a pair that only one side lists.
+* Graph: `BuildGraph` gives two directed edges per link, sorted by `(To, Link)`, with a health view.
+* Hash: `Hash` is a SHA-256 of the canonical form. Reordering, comments, whitespace and the links-or-peers
+  choice do not change it; any change to the network does.
+* Performance: loading 500 nodes and about 1,500 links takes about 33 ms.
+* Covered by unit tests, mutation checks, `FuzzDecode` and `FuzzLoad` (120 s).
+
+## Tooling Highlights
+* `make fuzz` covers `FuzzDecode` and `FuzzLoad`; `make bench` includes the topology load budget.
+
+## Documentation
+* Test fixtures for each rule live in `testdata/topologies/`.
+
+## Breaking Changes
+None.
+
+## Schema Versions
+| Schema | Status |
+|---|---|
+| `beaver.netctl/v1alpha1` | Not yet defined |
+| `beaver.topology/v1alpha1` | Defined in this release |
+| `beaver.ipam/v1` | Unchanged |
+
+## Upgrading
+```
+go get github.com/vectorihub/netctl@v0.3.0
+go mod tidy
+```
+
 # Release 2026-11-19 (v0.2.0)
 
 ## Announcements
