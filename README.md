@@ -180,27 +180,6 @@ INVALID_TOPOLOGY: three-site.yaml:17: nodes[0]: unknown field "rol"; did you mea
 - **Small footprint.** One runtime dependency, `gopkg.in/yaml.v3`, used only by the topology loader. The types
   in `topology/types.go` import no YAML, so a topology can be built in Go from database rows just as well.
 
-How one plan will be produced, once the later packages land:
-
-```mermaid
-flowchart TD
-    IN["Inputs<br/>topology, address state,<br/>link health, current time"] --> ADDR["1. Give out addresses"]
-    ADDR --> ROUTE["2. Work out routes<br/>(primary and backup)"]
-    ROUTE --> CFG["3. Write one config<br/>per machine"]
-    CFG --> CHECK["4. Check the plan<br/>rules and simulated traffic"]
-    CHECK -->|"all checks pass"| OUT["Result<br/>addresses, routes, configs, reports"]
-    CHECK -->|"anything wrong"| REF["Refuse<br/>list every problem, write nothing"]
-
-    classDef ok fill:#e9f8ef,stroke:#1f9d55,color:#0b3d1f;
-    classDef bad fill:#fdecec,stroke:#d64545,color:#4d0f0f;
-    classDef step fill:#f6f7f9,stroke:#8a93a3,color:#1f2937;
-    class OUT ok;
-    class REF bad;
-    class IN,ADDR,ROUTE,CFG,CHECK step;
-```
-
-Step 1 is available now through `ipam`, and `topology` provides the network description that feeds it.
-
 ---
 
 ## Roadmap
