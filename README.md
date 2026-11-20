@@ -44,8 +44,8 @@ process. Everything it needs is passed in as values, and everything it decides c
 - **Easy to test.** Plans are computed in memory, in milliseconds, with no infrastructure.
 - **Safe to embed.** It can run inside a control plane, a CLI, a CI check or a web service.
 
-Today `netctl` provides address management (`ipam`) and the network model (`topology`), with the supporting
-`types` and `cidr` packages.
+Today `netctl` provides address management (`ipam`), the network model (`topology`) and routing (`route`), with
+the supporting `types` and `cidr` packages.
 
 ## Status and version support
 
@@ -146,6 +146,7 @@ The full API reference, with runnable examples, is on [pkg.go.dev](https://pkg.g
 | [`cidr`](https://pkg.go.dev/github.com/vectorihub/netctl/cidr) | Address-block arithmetic on `net/netip`. |
 | [`ipam`](https://pkg.go.dev/github.com/vectorihub/netctl/ipam) | Address allocation, ownership lookup, accounting, and snapshots. |
 | [`topology`](https://pkg.go.dev/github.com/vectorihub/netctl/topology) | Network model, YAML loading, validation, and hashing. |
+| [`route`](https://pkg.go.dev/github.com/vectorihub/netctl/route) | Routing tables for every node: shortest paths, backups, longest-prefix lookup, explanations and diffs. |
 
 ## Getting help
 

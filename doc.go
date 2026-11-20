@@ -45,6 +45,11 @@
 //   - [github.com/vectorihub/netctl/topology]: the network model. Loads a
 //     network description from YAML or Go values, validates it against a set
 //     of rules, and exposes it as a graph with a canonical hash.
+//   - [github.com/vectorihub/netctl/route]: routing. Computes a routing table
+//     for every machine, with shortest paths that keep the network
+//     hub-and-spoke, one backup per route, and unreachable pairs reported as
+//     data. Answers longest-prefix lookups, explains why a route is used, and
+//     diffs two sets of tables.
 //
 // # A typical flow
 //
