@@ -11,7 +11,7 @@ changes, and each one is listed under **Breaking Changes** for that release.
 
 ## Package Highlights
 
-#### `route` (new, not yet complete)
+#### `route` (new)
 * The vocabulary of routing: `Route` (prefix, next hop, link, metric, source, path, active), `Source`
   (`connected`, `computed`, `backup`, `static`), `Table` (one node's routes) and `Tables` (one table per node).
   A route's source is never left unset: the zero value is `unknown` and refuses to be written as JSON.
@@ -20,8 +20,48 @@ changes, and each one is listed under **Breaking Changes** for that release.
 * `Table.Lookup` is longest-prefix matching over active routes: the most specific route wins, then the lower
   metric, and the answer never depends on the order of the table. An address with no matching route returns
   false; there is no hidden default.
-* Computing the routes (shortest paths, backups, explanations) arrives in the rest of this release; the
-  package is not yet in the README or the root documentation for that reason.
+* `SPF` finds the cheapest path from one node to every other over the links that are up. A spoke never
+  forwards for others, so two spokes with a direct link still reach a third through the hub. Equal-cost paths
+  are settled the same way on every run: fewer hops, then the smaller next hop, then the smaller link, then
+  the smaller list of nodes.
+* `Compute` builds the table of every node: connected routes for what the node holds, an active computed
+  route for what every other node announces, and one inactive backup per prefix found by searching again
+  without the primary's first link. The result does not depend on the order of the input.
+* `Collect` reads who announces what from the address plan (`ipam`): site blocks, overlay addresses, and the
+  transit `/30` of each direct link, which only its two ends hold.
+* Nothing is dropped silently. A pair of nodes with no path is returned in `Result.Unreachable` with a reason
+  (no healthy path, or the only path crosses a spoke). A static `Override` is accepted only if it points at a
+  real neighbour, is always flagged as `static`, and otherwise comes back in `Result.Rejected` with an
+  explanation. Broken input, such as one block announced by two nodes, is refused with a coded error.
+* `route` defines its own small `Graph` interface and does not import `topology`; the planner will adapt
+  `topology.Graph` to it.
+* `Explain` says which route a node uses for an address and why: the match, the route in use, the backup that
+  would take over, a flagged static override, and link health if you supply it. `Explanation.String` is stable
+  text suitable for a golden file.
+* `Diff` compares two sets of tables and returns, per node, the routes added, removed and changed. A backup
+  that takes over from a failed primary shows as a change with `Activated` true. Identical tables give an empty
+  diff.
+* Shortest paths run on integers with a typed heap: 500 nodes, one hub and 200 direct links compute in about
+  half a second on a 2016 laptop (the target is under one second), and 2,000 nodes with four hubs in about
+  eleven seconds. The 2,000-node target in the plan covers validation only, which arrives with the validator.
+* The package is now in the README and the root documentation.
+
+#### `sim` (new, not yet complete)
+* The vocabulary of simulation: `Packet`, `Hop`, `Trace`, `Flow`, `FlowResult`, `Report`, and the verdicts
+  (`OK`, `OK_ASYMMETRIC_ALLOWED`, `ASYMMETRIC`, `NO_RETURN`, `BLACK_HOLE`, `LOOP`, `LINK_DOWN`,
+  `WRONG_NEIGHBOUR`, `TTL_EXCEEDED`, `UNEXPECTED_DELIVERY`, `NO_HEALTHY_PATH`, `UNREACHABLE_EXPECTED`), each
+  saying whether it fails the gate. The zero verdict fails the gate, so an unjudged flow cannot pass.
+* `Net.Send` pushes a packet through the tables hop by hop. A loop is detected exactly, because forwarding is
+  deterministic, and long before the hop limit; the hop limit is a second, independent net. Every packet ends
+  with a result, whatever the tables hold.
+* `Net.Run` sends a flow and its reply, and `Judge` and `Symmetric` turn the two traces into one verdict.
+  Symmetric means the exact reverse in nodes and in links. A missing return, an asymmetric path, a down link and
+  a route to a node that is not a neighbour each get their own verdict.
+* `Flows` derives everything worth simulating from a topology and its address plan: overlay flows between
+  every pair of nodes, site flows between every pair of advertised sites, one flow per deny intent, and one
+  negative flow per node. The order is fixed.
+* `NewNet` builds the network under test from a `route.Graph` and the prefixes each node holds.
+* Scenarios, fault-injection helpers and the text and JSON reports arrive in the rest of the release.
 
 # Release 2026-11-19 (v0.3.1)
 
