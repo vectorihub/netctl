@@ -20,7 +20,7 @@ const DefaultTopology = "three-site.yaml"
 //
 // Example:
 //
-//	w.Copy("topologies/address-plan.yaml", "topologies/three-site.yaml")
+//	w.Copy("e2e/address-plan.yaml", "e2e/three-site.yaml")
 func (w *W) Copy(names ...string) {
 	w.T.Helper()
 	root, err := ModuleRoot()
@@ -66,7 +66,7 @@ func (w *W) Read(name string) []byte {
 //	w := e2e.New(t, "P1-E2E-001"); w.Setup()
 func (w *W) Setup() {
 	w.T.Helper()
-	w.Copy("topologies/address-plan.yaml", "topologies/three-site.yaml")
+	w.Copy("e2e/address-plan.yaml", "e2e/three-site.yaml")
 }
 
 // Load decodes and checks a topology file of the workspace and resolves its address plan

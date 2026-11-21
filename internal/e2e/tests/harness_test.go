@@ -326,3 +326,26 @@ func TestSnapshotsAndDirHashesSeeAnyChange(t *testing.T) {
 	}
 	_ = before
 }
+
+// TestEveryFixtureLoadsOrIsRefusedAsDesigned loads each topology fixture of testdata/e2e: the
+// good ones decode and check clean, the bad ones are refused for their own reason (a typo, a
+// schema version nobody reads, an adjacency listed on one side).
+func TestEveryFixtureLoadsOrIsRefusedAsDesigned(t *testing.T) {
+	w := e2e.New(t, "P1-E2E-990")
+	w.Copy("e2e/address-plan.yaml")
+	good := []string{"three-site", "three-site-secret", "lab-a1", "lab-a2", "lab-a3", "adjacency"}
+	for _, name := range good {
+		w.Copy("e2e/" + name + ".yaml")
+		if _, err := w.TryLoad(name + ".yaml"); err != nil {
+			t.Errorf("%s: %v", name, err)
+		}
+	}
+	bad := map[string]string{"three-site-typo": "rol", "three-site-v9": "beaver.topology/v9", "adjacency-one-sided": "builder-1~dgx-spark"}
+	for name, want := range bad {
+		w.Copy("e2e/" + name + ".yaml")
+		_, err := w.TryLoad(name + ".yaml")
+		if err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("%s: got %v, want an error mentioning %q", name, err, want)
+		}
+	}
+}

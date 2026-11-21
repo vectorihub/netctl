@@ -1,0 +1,19 @@
+supernet: 10.42.0.0/16
+pools:
+  - name: sites
+    prefix: 10.42.0.0/17
+    child_bits: 20
+  - name: growth
+    prefix: 10.42.128.0/18
+    child_bits: 20
+    reserved: true
+  - name: overlay
+    prefix: 10.42.240.0/21
+    child_bits: 32
+    skip_first: 1               # keep 10.42.240.0 unused
+  - name: infra
+    prefix: 10.42.248.0/22
+    reserved: true
+  - name: transit
+    prefix: 10.42.252.0/22
+    child_bits: 30

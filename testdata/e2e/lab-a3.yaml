@@ -1,0 +1,51 @@
+schema: beaver.topology/v1alpha1
+# Packet Tracer lab A3: a direct link between the spokes, backup through the hub, link shut and restored
+name: lab-a3
+addressing: { $ref: address-plan.yaml }
+
+sites:
+  - id: aws
+    provider: aws
+    region: eu-west-1
+  - id: builder
+    provider: owned
+  - id: dgx
+    provider: owned
+
+nodes:
+  - id: aws-hub
+    site: aws
+    role: hub
+    endpoints:                  # how other nodes can reach it (public)
+      - 203.0.113.10:51820
+    nat: none
+    advertises: [site]          # the hub announces its own site too
+  - id: builder-1
+    site: builder
+    role: spoke
+    nat: behind                 # behind NAT: cannot accept inbound
+    advertises: [site]          # announces its site /20 to the overlay
+  - id: dgx-spark
+    site: dgx
+    role: spoke
+    nat: behind
+    advertises: [site]
+
+links:
+  - kind: hub-spoke
+    a: aws-hub
+    b: builder-1
+  - kind: hub-spoke
+    a: aws-hub
+    b: dgx-spark
+  - kind: direct
+    a: builder-1
+    b: dgx-spark
+    cost: 10                    # preferred over hub path (cost 20 + 20)
+    health: required            # needs an independent health signal
+
+intents:
+  - allow: { from: builder-1, to: dgx-spark }
+  - allow: { from: dgx-spark, to: builder-1 }
+  - allow: { from: "*", to: aws-hub }
+  - deny: { from: "site:builder", to: "site:aws", ports: [5432] }   # modelled now, enforced in Phase 3
