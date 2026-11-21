@@ -4,6 +4,7 @@ package validate_test
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/vectorihub/netctl/topology"
 	"github.com/vectorihub/netctl/validate"
@@ -136,4 +137,32 @@ func ExampleFinding_String() {
 	fmt.Println(validate.Finding{Rule: "V-CFG-004", Level: validate.Error, Subject: "builder-1", Message: "oops", Hint: "fix it"})
 	// Output:
 	// error V-CFG-004 builder-1: oops (fix it)
+}
+
+// ExampleResult_Text shows a result written for people: whether the plan stands, the counts,
+// and each finding with its hint.
+func ExampleResult_Text() {
+	res := validate.Result{Findings: []validate.Finding{
+		{Rule: "V-CFG-004", Level: validate.Error, Subject: "builder-1", Message: "10.42.32.0/20 is allowed for both aws-hub and dgx-spark", Hint: "a prefix must belong to exactly one peer"},
+	}}
+	fmt.Print(res.Text())
+	// Output:
+	// validation: FAILED (1 error, 0 warnings, 0 infos)
+	//
+	// error V-CFG-004 builder-1
+	//   10.42.32.0/20 is allowed for both aws-hub and dgx-spark
+	//   hint: a prefix must belong to exactly one peer
+}
+
+// ExampleCatalogueText shows the first rules of the catalogue as a reader sees them.
+func ExampleCatalogueText() {
+	for i, line := range strings.Split(validate.CatalogueText(), "\n") {
+		if i < 3 {
+			fmt.Println(line)
+		}
+	}
+	// Output:
+	// V-ADDR-001  error    no two allocations overlap
+	// V-ADDR-002  error    the accounting invariant holds
+	// V-ADDR-003  error    every node has exactly one overlay address
 }
