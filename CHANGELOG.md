@@ -9,53 +9,122 @@ changes, and each one is listed under **Breaking Changes** for that release.
 
 ## [Unreleased]
 
-### Added
-* **`config` (new package)**
-  * `NodeConfig` is the desired network state of one node: overlay address, peers, routes, health probes and
-    thresholds, written in Beaver's own words. No interface names, commands, sysctls, table numbers or paths, and no
-    secrets: a peer's public key is named by reference. The JSON Schema is published in `config/schema/v1alpha1.json`
-    (and as `SchemaJSON()`), strict at every level; `v1alpha1` may change until it is declared stable.
-  * `Generate` builds every node's config from one plan. A peer's `allowed_prefixes` are its probe address and every
-    prefix whose active route goes through it, so a prefix is with one peer at a time (WireGuard keeps it with one) and
-    failover moves it from the direct peer to the hub in the next config. Keepalive and `needs_traversal` follow NAT:
-    the hub keeps no keepalive, and two spokes behind NAT need traversal. It refuses a prefix active through two peers,
-    a route to a non-peer and a bad transit block, and reports every problem at once. `FromPlan` collects the inputs
-    from a topology and the address plan.
-  * `Encode` writes a config in one canonical form (sorted lists, masked prefixes, `[]` never `null`, fixed key order)
-    with a SHA-256 `hash`; the same plan gives the same bytes on any run, order or `GOMAXPROCS`. `Verify`, `Decode`
-    (strict), `Clone` and `PlanID` (the topology's name and eight hex digits of a hash of every node's content).
-  * `Diff`, `DiffPlans`: peers added, removed and changed, **prefixes moved** from one peer to another, routes added,
-    removed and changed, with `Text` for people.
-  * `ScanSecrets` and `ScanOSFields` find key material, tokens, interface names, paths, commands and table numbers in a
-    config without repeating the value.
-* **`failover` (new package)**
-  * `Evaluate` folds health signals into every link's state machine, marks the links that are not usable as down,
-    recomputes every node's table with the real `route.Compute` (once per evaluation), compares with the tables from
-    before, and returns a `Decision` per link with the routes it activated and withdrew on each node and why.
-    When a direct link between two spokes fails, one decision lists the backups promoted on both ends; when it recovers,
-    the primaries return on both ends together.
-  * The simulation guard: the new tables are simulated over the network as health now has it, and a failover that
-    breaks a flow that worked before (a loop made by a bad static route, say) is not installed. `Result.Rejected`
-    names the flows, the old tables stay, and the health change is still recorded. A node cut off because all its
-    links failed is not a reason to reject.
-  * `State` is everything a restart must not forget: link states, hold-down, pin and flap timers, and the installed
-    tables, in the stable JSON schema `beaver.failover/v1` (`State.JSON`, `ParseState`). A run that stops and resumes
-    between every batch ends byte-identical to one that never stopped (a 300-run property test).
-  * `RequiredLinks` reads which links must be proven from a topology.
-* **`health`**
-  * Flap pinning: a link that goes Down more than `flap_limit` times within `flap_window` is pinned Down for `pin_for`,
-    whatever the evidence says. The decision says "flap limit".
-  * Operator drain: an admin signal that is not OK drains a link (Down at once, until released); one that is OK
-    releases a drain and a pin. A release restarts the hold-down, so the link must prove itself again through Recovering.
-  * `Link.Clone` and `LinkHealth.Usable`. `Link` gains `Drained`, `Pinned`, `PinnedUntil` and `Flaps`.
+# Release 2026-11-21 (v0.7.0)
 
-### Changed
-* `Evaluator.Apply` no longer skips admin signals; one that cannot be applied (draining a drained link, releasing a
-  link that is neither drained nor pinned) is still returned in `Skipped` with the reason.
-* `route.Table` has JSON tags (`node`, `routes`); it previously wrote `Node` and `Routes`.
-* `route.Diff` is much faster on tables that did not change (500 nodes: 1.3 s to 0.05 s); its output is unchanged.
-* `sim.NewNet` indexes the tables across the available processors; its output is unchanged.
-* The three-site test fixture's hub has its public endpoint, as in the end-to-end guide.
+## Announcements
+Release R7 adds `config`, the line between the control plane and the data plane. For every node it writes one
+document that says what that node's network should look like: its overlay address, its peers and the prefixes each
+may carry, its routes, and what to probe. It never says how. There are no interface names, commands, sysctls,
+table numbers or paths, and no secrets. The same document can be applied by a Linux agent today and by another
+kind of agent later. When a direct link fails, the next config moves the far node's prefixes from the direct peer
+to the hub, so WireGuard follows the new route.
+
+## Package Highlights
+
+#### `config` (new)
+* `NodeConfig` is the desired state of one node, with a strict JSON Schema published in
+  `config/schema/v1alpha1.json` (and returned by `SchemaJSON()`). A peer is named, and its public key is
+  referred to by identity; a private key can never appear.
+* `Generate` builds every node's config from one plan, and `FromPlan` collects its inputs from a topology and the
+  address plan. A peer's `allowed_prefixes` are its probe address and every prefix whose active route goes through
+  it, so a prefix is with one peer at a time, as WireGuard needs. Keepalive and `needs_traversal` follow NAT: the
+  hub keeps no keepalive, and two spokes behind NAT need traversal. It refuses a prefix active through two peers,
+  a route to a node that is not a peer, an address that is not a usable IPv4 prefix and a bad health setting, and
+  reports every problem at once.
+* `Encode` writes a config in one canonical form (sorted lists, masked prefixes, `[]` and never `null`, fixed key
+  order, a rule's ports as a set) with a SHA-256 `hash`. The same plan gives the same bytes on any run, input
+  order or `GOMAXPROCS`. `Verify`, a strict `Decode`, `Clone`, and `PlanID` (the topology's name and eight hex
+  digits of a hash of every node's content) complete it.
+* `Diff` and `DiffPlans` say what changed between two plans: peers added, removed and changed, prefixes moved from
+  one peer to another (including to or from a peer that was added or removed), and routes added, removed and
+  changed, with `Text` for people.
+* `ScanSecrets` and `ScanOSFields` look for key material, tokens, interface names, file paths, commands and table
+  numbers in a config, and never repeat what they find.
+
+## Documentation
+* Every exported identifier in `config` has a doc comment with an `Example:` block, every exported function has a
+  runnable example on pkg.go.dev, and the package documentation explains the allowed-prefixes rule.
+* `README.md` lists `config` and `failover`.
+
+## Breaking Changes
+None. Everything in this release is new API.
+
+## Schema Versions
+| Schema | Status |
+|---|---|
+| `beaver.netctl/v1alpha1` | **Defined** (`NodeConfig`). Alpha: it may change until declared stable |
+| `beaver.topology/v1alpha1` | Unchanged |
+| `beaver.ipam/v1` | Unchanged |
+| `beaver.failover/v1` | Unchanged |
+
+## Upgrading
+```
+go get github.com/vectorihub/netctl@v0.7.0
+go mod tidy
+```
+
+# Release 2026-11-21 (v0.6.0)
+
+## Announcements
+Release R6 completes link health and adds `failover`. A link that keeps failing and recovering is now pinned down,
+and an operator can drain a link. The new `failover` package turns health into routes: it folds in new evidence,
+recomputes every node's routing table with the real engine, says exactly what changed on each node and why, and
+refuses to install a failover that the simulation shows would break something that worked. Its state can be saved
+and reloaded, so a restart does not forget a hold-down.
+
+## Package Highlights
+
+#### `failover` (new)
+* `Evaluate` folds health signals into every link's state machine, marks the links that are not usable as down,
+  recomputes every node's table with `route.Compute` (once per evaluation), compares with the tables from before,
+  and returns a `Decision` per link with the routes it activated and withdrew on each node, and why. When a direct
+  link between two spokes fails, one decision lists the backups promoted on both ends; when it recovers, the
+  primaries return on both ends together.
+* The simulation guard: the new tables are simulated over the network as health now has it. A failover that breaks
+  a flow that worked before (a loop made by a bad static route, say) is not installed: `Result.Rejected` names the
+  flows, the old tables stay, and the health change is still recorded. It is judged against the network the kept
+  tables were made for, so it stays rejected until the problem is gone. A node cut off because all its links failed
+  is not a reason to reject. Empty or repeated flow labels are refused.
+* `State` is everything a restart must not forget: link states, hold-down, pin and flap timers, and the installed
+  tables, in the schema `beaver.failover/v1` (`State.JSON`, `ParseState`, which refuses damaged input). A run that
+  stops and resumes between every batch ends byte-identical to one that never stopped (a 300-run property test).
+* `RequiredLinks` reads which links must be proven from a topology.
+
+#### `health`
+* Flap pinning: a link that goes Down more than `flap_limit` times within `flap_window` is pinned Down for
+  `pin_for`, whatever the evidence says; the decision says "flap limit".
+* Operator drain: an admin signal that is not OK drains a link (Down at once, until released); one that is OK
+  releases a drain and a pin. A release restarts the hold-down, so the link must prove itself again through
+  Recovering. An admin order older than the newest one already applied is skipped, so a late release cannot undo a
+  newer drain.
+* `Link.Clone` and `LinkHealth.Usable`. `Link` gains `Drained`, `Pinned`, `PinnedUntil`, `LastAdmin` and `Flaps`.
+
+#### `route` and `sim`
+* `route.Diff` is much faster on tables that did not change (500 nodes: 1.3 s to 0.05 s) and gives the same output.
+* `sim.NewNet` indexes the tables across the available processors, with the same output.
+
+## Documentation
+* Every exported identifier in `failover`, and the new exported fields of `health`, has a doc comment with an
+  `Example:` block, and every exported function has a runnable example on pkg.go.dev.
+
+## Breaking Changes
+* `route.Table` now has JSON tags: it writes `node` and `routes`, where it wrote `Node` and `Routes`.
+* `health.Evaluator.Apply` applies admin signals instead of skipping them; one that cannot be applied (draining a
+  drained link, releasing a link that is neither drained nor pinned) is still returned in `Skipped`, with the reason.
+
+## Schema Versions
+| Schema | Status |
+|---|---|
+| `beaver.netctl/v1alpha1` | Not yet defined |
+| `beaver.topology/v1alpha1` | Unchanged |
+| `beaver.ipam/v1` | Unchanged |
+| `beaver.failover/v1` | **New** (`State`) |
+
+## Upgrading
+```
+go get github.com/vectorihub/netctl@v0.6.0
+go mod tidy
+```
 
 # Release 2026-11-21 (v0.5.0)
 
