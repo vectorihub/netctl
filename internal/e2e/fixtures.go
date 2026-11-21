@@ -168,3 +168,18 @@ func (w *W) Rewrite(name, old, updated string) {
 	}
 	w.Write(name, []byte(strings.Replace(text, old, updated, 1)))
 }
+
+// RewriteAll replaces every occurrence of text in a workspace file, failing the test when
+// there is none. It is how a test renames a node everywhere it appears.
+//
+// Example:
+//
+//	w.RewriteAll("topo.yaml", "builder-1", "builder-01")
+func (w *W) RewriteAll(name, old, updated string) {
+	w.T.Helper()
+	text := string(w.Read(name))
+	if !strings.Contains(text, old) {
+		w.Fatalf("rewrite %s: %q not found", name, old)
+	}
+	w.Write(name, []byte(strings.ReplaceAll(text, old, updated)))
+}

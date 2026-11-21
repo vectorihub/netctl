@@ -63,9 +63,14 @@ type (
 		SkipFirst int    `json:"skip_first"`
 	}
 	canonicalSite struct {
-		ID       string `json:"id"`
-		Provider string `json:"provider"`
-		Region   string `json:"region"`
+		ID       string             `json:"id"`
+		Provider string             `json:"provider"`
+		Region   string             `json:"region"`
+		Override *canonicalOverride `json:"override,omitempty"`
+	}
+	canonicalOverride struct {
+		Pool   string `json:"pool"`
+		Reason string `json:"reason"`
 	}
 	canonicalNode struct {
 		ID         string            `json:"id"`
@@ -116,7 +121,11 @@ func (t *Topology) canonicalJSON() []byte {
 		out.Addressing.Pools = append(out.Addressing.Pools, canonicalPool{pool.Name, prefixText(pool.Prefix), pool.ChildBits, pool.Reserved, pool.SkipFirst})
 	}
 	for _, site := range work.Sites {
-		out.Sites = append(out.Sites, canonicalSite{string(site.ID), site.Provider, site.Region})
+		canon := canonicalSite{ID: string(site.ID), Provider: site.Provider, Region: site.Region}
+		if site.Override != nil {
+			canon.Override = &canonicalOverride{Pool: site.Override.Pool, Reason: site.Override.Reason}
+		}
+		out.Sites = append(out.Sites, canon)
 	}
 	for _, node := range work.Nodes {
 		canon := canonicalNode{
