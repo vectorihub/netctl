@@ -17,10 +17,14 @@ type RouteChange struct {
 
 // Activated reports whether the route came into use: it was inactive and now
 // is active. This is what happens to a backup when its primary fails.
+//
+// Example: a backup that goes from inactive to active after its primary fails is Activated.
 func (change RouteChange) Activated() bool { return !change.Old.Active && change.New.Active }
 
 // Deactivated reports whether the route went out of use: it was active and now
 // is not.
+//
+// Example: the primary route that a backup replaced is Deactivated.
 func (change RouteChange) Deactivated() bool { return change.Old.Active && !change.New.Active }
 
 // TableDiff is what changed in one node's table.
@@ -37,6 +41,8 @@ type TableDiff struct {
 }
 
 // Empty reports whether nothing changed.
+//
+// Example: the diff of a table with itself is Empty.
 func (diff TableDiff) Empty() bool {
 	return len(diff.Added) == 0 && len(diff.Removed) == 0 && len(diff.Changed) == 0
 }

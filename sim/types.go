@@ -1,7 +1,6 @@
 package sim
 
 import (
-	"fmt"
 	"net/netip"
 	"slices"
 	"strings"
@@ -53,6 +52,8 @@ var hopNames = map[HopResult]string{
 }
 
 // String returns the result in capitals, for example "BLACK_HOLE", or "UNKNOWN".
+//
+// Example: BlackHole.String() returns "BLACK_HOLE".
 func (result HopResult) String() string {
 	if name, ok := hopNames[result]; ok {
 		return name
@@ -76,19 +77,24 @@ func ParseHopResult(text string) (HopResult, bool) {
 
 // MarshalText writes the result as its name. An unknown result returns an
 // error, so a half-filled trace cannot be written out.
+//
+// Example: LoopDetected.MarshalText() returns "LOOP"; the zero HopResult returns an INVALID_VALUE error.
 func (result HopResult) MarshalText() ([]byte, error) {
 	if _, ok := hopNames[result]; !ok {
-		return nil, fmt.Errorf("sim: cannot write unknown hop result %d", int(result))
+		return nil, types.Errf(types.ErrInvalidValue, "hop result", "cannot write unknown hop result %d", int(result))
 	}
 	return []byte(result.String()), nil
 }
 
 // UnmarshalText reads a name written by MarshalText. An unknown name is an error
 // and leaves the receiver unchanged.
+//
+// Example: UnmarshalText("LINK_DOWN") sets the receiver to LinkDown; "link down" returns an
+// INVALID_VALUE error.
 func (result *HopResult) UnmarshalText(text []byte) error {
 	parsed, ok := ParseHopResult(string(text))
 	if !ok {
-		return fmt.Errorf("sim: unknown hop result %q", text)
+		return types.Errf(types.ErrInvalidValue, "hop result", "unknown hop result %q", text)
 	}
 	*result = parsed
 	return nil
@@ -165,6 +171,8 @@ var verdictOrder = []Verdict{
 }
 
 // String returns the verdict in capitals, for example "NO_RETURN", or "UNKNOWN".
+//
+// Example: VerdictNoReturn.String() returns "NO_RETURN".
 func (verdict Verdict) String() string {
 	if name, ok := verdictNames[verdict]; ok {
 		return name
@@ -187,19 +195,23 @@ func ParseVerdict(text string) (Verdict, bool) {
 
 // MarshalText writes the verdict as its name. An unknown verdict returns an
 // error, so an unjudged flow cannot be written out.
+//
+// Example: VerdictOK.MarshalText() returns "OK"; the zero Verdict returns an INVALID_VALUE error.
 func (verdict Verdict) MarshalText() ([]byte, error) {
 	if _, ok := verdictNames[verdict]; !ok {
-		return nil, fmt.Errorf("sim: cannot write unknown verdict %d", int(verdict))
+		return nil, types.Errf(types.ErrInvalidValue, "verdict", "cannot write unknown verdict %d", int(verdict))
 	}
 	return []byte(verdict.String()), nil
 }
 
 // UnmarshalText reads a name written by MarshalText. An unknown name is an error
 // and leaves the receiver unchanged.
+//
+// Example: UnmarshalText("LOOP") sets the receiver to VerdictLoop; "loop" returns an INVALID_VALUE error.
 func (verdict *Verdict) UnmarshalText(text []byte) error {
 	parsed, ok := ParseVerdict(string(text))
 	if !ok {
-		return fmt.Errorf("sim: unknown verdict %q", text)
+		return types.Errf(types.ErrInvalidValue, "verdict", "unknown verdict %q", text)
 	}
 	*verdict = parsed
 	return nil
@@ -210,6 +222,8 @@ func (verdict *Verdict) UnmarshalText(text []byte) error {
 // These pass: OK, OK_ASYMMETRIC_ALLOWED (with a warning), UNREACHABLE_EXPECTED,
 // and NO_HEALTHY_PATH, which is the honest result when links have failed and no
 // path is left. Everything else fails, including an unknown verdict.
+//
+// Example: VerdictBlackHole.FailsGate() is true; VerdictOK.FailsGate() is false.
 func (verdict Verdict) FailsGate() bool {
 	switch verdict {
 	case VerdictOK, VerdictOKAsymmetricAllowed, VerdictUnreachableExpected, VerdictNoHealthyPath:
@@ -220,6 +234,8 @@ func (verdict Verdict) FailsGate() bool {
 
 // Warning reports whether the verdict passes the gate but deserves attention:
 // delivered, but along different paths that were explicitly allowed to differ.
+//
+// Example: VerdictOKAsymmetricAllowed.Warning() is true; VerdictOK.Warning() is false.
 func (verdict Verdict) Warning() bool { return verdict == VerdictOKAsymmetricAllowed }
 
 // Packet is one simulated packet.
@@ -256,9 +272,13 @@ type Trace struct {
 }
 
 // Delivered reports whether the packet reached its destination.
+//
+// Example: a trace that ends with Delivered is Delivered.
 func (trace Trace) Delivered() bool { return trace.Final == Delivered }
 
 // Nodes returns the nodes the packet visited, in order.
+//
+// Example: a trace through builder-1, aws-hub and dgx-spark returns those three, in order.
 func (trace Trace) Nodes() []types.NodeID {
 	nodes := make([]types.NodeID, len(trace.Hops))
 	for i, hop := range trace.Hops {
@@ -269,6 +289,8 @@ func (trace Trace) Nodes() []types.NodeID {
 
 // Links returns the links the packet crossed, in order: the link of every hop
 // that forwarded it.
+//
+// Example: the same trace returns aws-hub~builder-1 and aws-hub~dgx-spark.
 func (trace Trace) Links() []types.LinkID {
 	var links []types.LinkID
 	for _, hop := range trace.Hops {
@@ -280,6 +302,8 @@ func (trace Trace) Links() []types.LinkID {
 }
 
 // Crossings returns how many links the packet crossed.
+//
+// Example: the same trace has 2 crossings.
 func (trace Trace) Crossings() int { return len(trace.Links()) }
 
 // ProblemKind names a kind of problem a flow can have.
@@ -338,6 +362,8 @@ var familyNames = map[Family]string{
 }
 
 // String returns "overlay", "site", "deny", "negative" or "unknown".
+//
+// Example: FamilySite.String() returns "site".
 func (family Family) String() string {
 	if name, ok := familyNames[family]; ok {
 		return name
@@ -346,15 +372,19 @@ func (family Family) String() string {
 }
 
 // MarshalText writes the family as its name. An unknown family returns an error.
+//
+// Example: FamilyDeny.MarshalText() returns "deny"; the zero Family returns an INVALID_VALUE error.
 func (family Family) MarshalText() ([]byte, error) {
 	if _, ok := familyNames[family]; !ok {
-		return nil, fmt.Errorf("sim: cannot write unknown flow family %d", int(family))
+		return nil, types.Errf(types.ErrInvalidValue, "flow family", "cannot write unknown flow family %d", int(family))
 	}
 	return []byte(family.String()), nil
 }
 
 // UnmarshalText reads a name written by MarshalText. An unknown name is an error
 // and leaves the receiver unchanged.
+//
+// Example: UnmarshalText("negative") sets the receiver to FamilyNegative; "odd" returns an INVALID_VALUE error.
 func (family *Family) UnmarshalText(text []byte) error {
 	for candidate, name := range familyNames {
 		if name == string(text) {
@@ -362,7 +392,7 @@ func (family *Family) UnmarshalText(text []byte) error {
 			return nil
 		}
 	}
-	return fmt.Errorf("sim: unknown flow family %q", text)
+	return types.Errf(types.ErrInvalidValue, "flow family", "unknown flow family %q", text)
 }
 
 // Flow is one thing to test: a packet from one address to another, injected at a
@@ -396,6 +426,8 @@ type Flow struct {
 }
 
 // Negative reports whether the flow must not be delivered.
+//
+// Example: a flow of FamilyNegative is Negative; an overlay flow is not.
 func (flow Flow) Negative() bool { return flow.Family == FamilyNegative }
 
 // FlowResult is the outcome of one flow.
@@ -447,6 +479,9 @@ type Summary struct {
 }
 
 // Count returns how many flows have the verdict.
+//
+// Example: for a summary of 13 OK and 3 UNREACHABLE_EXPECTED, Count(VerdictOK) is 13 and
+// Count(VerdictLoop) is 0.
 func (summary Summary) Count(verdict Verdict) int {
 	for _, entry := range summary.Verdicts {
 		if entry.Verdict == verdict {

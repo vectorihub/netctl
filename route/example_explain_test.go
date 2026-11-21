@@ -71,3 +71,57 @@ func ExampleDiff() {
 	//   changed 10.42.16.0/20 via aws-hub: was backup, now computed, active=true
 	//     taken over from a backup: true
 }
+
+// ExampleRouteChange_Deactivated shows the other half of a failover: the route
+// that was in use and is not any more.
+func ExampleRouteChange_Deactivated() {
+	change := route.RouteChange{
+		Old: route.Route{Active: true},
+		New: route.Route{Active: false},
+	}
+	fmt.Println(change.Deactivated(), change.Activated())
+	// Output:
+	// true false
+}
+
+// ExampleRouteChange_Activated shows a backup coming into use.
+func ExampleRouteChange_Activated() {
+	change := route.RouteChange{
+		Old: route.Route{Source: route.SourceBackup, Active: false},
+		New: route.Route{Source: route.SourceComputed, Active: true},
+	}
+	fmt.Println(change.Activated(), change.Deactivated())
+	// Output:
+	// true false
+}
+
+// ExampleTableDiff_Empty shows that comparing a set of tables with itself finds
+// nothing, and that a failure finds something.
+func ExampleTableDiff_Empty() {
+	input := route.Input{Owned: threeSiteOwned()}
+	healthy, _ := route.Compute(threeSite(false), input)
+	failed, _ := route.Compute(threeSite(true), input)
+	fmt.Println(len(route.Diff(healthy.Tables, healthy.Tables)), "differences with itself")
+	for _, diff := range route.Diff(healthy.Tables, failed.Tables) {
+		fmt.Println(diff.Node, "empty:", diff.Empty())
+	}
+	fmt.Println(route.TableDiff{}.Empty())
+	// Output:
+	// 0 differences with itself
+	// builder-1 empty: false
+	// dgx-spark empty: false
+	// true
+}
+
+// ExampleExplanation_String prints an explanation of a black hole.
+func ExampleExplanation_String() {
+	result, _ := route.Compute(threeSite(false), route.Input{Owned: threeSiteOwned()})
+	explanation := route.Explain(result.Tables["aws-hub"], netip.MustParseAddr("192.168.1.1"), route.Notes{})
+	fmt.Print(explanation.String())
+	// Output:
+	// aws-hub → 192.168.1.1
+	//    match:   none
+	//    active:  none, the packet would be dropped (black hole)
+	//    backup:  none
+	//    reason:  no active route covers 192.168.1.1, so the packet is dropped
+}

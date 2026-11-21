@@ -155,6 +155,8 @@ func describe(r Route) string {
 //
 // The text is the same for the same explanation, so it can be kept as a golden
 // file. A node with no matching route says "none" on the match and active lines.
+//
+// Example: see the block above: the text of the explanation for builder-1 and 10.42.33.7.
 func (e Explanation) String() string {
 	var out strings.Builder
 	fmt.Fprintf(&out, "%s → %s", e.Node, e.Dst)

@@ -228,3 +228,234 @@ func ExampleNewReport() {
 	// builder-1→dgx-spark then dgx-spark→builder-1
 	// flows: 2 OK: 2 passed: true
 }
+
+// ExampleVerdict_String shows the name of a verdict.
+func ExampleVerdict_String() {
+	fmt.Println(sim.VerdictNoReturn, sim.VerdictUnknown)
+	// Output:
+	// NO_RETURN UNKNOWN
+}
+
+// ExampleVerdict_FailsGate shows which verdicts stop a plan from being applied.
+func ExampleVerdict_FailsGate() {
+	for _, v := range []sim.Verdict{sim.VerdictOK, sim.VerdictUnreachableExpected, sim.VerdictBlackHole, sim.VerdictUnknown} {
+		fmt.Println(v, v.FailsGate())
+	}
+	// Output:
+	// OK false
+	// UNREACHABLE_EXPECTED false
+	// BLACK_HOLE true
+	// UNKNOWN true
+}
+
+// ExampleVerdict_Warning shows the one verdict that passes with a warning.
+func ExampleVerdict_Warning() {
+	fmt.Println(sim.VerdictOKAsymmetricAllowed.Warning(), sim.VerdictOK.Warning())
+	// Output:
+	// true false
+}
+
+// ExampleVerdict_MarshalText shows a verdict written as its name, and an unjudged
+// flow's zero verdict refused with a coded error.
+func ExampleVerdict_MarshalText() {
+	text, _ := sim.VerdictOK.MarshalText()
+	fmt.Println(string(text))
+	_, err := sim.VerdictUnknown.MarshalText()
+	fmt.Println(types.HasCode(err, types.ErrInvalidValue))
+	// Output:
+	// OK
+	// true
+}
+
+// ExampleVerdict_UnmarshalText shows a verdict read back, and a wrong name refused
+// with a coded error.
+func ExampleVerdict_UnmarshalText() {
+	var v sim.Verdict
+	fmt.Println(v.UnmarshalText([]byte("LOOP")), v)
+	fmt.Println(types.HasCode(v.UnmarshalText([]byte("loop")), types.ErrInvalidValue), v)
+	// Output:
+	// <nil> LOOP
+	// true LOOP
+}
+
+// ExampleHopResult_String shows the name of a hop result.
+func ExampleHopResult_String() {
+	fmt.Println(sim.BlackHole, sim.Delivered)
+	// Output:
+	// BLACK_HOLE DELIVERED
+}
+
+// ExampleHopResult_MarshalText shows a hop result written as its name.
+func ExampleHopResult_MarshalText() {
+	text, _ := sim.LoopDetected.MarshalText()
+	_, err := sim.HopUnknown.MarshalText()
+	fmt.Println(string(text), types.HasCode(err, types.ErrInvalidValue))
+	// Output:
+	// LOOP true
+}
+
+// ExampleHopResult_UnmarshalText shows a hop result read back.
+func ExampleHopResult_UnmarshalText() {
+	var r sim.HopResult
+	fmt.Println(r.UnmarshalText([]byte("LINK_DOWN")), r)
+	fmt.Println(types.HasCode(r.UnmarshalText([]byte("link down")), types.ErrInvalidValue))
+	// Output:
+	// <nil> LINK_DOWN
+	// true
+}
+
+// ExampleFamily_String shows the name of a flow family.
+func ExampleFamily_String() {
+	fmt.Println(sim.FamilySite, sim.FamilyUnknown)
+	// Output:
+	// site unknown
+}
+
+// ExampleFamily_MarshalText shows a family written as its name.
+func ExampleFamily_MarshalText() {
+	text, _ := sim.FamilyDeny.MarshalText()
+	_, err := sim.FamilyUnknown.MarshalText()
+	fmt.Println(string(text), types.HasCode(err, types.ErrInvalidValue))
+	// Output:
+	// deny true
+}
+
+// ExampleFamily_UnmarshalText shows a family read back.
+func ExampleFamily_UnmarshalText() {
+	var f sim.Family
+	fmt.Println(f.UnmarshalText([]byte("negative")), f)
+	fmt.Println(types.HasCode(f.UnmarshalText([]byte("odd")), types.ErrInvalidValue))
+	// Output:
+	// <nil> negative
+	// true
+}
+
+// ExampleFlow_Negative shows which flows must not be delivered anywhere.
+func ExampleFlow_Negative() {
+	fmt.Println(sim.Flow{Family: sim.FamilyNegative}.Negative(), sim.Flow{Family: sim.FamilyOverlay}.Negative())
+	// Output:
+	// true false
+}
+
+// ExampleSummary_Count shows a summary answering how many flows got a verdict.
+func ExampleSummary_Count() {
+	net := build(true)
+	var results []sim.FlowResult
+	for _, flow := range []sim.Flow{
+		{Label: "a", Family: sim.FamilyOverlay, Src: netip.MustParseAddr("10.42.240.2"), Dst: netip.MustParseAddr("10.42.240.3"), From: "builder-1", To: "dgx-spark"},
+		{Label: "b", Family: sim.FamilyNegative, Src: netip.MustParseAddr("10.42.240.2"), Dst: netip.MustParseAddr("192.168.1.1"), From: "builder-1"},
+	} {
+		results = append(results, net.Run(flow, false))
+	}
+	summary := sim.NewReport(results).Summary
+	fmt.Println(summary.Count(sim.VerdictOK), summary.Count(sim.VerdictUnreachableExpected), summary.Count(sim.VerdictLoop))
+	// Output:
+	// 1 1 0
+}
+
+// exampleTrace is a packet that went from builder-1 through aws-hub and was
+// delivered at dgx-spark, built by hand so the Trace methods can be shown alone.
+func exampleTrace() sim.Trace {
+	return sim.Trace{Final: sim.Delivered, Hops: []sim.Hop{
+		{Node: "builder-1", Result: sim.Forwarded, Route: &route.Route{NextHop: "aws-hub", Via: "aws-hub~builder-1"}},
+		{Node: "aws-hub", Result: sim.Forwarded, Route: &route.Route{NextHop: "dgx-spark", Via: "aws-hub~dgx-spark"}},
+		{Node: "dgx-spark", Result: sim.Delivered},
+	}}
+}
+
+// ExampleTrace_Delivered shows whether a packet arrived.
+func ExampleTrace_Delivered() {
+	fmt.Println(exampleTrace().Delivered(), sim.Trace{Final: sim.BlackHole}.Delivered())
+	// Output:
+	// true false
+}
+
+// ExampleTrace_Nodes shows the nodes a packet visited, in order.
+func ExampleTrace_Nodes() {
+	fmt.Println(exampleTrace().Nodes())
+	// Output:
+	// [builder-1 aws-hub dgx-spark]
+}
+
+// ExampleTrace_Links shows the links a packet crossed, in order.
+func ExampleTrace_Links() {
+	fmt.Println(exampleTrace().Links())
+	// Output:
+	// [aws-hub~builder-1 aws-hub~dgx-spark]
+}
+
+// ExampleTrace_Crossings shows how many links a packet crossed.
+func ExampleTrace_Crossings() {
+	fmt.Println(exampleTrace().Crossings())
+	// Output:
+	// 2
+}
+
+// ExampleProblemsOf shows what is wrong with a flow whose packet was dropped at
+// the hub: one problem, naming the node.
+func ExampleProblemsOf() {
+	forward := sim.Trace{
+		Packet: sim.Packet{Dst: netip.MustParseAddr("10.42.240.3")},
+		Final:  sim.BlackHole,
+		Hops: []sim.Hop{
+			{Node: "builder-1", Result: sim.Forwarded, Route: &route.Route{NextHop: "aws-hub", Via: "aws-hub~builder-1"}},
+			{Node: "aws-hub", Result: sim.BlackHole},
+		},
+	}
+	for _, p := range sim.ProblemsOf(forward, nil, sim.VerdictBlackHole) {
+		fmt.Println(p.Kind, p.Direction, p.Node, "-", p.Detail)
+	}
+	// Output:
+	// black_hole forward aws-hub - aws-hub has no route for 10.42.240.3
+}
+
+// ExampleSymmetric shows two traces that are exact reverses of each other, and a
+// pair that goes by different links.
+func ExampleSymmetric() {
+	forward := exampleTrace()
+	back := sim.Trace{Final: sim.Delivered, Hops: []sim.Hop{
+		{Node: "dgx-spark", Result: sim.Forwarded, Route: &route.Route{NextHop: "aws-hub", Via: "aws-hub~dgx-spark"}},
+		{Node: "aws-hub", Result: sim.Forwarded, Route: &route.Route{NextHop: "builder-1", Via: "aws-hub~builder-1"}},
+		{Node: "builder-1", Result: sim.Delivered},
+	}}
+	fmt.Println(sim.Symmetric(forward, back))
+	back.Hops[0].Route = &route.Route{NextHop: "aws-hub", Via: "aws-hub~dgx-spark-2"}
+	fmt.Println(sim.Symmetric(forward, back))
+	// Output:
+	// true
+	// false
+}
+
+// ExampleParseHopResult reads a hop result from its name.
+func ExampleParseHopResult() {
+	result, ok := sim.ParseHopResult("LOOP")
+	fmt.Println(result, ok)
+	_, ok = sim.ParseHopResult("loop")
+	fmt.Println(ok)
+	// Output:
+	// LOOP true
+	// false
+}
+
+// ExampleParseVerdict reads a verdict from its name.
+func ExampleParseVerdict() {
+	verdict, ok := sim.ParseVerdict("NO_RETURN")
+	fmt.Println(verdict, ok)
+	_, ok = sim.ParseVerdict("no return")
+	fmt.Println(ok)
+	// Output:
+	// NO_RETURN true
+	// false
+}
+
+// ExampleNewNet builds the network under test from a graph, its tables and what
+// each node holds, and sends a packet through it.
+func ExampleNewNet() {
+	g := network{direct: true}
+	result, _ := route.Compute(g, route.Input{Owned: owned()})
+	net := sim.NewNet(g, result.Tables, owned(), nil)
+	trace := net.Send(sim.Packet{Dst: netip.MustParseAddr("10.42.240.3")}, "builder-1")
+	printTrace(trace)
+	// Output:
+	// builder-1 > dgx-spark: DELIVERED
+}

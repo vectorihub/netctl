@@ -2,7 +2,6 @@ package route
 
 import (
 	"cmp"
-	"fmt"
 	"net/netip"
 	"slices"
 
@@ -32,6 +31,8 @@ const (
 )
 
 // String returns "connected", "computed", "backup", "static" or "unknown".
+//
+// Example: SourceBackup.String() returns "backup".
 func (source Source) String() string {
 	switch source {
 	case SourceConnected:
@@ -67,21 +68,29 @@ func ParseSource(text string) (Source, bool) {
 }
 
 // MarshalText writes the source as its name, so a Route written as JSON shows
-// "computed" and not a number. An unknown source returns an error, so a
-// half-filled Route cannot be written out.
+// "computed" and not a number. An unknown source returns an INVALID_VALUE
+// error, so a half-filled Route cannot be written out; through encoding/json the
+// error is wrapped, and errors.Is still finds the code.
+//
+// Example: SourceComputed.MarshalText() returns "computed"; the zero Source
+// returns an INVALID_VALUE error.
 func (source Source) MarshalText() ([]byte, error) {
 	if source.String() == "unknown" {
-		return nil, fmt.Errorf("route: cannot write unknown source %d", int(source))
+		return nil, types.Errf(types.ErrInvalidValue, "route source", "cannot write unknown source %d", int(source))
 	}
 	return []byte(source.String()), nil
 }
 
-// UnmarshalText reads a source name written by MarshalText. An unknown name is
-// an error and leaves the receiver unchanged.
+// UnmarshalText reads a source name written by MarshalText. An unknown name,
+// including a different capitalisation, returns an INVALID_VALUE error and
+// leaves the receiver unchanged.
+//
+// Example: UnmarshalText("static") sets the receiver to SourceStatic;
+// UnmarshalText("learned") returns an INVALID_VALUE error.
 func (source *Source) UnmarshalText(text []byte) error {
 	parsed, ok := ParseSource(string(text))
 	if !ok {
-		return fmt.Errorf("route: unknown source %q: want connected, computed, backup or static", text)
+		return types.Errf(types.ErrInvalidValue, "route source", "unknown source %q: want connected, computed, backup or static", text)
 	}
 	*source = parsed
 	return nil
@@ -118,19 +127,26 @@ type Route struct {
 // Routes are ordered by prefix (see cidr.Compare), then metric, then next hop,
 // then link, then source, then inactive before active, then path, comparing
 // node IDs one at a time with a shorter path first when one is a prefix of
-// the other. It returns 0 only for two routes that are identical.
+// the other. Prefixes are compared in their canonical form, so 10.42.16.5/20
+// and 10.42.16.0/20 are the same block here; a route written with host bits set
+// sorts by the block it stands for, and only as the very last tie-break does the
+// spelling count, so the order stays total. It returns 0 only for two routes that
+// are identical.
 //
 // Example: of two routes for 10.42.32.0/20, the one with metric 10 sorts before
 // the one with metric 40.
 func Compare(first, second Route) int {
+	firstBlock, _ := cidr.Canonical(first.Prefix)
+	secondBlock, _ := cidr.Canonical(second.Prefix)
 	return cmp.Or(
-		cidr.Compare(first.Prefix, second.Prefix),
+		cidr.Compare(firstBlock, secondBlock),
 		cmp.Compare(first.Metric, second.Metric),
 		cmp.Compare(first.NextHop, second.NextHop),
 		cmp.Compare(first.Via, second.Via),
 		cmp.Compare(first.Source, second.Source),
 		compareBool(first.Active, second.Active),
 		slices.Compare(first.Path, second.Path),
+		first.Prefix.Addr().Compare(second.Prefix.Addr()),
 	)
 }
 

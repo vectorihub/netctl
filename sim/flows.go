@@ -72,7 +72,7 @@ func held(registry *ipam.IPAM, owner ipam.Owner, bits int) (netip.Prefix, bool) 
 // one deny intent, Flows returns 6 overlay, 6 site, 1 deny and 3 negative flows.
 func Flows(t *topology.Topology, registry *ipam.IPAM, opts Options) ([]Flow, error) {
 	if t == nil || registry == nil {
-		return nil, fmt.Errorf("sim: Flows needs a topology and an address plan, got nil")
+		return nil, types.Errf(types.ErrInvalidValue, "Flows", "it needs a topology and an address plan, got nil")
 	}
 	var problems types.List
 	nodes := make([]topology.Node, len(t.Nodes))
