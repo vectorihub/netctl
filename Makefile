@@ -3,7 +3,7 @@
 
 STATICCHECK_VERSION := v0.7.0
 
-.PHONY: check fmt-check vet lint purity test race arch fuzz bench repro windows apidiff consumer e2e-phase1 e2e-phase1-fast e2e-phase1-chaos
+.PHONY: check fmt-check vet lint purity test race arch fuzz bench repro windows apidiff consumer e2e-phase1 e2e-phase1-fast e2e-phase1-chaos cover
 
 ## check: the everyday gate — formatting, vet, tests. A red result fails CI.
 check: fmt-check vet test
@@ -50,7 +50,7 @@ windows:
 ## 60s for FuzzCanonical (P1-CIDR-009): make fuzz FUZZTIME=60s
 ## Go keeps any failing input under testdata/fuzz, where `make test` replays it.
 FUZZTIME ?= 10s
-FUZZ_TARGETS := cidr/tests:FuzzCanonical cidr/tests:FuzzChildren ipam/tests:FuzzSnapshot topology/tests:FuzzDecode topology/tests:FuzzLoad sim/tests:FuzzParseScenarios
+FUZZ_TARGETS := plan/tests:FuzzPlan cidr/tests:FuzzCanonical cidr/tests:FuzzChildren ipam/tests:FuzzSnapshot topology/tests:FuzzDecode topology/tests:FuzzLoad sim/tests:FuzzParseScenarios
 fuzz:
 	@for target in $(FUZZ_TARGETS); do \
 	  pkg=$${target%%:*}; name=$${target##*:}; \
@@ -109,3 +109,11 @@ e2e-phase1-fast:
 ## e2e-phase1-chaos: the nightly run, 20,000 random cases. Reproduce one with E2E_CHAOS_SEED=<n>.
 e2e-phase1-chaos:
 	E2E_CHAOS_CASES=20000 go test ./test/e2e/phase1/... -run 'TestE2E/P1-E2E-12' -count=1 -timeout 8h
+
+## cover: coverage of the library across all tests, with the Phase 1 gate's thresholds: 85%
+## overall and 90% for ipam, route, sim and validate. Writes cover.out and coverage.html.
+COVERPKGS := ./cidr/...,./ipam/...,./route/...,./sim/...,./validate/...,./topology/...,./config/...,./health/...,./failover/...,./plan/...,./types/...
+cover:
+	go test -p 2 -short -coverpkg=$(COVERPKGS) -coverprofile=cover.out ./...
+	go tool cover -html=cover.out -o coverage.html
+	go run ./tools/covercheck cover.out
