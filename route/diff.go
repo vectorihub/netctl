@@ -8,6 +8,14 @@ import (
 )
 
 // RouteChange is one route that is in both tables but is not the same in each.
+//
+// Example:
+//
+//	for _, change := range diff.Changed {
+//		if change.Activated() { // a backup took over
+//			fmt.Println(change.New.Prefix, "now via", change.New.NextHop)
+//		}
+//	}
 type RouteChange struct {
 	// Old is the route in the old table.
 	Old Route `json:"old"`
@@ -18,16 +26,26 @@ type RouteChange struct {
 // Activated reports whether the route came into use: it was inactive and now
 // is active. This is what happens to a backup when its primary fails.
 //
-// Example: a backup that goes from inactive to active after its primary fails is Activated.
+// Example:
+//
+//	a backup that goes from inactive to active after its primary fails is Activated.
 func (change RouteChange) Activated() bool { return !change.Old.Active && change.New.Active }
 
 // Deactivated reports whether the route went out of use: it was active and now
 // is not.
 //
-// Example: the primary route that a backup replaced is Deactivated.
+// Example:
+//
+//	the primary route that a backup replaced is Deactivated.
 func (change RouteChange) Deactivated() bool { return change.Old.Active && !change.New.Active }
 
 // TableDiff is what changed in one node's table.
+//
+// Example:
+//
+//	for _, diff := range route.Diff(before, after) {
+//		fmt.Println(diff.Node, len(diff.Added), len(diff.Removed), len(diff.Changed))
+//	}
 type TableDiff struct {
 	// Node is the node whose table changed.
 	Node types.NodeID `json:"node"`
@@ -42,7 +60,9 @@ type TableDiff struct {
 
 // Empty reports whether nothing changed.
 //
-// Example: the diff of a table with itself is Empty.
+// Example:
+//
+//	the diff of a table with itself is Empty.
 func (diff TableDiff) Empty() bool {
 	return len(diff.Added) == 0 && len(diff.Removed) == 0 && len(diff.Changed) == 0
 }
@@ -106,7 +126,9 @@ func diffTables(node types.NodeID, oldRoutes, newRoutes []Route) TableDiff {
 // differs, the routes added, removed and changed. Nodes whose tables are the
 // same are left out, so identical tables give an empty result.
 //
-// Routes are matched by prefix, next hop and link. A route that is in both and
+// Every route is first masked to its canonical block (cidr.Canonical), so
+// 10.42.16.5/20 and 10.42.16.0/20 are one route here and the diff reports the
+// masked form. Routes are matched by prefix, next hop and link. A route that is in both and
 // differs in metric, source, path or whether it is active is Changed; a backup
 // that took over from a failed primary is the typical case, and
 // RouteChange.Activated says so. A node that has a table only in old has all
@@ -115,9 +137,11 @@ func diffTables(node types.NodeID, oldRoutes, newRoutes []Route) TableDiff {
 // The result is sorted by node, and each list by Compare, so the same two sets
 // of tables always give the same diff.
 //
-// Example: comparing the three-site tables with the direct link healthy and
-// with it down changes only builder-1 and dgx-spark. Each loses its direct
-// primary and activates its hub backup; aws-hub is not listed.
+// Example:
+//
+//	comparing the three-site tables with the direct link healthy and
+//	with it down changes only builder-1 and dgx-spark. Each loses its direct
+//	primary and activates its hub backup; aws-hub is not listed.
 func Diff(old, updated Tables) []TableDiff {
 	nodes := map[types.NodeID]bool{}
 	for node := range old {

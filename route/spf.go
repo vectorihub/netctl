@@ -12,6 +12,10 @@ import (
 //
 // A link between A and B gives two edges, A to B and B to A, with the same
 // Link ID.
+//
+// Example:
+//
+//	route.Edge{Link: "builder-1~dgx-spark", To: "dgx-spark", Cost: 10}
 type Edge struct {
 	// Link is the link this edge belongs to.
 	Link types.LinkID
@@ -31,6 +35,11 @@ type Edge struct {
 // and the links between them. It is deliberately small, so that routing can be
 // tested with a ten-line fake and so that this package does not depend on the
 // topology package. The planner adapts topology.Graph to it.
+//
+// Example:
+//
+//	var graph route.Graph = myTopology // Nodes, Role and Edges
+//	best := route.SPF(graph, "builder-1", "")
 type Graph interface {
 	// Nodes returns every node ID. Order does not matter; Compute sorts them.
 	Nodes() []types.NodeID
@@ -43,6 +52,11 @@ type Graph interface {
 }
 
 // Best is the best path from one source to one node.
+//
+// Example:
+//
+//	best := route.SPF(graph, "builder-1", "")["dgx-spark"]
+//	fmt.Println(best.Cost, best.First, best.Link, best.Path) // 10 dgx-spark builder-1~dgx-spark [builder-1 dgx-spark]
 type Best struct {
 	// Cost is the total cost of the path.
 	Cost int
@@ -367,9 +381,11 @@ func (s *search) best(node int32) Best {
 // run: fewer hops, then the lexically smaller next hop, then the smaller
 // first link, then the lexically smaller list of nodes (see Best).
 //
-// Example: with spokes a and c joined by a hub h, and a direct link between a
-// and b but none between b and c, SPF from a reaches c through h and not
-// through b.
+// Example:
+//
+//	with spokes a and c joined by a hub h, and a direct link between a
+//	and b but none between b and c, SPF from a reaches c through h and not
+//	through b.
 func SPF(graph Graph, src types.NodeID, without types.LinkID) map[types.NodeID]Best {
 	ix := newIndex(graph)
 	start, known := ix.position[src]

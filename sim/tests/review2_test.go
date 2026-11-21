@@ -24,6 +24,37 @@ func TestReportOrderIsTotalForSharedLabels(t *testing.T) {
 	}
 }
 
+// TestReportOrderSurvivesLookalikeResults gives NewReport results that share a
+// label and differ only where a careless sort key would not look or could be
+// fooled: in the packet's Flow field, and in notes whose text holds the key's
+// own separators, so that unquoted they would write the same key. Every input
+// order must give one report, and labels must still come first.
+func TestReportOrderSurvivesLookalikeResults(t *testing.T) {
+	base := func(note, packetFlow string) sim.FlowResult {
+		result := sim.FlowResult{Flow: sim.Flow{Label: "same", Family: sim.FamilyOverlay, From: "a", Note: note}, Verdict: sim.VerdictOK}
+		result.Forward.Packet.Flow = packetFlow
+		return result
+	}
+	results := []sim.FlowResult{
+		base("x|", ""), base("x", "|"), base("", "one"), base("", "two"),
+		{Flow: sim.Flow{Label: "earlier"}, Verdict: sim.VerdictOK},
+	}
+	want := sim.NewReport(results).Flows
+	if want[0].Flow.Label != "earlier" {
+		t.Fatalf("first flow is %q, want the label that sorts first", want[0].Flow.Label)
+	}
+	orders := [][]int{{4, 3, 2, 1, 0}, {1, 0, 3, 4, 2}, {2, 4, 0, 3, 1}}
+	for _, order := range orders {
+		shuffled := make([]sim.FlowResult, len(order))
+		for i, at := range order {
+			shuffled[i] = results[at]
+		}
+		if got := sim.NewReport(shuffled).Flows; !reflect.DeepEqual(got, want) {
+			t.Errorf("order %v gave %v, want %v", order, got, want)
+		}
+	}
+}
+
 // TestHostOverrideInsideAHeldBlockIsFollowed checks a static override for one
 // address of builder-1's own block, 10.42.16.7/32, over the direct link that is
 // down, is followed and caught as LINK_DOWN: the simulator does not deliver the

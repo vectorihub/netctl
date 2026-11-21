@@ -19,6 +19,11 @@ import (
 // every other node gets a route to it. As Input.Local it holds what is only
 // local to a node, such as the /30 of a direct link, which each end connects
 // to but never advertises further.
+//
+// Example:
+//
+//	owned := route.Owned{"dgx-spark": {netip.MustParsePrefix("10.42.32.0/20")}}
+//	local := route.Owned{"builder-1": {netip.MustParsePrefix("10.42.252.0/30")}}
 type Owned map[types.NodeID][]netip.Prefix
 
 // Override is an operator's instruction to send traffic for one prefix to one
@@ -27,6 +32,11 @@ type Owned map[types.NodeID][]netip.Prefix
 // An override is accepted only if it points at a real neighbour. An accepted
 // one is always flagged: its route has Source static, so it is never
 // mistaken for a computed one.
+//
+// Example:
+//
+//	force := route.Override{Node: "builder-1", Prefix: netip.MustParsePrefix("10.42.32.0/20"), NextHop: "aws-hub"}
+//	result, err := route.Compute(graph, route.Input{Owned: owned, Overrides: []route.Override{force}})
 type Override struct {
 	// Node is the node whose table gets the route.
 	Node types.NodeID `json:"node"`
@@ -42,6 +52,10 @@ type Override struct {
 }
 
 // Input is everything Compute needs besides the graph.
+//
+// Example:
+//
+//	result, err := route.Compute(graph, route.Input{Owned: owned, Local: local})
 type Input struct {
 	// Owned is what each node advertises to the whole network.
 	Owned Owned
@@ -54,19 +68,39 @@ type Input struct {
 }
 
 // Reason says why a node cannot reach another.
+//
+// Example:
+//
+//	for _, pair := range result.Unreachable {
+//		fmt.Printf("%s cannot reach %s: %s\n", pair.From, pair.To, pair.Reason)
+//	}
 type Reason string
 
 const (
 	// ReasonNoPath means no chain of working links joins the two nodes.
+	//
+	// Example:
+	//
+	//	pair.Reason == route.ReasonNoPath // the pair's Reason reads "no healthy path"
 	ReasonNoPath Reason = "no healthy path"
 	// ReasonSpokeTransit means the only way between them passes through a
 	// spoke, and a spoke never forwards traffic for others.
+	//
+	// Example:
+	//
+	//	pair.Reason == route.ReasonSpokeTransit // the pair's Reason reads "the only path passes through a spoke, which never forwards for others"
 	ReasonSpokeTransit Reason = "the only path passes through a spoke, which never forwards for others"
 )
 
 // Pair is a source node and a destination node with no path between them. It
 // is data, not an error: a plan with unreachable pairs is still a plan, and
 // the caller decides whether that is acceptable.
+//
+// Example:
+//
+//	for _, pair := range result.Unreachable {
+//		fmt.Println(pair.From, "->", pair.To, pair.Prefixes, pair.Reason)
+//	}
 type Pair struct {
 	// From is the node that cannot reach To.
 	From types.NodeID `json:"from"`
@@ -80,28 +114,68 @@ type Pair struct {
 }
 
 // RejectReason says why an override was not accepted.
+//
+// Example:
+//
+//	for _, rejection := range result.Rejected {
+//		if rejection.Reason == route.RejectNotNeighbour { /* fix the next hop */ }
+//	}
 type RejectReason string
 
 const (
 	// RejectUnknownNode means the override names a node that is not in the graph.
+	//
+	// Example:
+	//
+	//	rejection.Reason == route.RejectUnknownNode // "the node does not exist"
 	RejectUnknownNode RejectReason = "the node does not exist"
 	// RejectBadPrefix means the override's prefix is not a valid IPv4 prefix.
+	//
+	// Example:
+	//
+	//	rejection.Reason == route.RejectBadPrefix // "the prefix is not a valid IPv4 prefix"
 	RejectBadPrefix RejectReason = "the prefix is not a valid IPv4 prefix"
 	// RejectBadMetric means the override's metric is negative.
+	//
+	// Example:
+	//
+	//	rejection.Reason == route.RejectBadMetric // "the metric is negative"
 	RejectBadMetric RejectReason = "the metric is negative"
 	// RejectNotNeighbour means the next hop is not joined to the node by any link.
+	//
+	// Example:
+	//
+	//	rejection.Reason == route.RejectNotNeighbour // "the next hop is not a neighbour of the node"
 	RejectNotNeighbour RejectReason = "the next hop is not a neighbour of the node"
 	// RejectWrongLink means the named link does not join the node and its next hop.
+	//
+	// Example:
+	//
+	//	rejection.Reason == route.RejectWrongLink // "the link does not join the node and its next hop"
 	RejectWrongLink RejectReason = "the link does not join the node and its next hop"
 	// RejectConnected means the prefix belongs to the node itself, where a
 	// connected route already answers.
+	//
+	// Example:
+	//
+	//	rejection.Reason == route.RejectConnected // "the prefix is connected on the node"
 	RejectConnected RejectReason = "the prefix is connected on the node"
 	// RejectDuplicate means another accepted override already covers this
 	// node and prefix.
+	//
+	// Example:
+	//
+	//	rejection.Reason == route.RejectDuplicate // "another override already covers this prefix on the node"
 	RejectDuplicate RejectReason = "another override already covers this prefix on the node"
 )
 
 // Rejection is an override that was not accepted, with the reason.
+//
+// Example:
+//
+//	for _, rejection := range result.Rejected {
+//		fmt.Println(rejection.Override.Node, rejection.Reason, rejection.Detail)
+//	}
 type Rejection struct {
 	// Override is the override as given.
 	Override Override `json:"override"`
@@ -112,6 +186,12 @@ type Rejection struct {
 }
 
 // Result is what Compute returns.
+//
+// Example:
+//
+//	result, err := route.Compute(graph, input)
+//	if err != nil { return err }
+//	fib := result.Tables["builder-1"].FIB()
 type Result struct {
 	// Tables holds one table for every node, each sorted by Compare.
 	Tables Tables
@@ -158,6 +238,10 @@ func compareEdges(first, second Edge) int {
 // path is a subset of the edges, so no path cost can be larger, and every sum
 // fits a 32-bit int: metrics never wrap round to a negative number, on any
 // platform. Compute refuses a graph over it.
+//
+// Example:
+//
+//	route.MaxTotalCost // 2147483647, the largest int32
 const MaxTotalCost = math.MaxInt32
 
 // takeSnapshot copies graph. It adds a problem for every edge that leads to a
@@ -291,10 +375,12 @@ func checkOwners(owned, local map[types.NodeID][]netip.Prefix, nodes []types.Nod
 // prefix advertised by two nodes (OVERLAP). Every problem is reported at once
 // as a types.List that types.HasCode searches.
 //
-// Example: in the three-site network with the direct link up, builder-1 gets an
-// active route to dgx-spark's block with metric 10 and an inactive backup via
-// aws-hub with metric 40; with the direct link down, only the route via
-// aws-hub, metric 40, and no backup.
+// Example:
+//
+//	in the three-site network with the direct link up, builder-1 gets an
+//	active route to dgx-spark's block with metric 10 and an inactive backup via
+//	aws-hub with metric 40; with the direct link down, only the route via
+//	aws-hub, metric 40, and no backup.
 func Compute(graph Graph, input Input) (Result, error) {
 	var problems types.List
 	snap := takeSnapshot(graph, &problems)
@@ -408,19 +494,29 @@ func reachableIgnoringRoles(graph Graph, src types.NodeID) map[types.NodeID]bool
 }
 
 // compareOverrides orders overrides by node, canonical prefix, next hop, link
-// and metric, and last by how the prefix was spelled, so the order is total:
-// which of two duplicates is kept, and which spelling a rejection reports,
-// never depends on the order they were given in.
+// and metric, and last by the prefix exactly as it was given (address, then
+// length), so 10.9.0.0/24 sorts before 10.9.0.5/24. Every field of an Override
+// takes part, so it returns 0 only for two identical overrides and the order is
+// total: which of two duplicates is kept, and which spelling a rejection
+// reports, never depends on the order they were given in.
 func compareOverrides(first, second Override) int {
+	firstBlock, _ := cidr.Canonical(first.Prefix)
+	secondBlock, _ := cidr.Canonical(second.Prefix)
 	return cmp.Or(
 		cmp.Compare(first.Node, second.Node),
-		cidr.Compare(first.Prefix.Masked(), second.Prefix.Masked()),
+		cidr.Compare(firstBlock, secondBlock),
 		cmp.Compare(first.NextHop, second.NextHop),
 		cmp.Compare(first.Link, second.Link),
 		cmp.Compare(first.Metric, second.Metric),
-		first.Prefix.Addr().Compare(second.Prefix.Addr()),
-		cmp.Compare(first.Prefix.Bits(), second.Prefix.Bits()),
+		compareSpelling(first.Prefix, second.Prefix),
 	)
+}
+
+// compareSpelling orders two prefixes exactly as written, host bits and all:
+// by address, then by length. It is used only as a last tie-break between
+// spellings of one block, after the canonical blocks have already been compared.
+func compareSpelling(first, second netip.Prefix) int {
+	return cmp.Or(first.Addr().Compare(second.Addr()), cmp.Compare(first.Bits(), second.Bits()))
 }
 
 // screenOverrides decides every override. It returns the accepted ones as

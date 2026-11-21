@@ -12,6 +12,11 @@ import (
 // functions, not concrete types, so that the simulator depends on neither the
 // topology nor the health packages; the planner wires them up, and NewNet does
 // it for a route.Graph.
+//
+// Example:
+//
+//	net := sim.NewNet(graph, result.Tables, owned, local)
+//	trace := net.Send(sim.Packet{Src: src, Dst: dst, TTL: sim.DefaultTTL}, "builder-1")
 type Net struct {
 	// Tables holds each node's routing table. A node with no table drops
 	// everything it is given.
@@ -53,9 +58,11 @@ func (n Net) overridden(node types.NodeID, dst netip.Addr) bool {
 // every edge of the graph, up or down; a link is up if its edges are not marked
 // down.
 //
-// Example: with the three-site graph and its prefixes, 10.42.240.3 is local to
-// dgx-spark, builder-1 and dgx-spark are adjacent over builder-1~dgx-spark, and
-// that link is up unless the graph marks it down.
+// Example:
+//
+//	with the three-site graph and its prefixes, 10.42.240.3 is local to
+//	dgx-spark, builder-1 and dgx-spark are adjacent over builder-1~dgx-spark, and
+//	that link is up unless the graph marks it down.
 func NewNet(graph route.Graph, tables route.Tables, owned, local route.Owned) Net {
 	held := map[types.NodeID][]netip.Prefix{}
 	for _, source := range []route.Owned{owned, local} {
@@ -132,8 +139,10 @@ type adjacency struct {
 // repeated node as its last hop, and a failure shows the route that failed.
 // Send never panics and always returns, whatever the tables hold.
 //
-// Example: builder-1 sending to 10.42.240.3 in the three-site network with the
-// direct link up goes builder-1, then dgx-spark, delivered at the second hop.
+// Example:
+//
+//	builder-1 sending to 10.42.240.3 in the three-site network with the
+//	direct link up goes builder-1, then dgx-spark, delivered at the second hop.
 func (n Net) Send(packet Packet, start types.NodeID) Trace {
 	if packet.TTL == 0 {
 		packet.TTL = DefaultTTL

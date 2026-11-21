@@ -35,30 +35,51 @@ func TestSourceErrorsCarryTheInvalidValueCode(t *testing.T) {
 	}
 }
 
-// TestCompareTreatsSpellingsOfOneBlockAsOneBlock checks Compare orders routes by
-// the canonical block, never by a prefix with host bits set: a route written
-// 10.42.16.5/20 sorts with 10.42.16.0/20, not after 10.42.16.0/21 which the raw
-// address 10.42.16.5 would put it behind; and the order is total and the same in
-// every input order, with the spelling breaking only the last tie.
-func TestCompareTreatsSpellingsOfOneBlockAsOneBlock(t *testing.T) {
+// TestSortMasksPrefixesAtTheBoundary checks Table.Sort is where a caller-built
+// route enters the package: a route written 10.42.16.5/20 is stored as its
+// block 10.42.16.0/20, so it sorts with that block and before 10.42.16.0/21
+// (written 10.42.16.2/21), never after it as the raw address would put it, and
+// no route left in the table has host bits set, in every input order.
+func TestSortMasksPrefixesAtTheBoundary(t *testing.T) {
 	odd := computed("10.42.16.5/20", "n", "x~n", 5)
-	plain := computed("10.42.16.0/20", "n", "x~n", 5)
+	plain := computed("10.42.16.0/20", "m", "x~m", 5)
 	other := computed("10.42.16.2/21", "n", "x~n", 5)
-	if got := route.Compare(odd, other); got != -1 {
-		t.Errorf("Compare(10.42.16.5/20, 10.42.16.2/21) = %d, want -1: the /20 block 10.42.16.0 comes first", got)
+	want := []route.Route{
+		computed("10.42.16.0/20", "m", "x~m", 5),
+		computed("10.42.16.0/20", "n", "x~n", 5),
+		computed("10.42.16.0/21", "n", "x~n", 5),
 	}
-	if route.Compare(odd, plain) == 0 || route.Compare(odd, plain) != -route.Compare(plain, odd) {
-		t.Error("two spellings of one block must differ, antisymmetrically, only in the last tie-break")
-	}
-	if route.Compare(plain, odd) != -1 {
-		t.Error("the canonical spelling should sort first")
-	}
-	routes := []route.Route{odd, plain, other}
-	want := []route.Route{plain, odd, other}
-	inEveryOrder(t, routes, func(table *route.Table) {
+	inEveryOrder(t, []route.Route{odd, plain, other}, func(table *route.Table) {
 		table.Sort()
-		if !slices.EqualFunc(table.Routes, want, func(a, b route.Route) bool { return route.Compare(a, b) == 0 }) {
+		if !slices.EqualFunc(table.Routes, want, identical) {
 			t.Errorf("sorted to %v, want %v", table.Routes, want)
 		}
+		for _, r := range table.Routes {
+			if r.Prefix != r.Prefix.Masked() {
+				t.Errorf("Sort left %s with host bits set", r.Prefix)
+			}
+		}
 	})
+}
+
+// TestDiffAndExplainMaskPrefixes checks Diff and Explain mask a caller's routes
+// before comparing them: a table written with 10.42.16.5/20 and the same table
+// written with 10.42.16.0/20 give no diff, and Explain pairs a backup written
+// with host bits with the active route for its block.
+func TestDiffAndExplainMaskPrefixes(t *testing.T) {
+	odd := &route.Table{Node: "x", Routes: []route.Route{computed("10.42.16.5/20", "n", "x~n", 5)}}
+	plain := &route.Table{Node: "x", Routes: []route.Route{computed("10.42.16.0/20", "n", "x~n", 5)}}
+	if diffs := route.Diff(route.Tables{"x": odd}, route.Tables{"x": plain}); len(diffs) != 0 {
+		t.Errorf("two spellings of one block gave a diff: %+v", diffs)
+	}
+	backup := computed("10.42.16.9/20", "m", "x~m", 9)
+	backup.Source, backup.Active = route.SourceBackup, false
+	table := &route.Table{Node: "x", Routes: []route.Route{computed("10.42.16.5/20", "n", "x~n", 5), backup}}
+	explanation := route.Explain(table, addrOf("10.42.20.1"), route.Notes{})
+	if explanation.Match == nil || explanation.Match.Prefix != prefixOf("10.42.16.0/20") {
+		t.Fatalf("match = %v, want the masked block 10.42.16.0/20", explanation.Match)
+	}
+	if explanation.Backup == nil || explanation.Backup.NextHop != "m" || explanation.Backup.Prefix != prefixOf("10.42.16.0/20") {
+		t.Errorf("backup = %v, want the masked backup via m", explanation.Backup)
+	}
 }

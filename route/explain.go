@@ -12,6 +12,13 @@ import (
 // Notes is the extra knowledge Explain uses to say why. Everything in it is
 // optional: a zero Notes gives a correct explanation without a name for the
 // owner and without link health.
+//
+// Example:
+//
+//	notes := route.Notes{Owner: "dgx-spark, site dgx", Health: func(link types.LinkID) (bool, string) {
+//		return true, "probe ok, 3/3"
+//	}}
+//	fmt.Print(route.Explain(table, netip.MustParseAddr("10.42.33.7"), notes))
 type Notes struct {
 	// Owner names who holds the destination, for the heading, for example
 	// "dgx-spark, site dgx". Leave it empty to leave the heading bare.
@@ -24,6 +31,12 @@ type Notes struct {
 
 // Explanation says which route a node uses for an address, and why. It is the
 // structured form; String writes it as text.
+//
+// Example:
+//
+//	e := route.Explain(table, netip.MustParseAddr("10.42.33.7"), route.Notes{})
+//	if e.Match == nil { /* black hole */ }
+//	fmt.Print(e.String())
 type Explanation struct {
 	// Node is the node whose table was asked.
 	Node types.NodeID `json:"node"`
@@ -53,11 +66,15 @@ type Explanation struct {
 // A static override is always flagged: its line says so, and when it replaced a
 // computed route that route is named too.
 //
-// A nil table gives an explanation with no match.
+// Routes are masked to their canonical block (cidr.Canonical) before they are
+// compared, as in Lookup, so Match, Backup and Replaced all carry masked
+// prefixes. A nil table gives an explanation with no match.
 //
-// Example: for builder-1 and 10.42.33.7 in the three-site network it says the
-// match is 10.42.32.0/20, the active route goes straight to dgx-spark at
-// metric 10, and the backup goes through aws-hub at metric 40.
+// Example:
+//
+//	for builder-1 and 10.42.33.7 in the three-site network it says the
+//	match is 10.42.32.0/20, the active route goes straight to dgx-spark at
+//	metric 10, and the backup goes through aws-hub at metric 40.
 func Explain(table *Table, dst netip.Addr, notes Notes) Explanation {
 	explanation := Explanation{Dst: dst, Owner: notes.Owner}
 	if table == nil {
@@ -76,7 +93,8 @@ func Explain(table *Table, dst netip.Addr, notes Notes) Explanation {
 		return explanation
 	}
 	explanation.Match = &match
-	for _, other := range table.Routes {
+	for _, given := range table.Routes {
+		other := canonical(given)
 		if other.Prefix != match.Prefix || other.Active {
 			continue
 		}
@@ -156,7 +174,9 @@ func describe(r Route) string {
 // The text is the same for the same explanation, so it can be kept as a golden
 // file. A node with no matching route says "none" on the match and active lines.
 //
-// Example: see the block above: the text of the explanation for builder-1 and 10.42.33.7.
+// Example:
+//
+//	see the block above: the text of the explanation for builder-1 and 10.42.33.7.
 func (e Explanation) String() string {
 	var out strings.Builder
 	fmt.Fprintf(&out, "%s → %s", e.Node, e.Dst)
@@ -188,9 +208,13 @@ func (e Explanation) String() string {
 	return out.String()
 }
 
-// sortedCopy returns the routes sorted by Compare, without changing the input.
+// sortedCopy returns the routes with every prefix masked (see canonical) and
+// sorted by Compare, without changing the input.
 func sortedCopy(routes []Route) []Route {
-	out := slices.Clone(routes)
+	out := make([]Route, len(routes))
+	for i, r := range routes {
+		out[i] = canonical(r)
+	}
 	slices.SortFunc(out, Compare)
 	return out
 }

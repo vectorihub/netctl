@@ -21,21 +21,28 @@ import "net/netip"
 // means. An IPv4-mapped IPv6 address such as ::ffff:10.42.0.1 is an IPv6
 // address and does not match an IPv4 prefix. A nil table has no routes.
 //
+// Every route is masked to its canonical block (cidr.Canonical) before it is
+// compared, so a route written 10.42.16.5/20 matches, and is returned, as
+// 10.42.16.0/20, and two spellings of one block are the same block.
+//
 // The returned Route shares its Path with the table; do not change it.
 //
 // Lookup scans the whole table, which is simple to check by eye and fast enough
 // for the hundreds of routes a node holds.
 //
-// Example: with active routes 10.42.0.0/16 via aws-hub and 10.42.32.0/20 via
-// dgx-spark, Lookup(10.42.33.7) returns the /20 route, and Lookup(10.42.1.1)
-// returns the /16 route.
+// Example:
+//
+//	with active routes 10.42.0.0/16 via aws-hub and 10.42.32.0/20 via
+//	dgx-spark, Lookup(10.42.33.7) returns the /20 route, and Lookup(10.42.1.1)
+//	returns the /16 route.
 func (table *Table) Lookup(dst netip.Addr) (Route, bool) {
 	if table == nil {
 		return Route{}, false
 	}
 	var best Route
 	found := false
-	for _, candidate := range table.Routes {
+	for _, given := range table.Routes {
+		candidate := canonical(given)
 		if !candidate.Active || !candidate.Prefix.Contains(dst) {
 			continue
 		}

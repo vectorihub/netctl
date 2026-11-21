@@ -199,10 +199,11 @@ func TestDiffIsDeterministicAndKeepsItsInput(t *testing.T) {
 
 // applyDiff replays a diff on a list of routes: it takes out the removed routes,
 // swaps each changed route for its new form and adds the added ones, and
-// returns the result sorted. It is written separately from Diff so the two
+// returns the result sorted. It starts from the routes with their prefixes
+// masked, as Diff sees them. It is written separately from Diff so the two
 // check each other.
 func applyDiff(routes []route.Route, diff route.TableDiff) []route.Route {
-	out := slices.Clone(routes)
+	out := sortedRoutes(routes)
 	find := func(want route.Route) int {
 		return slices.IndexFunc(out, func(r route.Route) bool { return route.Compare(r, want) == 0 })
 	}
@@ -248,9 +249,14 @@ func TestDiffAppliedToOldGivesNew(t *testing.T) {
 	}
 }
 
-// sortedRoutes returns a sorted copy of routes.
+// sortedRoutes returns a copy of routes with every prefix masked to its block,
+// the form Diff and Sort give, sorted by Compare.
 func sortedRoutes(routes []route.Route) []route.Route {
-	out := slices.Clone(routes)
+	out := make([]route.Route, len(routes))
+	for i, r := range routes {
+		r.Prefix = r.Prefix.Masked()
+		out[i] = r
+	}
 	slices.SortFunc(out, route.Compare)
 	return out
 }
