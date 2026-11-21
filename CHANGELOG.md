@@ -9,6 +9,106 @@ changes, and each one is listed under **Breaking Changes** for that release.
 
 ## [Unreleased]
 
+# Release 2026-11-21 (v0.5.0)
+
+## Announcements
+Release R5 completes the packet simulator and adds link health. `sim` can now fail links and nodes,
+recompute every route with the real engine, simulate every flow over the result, plant faults on
+purpose, and write reports that are byte-identical run after run. The new `health` package decides which
+links may carry traffic from probes, handshakes and interface signals, without ever reading the clock.
+
+## Package Highlights
+
+#### `sim`
+* `RunScenario` and `RunScenarios` run a failure scenario (`links_down`, `nodes_down`, `expect`): the failures
+  are laid over the graph, every route is recomputed with the real `route.Compute` (one call per scenario, and
+  a test fails the build if `sim` ever calls it anywhere else or computes routes itself), and every flow is
+  simulated over the new tables. A flow that starts or ends at a failed node is expected to be undeliverable
+  (`UNREACHABLE_EXPECTED`); live nodes that the failures cut off from each other get `NO_HEALTHY_PATH`, which
+  passes the gate and is listed. `Expect` turns a scenario into an assertion: a wrong verdict, or an expectation
+  that matches no flow, fails the scenario and names it.
+* Scenarios are checked before anything runs. `RunScenarios` reports every problem at once as
+  `INVALID_SCENARIO`: a missing or repeated name, and every link or node a scenario names that the network does
+  not have, so a typo can never quietly test the healthy network.
+* `ParseScenarios` reads scenarios from YAML, strictly: unknown keys, verdicts or families, a missing name or
+  verdict, a repeated name and a second document are refused. It has a fuzz target (`make fuzz`).
+* `CorruptTable` returns a copy of the tables with one node's routes for one prefix deleted, retargeted or
+  planted, for tests that plant a black hole, a loop, a one-sided link or a wrong neighbour and check the
+  simulator catches it. The prefix is masked first, so `10.42.32.7/20` means `10.42.32.0/20`. The input is not
+  changed.
+* `Report.Text` and `ScenarioResult.Text` write the report for people: a header, the verdict counts (the zeros
+  that matter always shown), PASS or FAIL, and each failing flow's forward and return journey link by link.
+  `Report.JSON` and `ScenarioResult.JSON` write JSON with a fixed key order and sorted flows, byte-identical for
+  the same run (golden files in `testdata/golden`).
+* `NewReport` sorts by label, and breaks ties with a key that covers every field, quotes every string and tells
+  a nil list from an empty one, so the report is the same in every input order.
+* `NewNet` indexes each table once, so the all-pairs overlay flows of 500 nodes (249,500 flows, each sent and
+  answered) take about two seconds against a budget of ten. The `Net` is a snapshot: change the tables, build a
+  new one. A link counts as up only when none of its directions is marked down, and the prefixes each node
+  holds are masked as they are read.
+
+#### `route`
+* `Table.Index` returns a read-only snapshot of a table's active routes for fast longest-prefix lookup, and
+  `Index.Lookup` answers exactly what `Table.Lookup` does, masked prefixes included (a property test checks it
+  over 10,000 random tables, including IPv6, unmasked prefixes, ties and awkward addresses), a hundred times
+  faster on a 2,000-route table.
+* The running total of link costs that `Compute` checks against `MaxTotalCost` can no longer wrap round: two
+  edges of `math.MaxInt` are refused with `INVALID_TOPOLOGY` instead of slipping through as a negative sum.
+
+#### `health` (new, not yet complete)
+* `Signal` is one piece of evidence about one direction of one link: a probe, a WireGuard handshake, the state of
+  the interface, or an operator instruction. `Config` holds the thresholds and times (three failures to go
+  down, five good signals to recover, silence for 15 seconds is a failure, a 60 second hold-down) and refuses
+  settings that make no sense with `INVALID_CONFIG`, including a stale time that is not longer than the probe
+  interval.
+* `Direction` is the state machine of one end of a link: Unknown, Healthy, Degraded, Down, Recovering. A single
+  failure only degrades, so routes do not move for a lost probe. Successes during the hold-down are ignored and
+  do not add up to a recovery the moment it ends. A failure while recovering restarts the hold-down.
+* `Link` and `Evaluator` combine the two directions: a link is usable only when healthy in both, so both ends
+  fail over together and paths stay symmetric. A required (direct) link is unused until proven; an assumed
+  (hub-spoke) link is used until it fails. An interface signal can take a direction down at once but can never
+  raise health: ten minutes of interface-up signals leave a new link Unknown.
+* Silence counts as failure after `stale_after`, judged from the moment the link went quiet, not from when
+  someone looked, and judged between the signals of a batch as well as at its end. When both ends go quiet, the
+  one that went stale first is recorded. Nothing reads the clock: every method is told the time.
+* `Evaluator.Apply` returns every change as a `Decision` with a reason, and every signal it could not use as a
+  `Skipped` with a reason. A signal older than the newest one already applied to the same direction
+  (interface signals included) is skipped as outdated, so a late success cannot erase a later failure. Admin
+  and unknown signals are skipped before they change anything. `UnusableLinks` is the list to mark down in the
+  routing graph or hand to a simulation scenario.
+* Not yet built: flap pinning and operator drain (admin signals are skipped with a reason), saving state, and
+  recomputing routes on a change.
+
+#### `types`
+* New error codes `INVALID_SCENARIO` and `INVALID_CONFIG`.
+
+## Documentation
+* Every exported identifier in `route`, `sim` and `health` has a doc comment with an `Example:` block, and every
+  exported function has a runnable example on pkg.go.dev.
+
+## Breaking Changes
+None. Everything in this release is new API.
+
+## Schema Versions
+| Schema | Status |
+|---|---|
+| `beaver.netctl/v1alpha1` | Not yet defined |
+| `beaver.topology/v1alpha1` | Unchanged |
+| `beaver.ipam/v1` | Unchanged |
+
+## Upgrading
+```
+go get github.com/vectorihub/netctl@v0.5.0
+go mod tidy
+```
+
+# Release 2026-11-21 (v0.4.0)
+
+## Announcements
+Release R4 adds routing and the foundations of the packet simulator. `route` computes every node's
+routing table from the graph and the address plan, with one backup per route, and explains and compares
+tables. `sim` pushes packets through those tables hop by hop and judges every flow and its reply.
+
 ## Package Highlights
 
 #### `route` (new)
@@ -16,6 +116,8 @@ changes, and each one is listed under **Breaking Changes** for that release.
   (`connected`, `computed`, `backup`, `static`), `Table` (one node's routes) and `Tables` (one table per node).
   A route's source is never left unset: the zero value is `unknown` and refuses to be written as JSON.
 * `Compare` is a total order on routes, and `Table.Sort` uses it, so the same routes always sort the same way.
+* Prefixes are masked once, where routes enter the package: `Table.Sort`, `Table.Lookup`, `Explain` and `Diff`
+  treat a route written `10.42.16.5/20` as `10.42.16.0/20`, and return it in that form.
 * `Table.FIB` returns the routes in use; `Table.Routes` also holds backups waiting in reserve.
 * `Table.Lookup` is longest-prefix matching over active routes: the most specific route wins, then the lower
   metric, and the answer never depends on the order of the table. An address with no matching route returns
@@ -28,11 +130,15 @@ changes, and each one is listed under **Breaking Changes** for that release.
   route for what every other node announces, and one inactive backup per prefix found by searching again
   without the primary's first link. The result does not depend on the order of the input.
 * `Collect` reads who announces what from the address plan (`ipam`): site blocks, overlay addresses, and the
-  transit `/30` of each direct link, which only its two ends hold.
+  transit `/30` of each direct link, which only its two ends hold. With no registry it returns `INVALID_VALUE`.
 * Nothing is dropped silently. A pair of nodes with no path is returned in `Result.Unreachable` with a reason
   (no healthy path, or the only path crosses a spoke). A static `Override` is accepted only if it points at a
   real neighbour, is always flagged as `static`, and otherwise comes back in `Result.Rejected` with an
-  explanation. Broken input, such as one block announced by two nodes, is refused with a coded error.
+  explanation. Two overrides for one block spelled differently are decided the same way in any input order.
+  Broken input, such as one block announced by two nodes, is refused with a coded error.
+* `Compute` refuses a graph whose link costs add up to more than `MaxTotalCost` (2,147,483,647) with
+  `INVALID_TOPOLOGY`, so no path cost can wrap round to a negative number on any platform; `SPF`, which returns
+  no error, stops a cost at the largest int instead of wrapping.
 * `route` defines its own small `Graph` interface and does not import `topology`; the planner will adapt
   `topology.Graph` to it.
 * `Explain` says which route a node uses for an address and why: the match, the route in use, the backup that
@@ -41,21 +147,8 @@ changes, and each one is listed under **Breaking Changes** for that release.
 * `Diff` compares two sets of tables and returns, per node, the routes added, removed and changed. A backup
   that takes over from a failed primary shows as a change with `Activated` true. Identical tables give an empty
   diff.
-* Shortest paths run on integers with a typed heap: 500 nodes, one hub and 200 direct links compute in about
-  half a second on a 2016 laptop (the target is under one second), and 2,000 nodes with four hubs in about
-  eleven seconds. The 2,000-node target in the plan covers validation only, which arrives with the validator.
-* `Compare` orders routes by the canonical block, so a route written with host bits set (`10.42.16.5/20`) sorts
-  with `10.42.16.0/20`; the spelling only breaks the very last tie, so the order stays total.
-* `Compute` refuses a graph whose link costs add up to more than `MaxTotalCost` (2,147,483,647) with
-  `INVALID_TOPOLOGY`, so no path cost can wrap round to a negative number on any platform; `SPF`, which returns no
-  error, stops a cost at the largest int instead of wrapping.
-* Two overrides for one block spelled differently (`10.9.0.0/24`, `10.9.0.5/24`) are decided the same way in any
-  input order. `Collect` with no registry returns `INVALID_VALUE`.
-* The package is now in the README and the root documentation.
-
-#### `types`
-* New error code `INVALID_VALUE`, returned (and found with `errors.Is`, also through `encoding/json`) when a route
-  source, hop result, verdict or flow family is unset or not a known name, and when `Flows` is given no input.
+* Shortest paths run on integers with a typed heap: 500 nodes, one hub and 200 direct links compute in well
+  under a second, and 2,000 nodes with four hubs in about eleven seconds.
 
 #### `sim` (new, not yet complete)
 * The vocabulary of simulation: `Packet`, `Hop`, `Trace`, `Flow`, `FlowResult`, `Report`, and the verdicts
@@ -70,68 +163,37 @@ changes, and each one is listed under **Breaking Changes** for that release.
   a route to a node that is not a neighbour each get their own verdict.
 * `Flows` derives everything worth simulating from a topology and its address plan: overlay flows between
   every pair of nodes, site flows between every pair of advertised sites, one flow per deny intent, and one
-  negative flow per node. The order is fixed.
+  negative flow per node. The order is fixed and total.
 * A route more specific than anything a node holds, such as a static override for one address of its own
   block, is followed instead of the packet being delivered there, so the override is tested.
 * A site whose block is a single `/32` is tested at that address, not the next one. A supernet that leaves no
   address outside it for the negative flows is refused with `INVALID_VALUE` instead of testing nothing.
 * `NewReport` orders results that share a label by everything else in them, so the order never depends on the
-  input's.
-* `NewNet` builds the network under test from a `route.Graph` and the prefixes each node holds.
-* `RunScenario` and `RunScenarios` run a failure scenario (`links_down`, `nodes_down`, `expect`): the failures
-  are laid over the graph, every route is recomputed with the real `route.Compute` (one call per scenario, and
-  a test fails the build if `sim` ever calls it anywhere else or computes routes itself), and every flow is
-  simulated over the new tables. A flow that starts or ends at a failed node is expected to be undeliverable
-  (`UNREACHABLE_EXPECTED`); live nodes that the failures cut off from each other get `NO_HEALTHY_PATH`, which
-  passes the gate and is listed. `Expect` turns a scenario into an assertion: a wrong verdict, or an expectation
-  that matches no flow, fails the scenario and names it. A scenario that names a link or node the network does
-  not have is refused (`INVALID_SCENARIO`) instead of quietly testing the healthy network.
-* `ParseScenarios` reads scenarios from YAML, strictly: unknown keys, verdicts or families, a missing name or
-  verdict, a repeated name and a second document are refused. It has a fuzz target (`make fuzz`).
-* `CorruptTable` returns a copy of the tables with one node's routes for one prefix deleted, retargeted or
-  planted, for tests that plant a black hole, a loop, a one-sided link or a wrong neighbour and check the
-  simulator catches it. The input is not changed.
-* `Report.Text` and `ScenarioResult.Text` write the report for people: a header, the verdict counts (the zeros
-  that matter always shown), PASS or FAIL, and each failing flow's forward and return journey link by link.
-  `Report.JSON` and `ScenarioResult.JSON` write JSON with a fixed key order and sorted flows, byte-identical for
-  the same run (golden files in `testdata/golden`).
-* `CorruptTable` makes its prefix canonical and matches stored routes in canonical form, so `10.42.32.7/20` means
-  `10.42.32.0/20` and a deletion can no longer succeed while doing nothing.
-* `NewNet` indexes each table once, so the all-pairs overlay flows of 500 nodes (249,500 flows, each sent and
-  answered) take about two seconds against a budget of ten. The index is a snapshot: change the tables, build
-  a new `Net`.
-
-#### `route`
-* `Table.Index` returns a read-only snapshot of a table's active routes for fast longest-prefix lookup, and
-  `Index.Lookup` answers exactly what `Table.Lookup` does (a property test checks it over 10,000 random tables,
-  including IPv6, unmasked prefixes, ties and awkward addresses) a hundred times faster on a 2,000-route table.
-
-#### `health` (new, not yet complete)
-* `Signal` is one piece of evidence about one direction of one link: a probe, a WireGuard handshake, the state of
-  the interface, or an operator instruction. `Config` holds the thresholds and times (three failures to go
-  down, five good signals to recover, silence for 15 seconds is a failure, a 60 second hold-down) and refuses
-  settings that make no sense, including a stale time that is not longer than the probe interval.
-* `Direction` is the state machine of one end of a link: Unknown, Healthy, Degraded, Down, Recovering. A single
-  failure only degrades, so routes do not move for a lost probe. Successes during the hold-down are ignored and
-  do not add up to a recovery the moment it ends. A failure while recovering restarts the hold-down.
-* `Link` and `Evaluator` combine the two directions: a link is usable only when healthy in both, so both ends
-  fail over together and paths stay symmetric. A required (direct) link is unused until proven; an assumed
-  (hub-spoke) link is used until it fails. An interface signal can take a direction down at once but can never
-  raise health: ten minutes of interface-up signals leave a new link Unknown.
-* Silence counts as failure after `stale_after`, judged from the moment the link went quiet, not from when
-  someone looked, and judged between the signals of a batch as well as at its end. Nothing reads the clock:
-  every method is told the time.
-* `Evaluator.Apply` returns every change as a `Decision` with a reason, and every signal it could not use as a
-  `Skipped` with a reason. `UnusableLinks` is the list to mark down in the routing graph or hand to a
-  simulation scenario.
-* A signal older than the newest one already applied to the same direction (interface signals included) is
-  skipped as outdated, so a late-arriving success cannot erase a failure that came after it. When both ends of a
-  link go quiet, the one that went stale first is recorded, whatever the nodes are called.
-* Not yet built: flap pinning and operator drain (admin signals are skipped with a reason), saving state, and
-  recomputing routes on a change.
+  input's. `NewNet` builds the network under test from a `route.Graph` and the prefixes each node holds.
 
 #### `types`
-* New error codes `INVALID_SCENARIO` and `INVALID_CONFIG`.
+* New error code `INVALID_VALUE`, returned (and found with `errors.Is`, also through `encoding/json`) when a route
+  source, hop result, verdict or flow family is unset or not a known name, and when `Flows` is given no input.
+
+## Documentation
+* `route` and `sim` have package overviews and runnable examples, and appear in the README and the root
+  package documentation.
+
+## Breaking Changes
+None. Everything in this release is new API.
+
+## Schema Versions
+| Schema | Status |
+|---|---|
+| `beaver.netctl/v1alpha1` | Not yet defined |
+| `beaver.topology/v1alpha1` | Unchanged |
+| `beaver.ipam/v1` | Unchanged |
+
+## Upgrading
+```
+go get github.com/vectorihub/netctl@v0.4.0
+go mod tidy
+```
 
 # Release 2026-11-19 (v0.3.1)
 
