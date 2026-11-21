@@ -1,0 +1,5 @@
+validation: OK (0 errors, 1 warning, 0 infos)
+
+warning V-TOPO-004 builder-1~dgx-spark
+  builder-1 and dgx-spark are both behind NAT: the link needs hole punching, and the hub is the only fallback
+  hint: expect traffic over the hub if the two cannot reach each other directly
