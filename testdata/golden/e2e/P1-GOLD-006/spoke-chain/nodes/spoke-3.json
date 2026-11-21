@@ -1,0 +1,139 @@
+{
+  "schema": "beaver.netctl/v1alpha1",
+  "plan_id": "<masked>",
+  "node": "spoke-3",
+  "role": "spoke",
+  "forwarding": false,
+  "overlay": {
+    "address": "10.42.240.4/32",
+    "listen_port": 51820
+  },
+  "site_prefix": "10.42.48.0/20",
+  "advertise": [
+    "10.42.48.0/20",
+    "10.42.240.4/32"
+  ],
+  "peers": [
+    {
+      "node": "aws-hub",
+      "link": "aws-hub~spoke-3",
+      "role": "hub",
+      "public_key_ref": "node:aws-hub",
+      "endpoints": [
+        "203.0.113.10:51820"
+      ],
+      "keepalive_seconds": 25,
+      "allowed_prefixes": [
+        "10.42.0.0/20",
+        "10.42.16.0/20",
+        "10.42.32.0/20",
+        "10.42.64.0/20",
+        "10.42.240.1/32",
+        "10.42.240.2/32",
+        "10.42.240.3/32",
+        "10.42.240.5/32"
+      ]
+    },
+    {
+      "node": "spoke-2",
+      "link": "spoke-2~spoke-3",
+      "role": "direct",
+      "public_key_ref": "node:spoke-2",
+      "endpoints": [],
+      "needs_traversal": true,
+      "keepalive_seconds": 25,
+      "probe": {
+        "local": "10.42.252.6/30",
+        "remote": "10.42.252.5"
+      },
+      "allowed_prefixes": [
+        "10.42.252.5/32"
+      ]
+    },
+    {
+      "node": "spoke-4",
+      "link": "spoke-3~spoke-4",
+      "role": "direct",
+      "public_key_ref": "node:spoke-4",
+      "endpoints": [],
+      "needs_traversal": true,
+      "keepalive_seconds": 25,
+      "probe": {
+        "local": "10.42.252.9/30",
+        "remote": "10.42.252.10"
+      },
+      "allowed_prefixes": [
+        "10.42.252.10/32"
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "prefix": "10.42.0.0/20",
+      "via": "aws-hub",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.16.0/20",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.32.0/20",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.64.0/20",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.1/32",
+      "via": "aws-hub",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.2/32",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.3/32",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.5/32",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    }
+  ],
+  "health": {
+    "probes": [
+      {
+        "link": "spoke-2~spoke-3",
+        "target": "10.42.252.5",
+        "interval_seconds": 5
+      },
+      {
+        "link": "spoke-3~spoke-4",
+        "target": "10.42.252.10",
+        "interval_seconds": 5
+      }
+    ],
+    "fail_threshold": 3,
+    "recover_threshold": 5,
+    "hold_down_seconds": 60
+  },
+  "policy": [],
+  "hash": "<masked>"
+}

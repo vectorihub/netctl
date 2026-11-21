@@ -1,0 +1,44 @@
+{
+  "flows": [
+    {
+      "flow": {
+        "label": "aws-hub→192.168.1.1 (negative)",
+        "family": "negative",
+        "src": "10.42.240.1",
+        "dst": "192.168.1.1",
+        "from": "aws-hub",
+        "note": "outside the supernet: must not be delivered anywhere"
+      },
+      "forward": {
+        "packet": {
+          "src": "10.42.240.1",
+          "dst": "192.168.1.1",
+          "ttl": 16,
+          "flow": "aws-hub→192.168.1.1 (negative)"
+        },
+        "hops": [
+          {
+            "node": "aws-hub",
+            "result": "BLACK_HOLE"
+          }
+        ],
+        "final": "BLACK_HOLE"
+      },
+      "symmetric": false,
+      "verdict": "UNREACHABLE_EXPECTED"
+    }
+  ],
+  "summary": {
+    "total": 1,
+    "failed": 0,
+    "warnings": 0,
+    "verdicts": [
+      {
+        "verdict": "UNREACHABLE_EXPECTED",
+        "count": 1
+      }
+    ],
+    "problems": []
+  },
+  "passed": true
+}

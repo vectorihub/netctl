@@ -1,0 +1,61 @@
+node aws-hub
+  10.42.0.0/20  connected  active
+  10.42.16.0/20  via aws-hub~spoke-1  next-hop spoke-1  metric 20  computed  active
+  10.42.32.0/20  via aws-hub~spoke-2  next-hop spoke-2  metric 20  computed  active
+  10.42.48.0/20  via aws-hub~spoke-3  next-hop spoke-3  metric 20  computed  active
+  10.42.64.0/20  via aws-hub~spoke-4  next-hop spoke-4  metric 20  computed  active
+  10.42.240.1/32  connected  active
+  10.42.240.2/32  via aws-hub~spoke-1  next-hop spoke-1  metric 20  computed  active
+  10.42.240.3/32  via aws-hub~spoke-2  next-hop spoke-2  metric 20  computed  active
+  10.42.240.4/32  via aws-hub~spoke-3  next-hop spoke-3  metric 20  computed  active
+  10.42.240.5/32  via aws-hub~spoke-4  next-hop spoke-4  metric 20  computed  active
+node spoke-1
+  10.42.0.0/20  via aws-hub~spoke-1  next-hop aws-hub  metric 20  computed  active
+  10.42.16.0/20  connected  active
+  10.42.32.0/20  via aws-hub~spoke-1  next-hop aws-hub  metric 40  computed  active
+  10.42.48.0/20  via aws-hub~spoke-1  next-hop aws-hub  metric 40  computed  active
+  10.42.64.0/20  via aws-hub~spoke-1  next-hop aws-hub  metric 40  computed  active
+  10.42.240.1/32  via aws-hub~spoke-1  next-hop aws-hub  metric 20  computed  active
+  10.42.240.2/32  connected  active
+  10.42.240.3/32  via aws-hub~spoke-1  next-hop aws-hub  metric 40  computed  active
+  10.42.240.4/32  via aws-hub~spoke-1  next-hop aws-hub  metric 40  computed  active
+  10.42.240.5/32  via aws-hub~spoke-1  next-hop aws-hub  metric 40  computed  active
+  10.42.252.0/30  connected  active
+node spoke-2
+  10.42.0.0/20  via aws-hub~spoke-2  next-hop aws-hub  metric 20  computed  active
+  10.42.16.0/20  via aws-hub~spoke-2  next-hop aws-hub  metric 40  computed  active
+  10.42.32.0/20  connected  active
+  10.42.48.0/20  via aws-hub~spoke-2  next-hop aws-hub  metric 40  computed  active
+  10.42.64.0/20  via aws-hub~spoke-2  next-hop aws-hub  metric 40  computed  active
+  10.42.240.1/32  via aws-hub~spoke-2  next-hop aws-hub  metric 20  computed  active
+  10.42.240.2/32  via aws-hub~spoke-2  next-hop aws-hub  metric 40  computed  active
+  10.42.240.3/32  connected  active
+  10.42.240.4/32  via aws-hub~spoke-2  next-hop aws-hub  metric 40  computed  active
+  10.42.240.5/32  via aws-hub~spoke-2  next-hop aws-hub  metric 40  computed  active
+  10.42.252.0/30  connected  active
+  10.42.252.4/30  connected  active
+node spoke-3
+  10.42.0.0/20  via aws-hub~spoke-3  next-hop aws-hub  metric 20  computed  active
+  10.42.16.0/20  via aws-hub~spoke-3  next-hop aws-hub  metric 40  computed  active
+  10.42.32.0/20  via aws-hub~spoke-3  next-hop aws-hub  metric 40  computed  active
+  10.42.48.0/20  connected  active
+  10.42.64.0/20  via aws-hub~spoke-3  next-hop aws-hub  metric 40  computed  active
+  10.42.240.1/32  via aws-hub~spoke-3  next-hop aws-hub  metric 20  computed  active
+  10.42.240.2/32  via aws-hub~spoke-3  next-hop aws-hub  metric 40  computed  active
+  10.42.240.3/32  via aws-hub~spoke-3  next-hop aws-hub  metric 40  computed  active
+  10.42.240.4/32  connected  active
+  10.42.240.5/32  via aws-hub~spoke-3  next-hop aws-hub  metric 40  computed  active
+  10.42.252.4/30  connected  active
+  10.42.252.8/30  connected  active
+node spoke-4
+  10.42.0.0/20  via aws-hub~spoke-4  next-hop aws-hub  metric 20  computed  active
+  10.42.16.0/20  via aws-hub~spoke-4  next-hop aws-hub  metric 40  computed  active
+  10.42.32.0/20  via aws-hub~spoke-4  next-hop aws-hub  metric 40  computed  active
+  10.42.48.0/20  via aws-hub~spoke-4  next-hop aws-hub  metric 40  computed  active
+  10.42.64.0/20  connected  active
+  10.42.240.1/32  via aws-hub~spoke-4  next-hop aws-hub  metric 20  computed  active
+  10.42.240.2/32  via aws-hub~spoke-4  next-hop aws-hub  metric 40  computed  active
+  10.42.240.3/32  via aws-hub~spoke-4  next-hop aws-hub  metric 40  computed  active
+  10.42.240.4/32  via aws-hub~spoke-4  next-hop aws-hub  metric 40  computed  active
+  10.42.240.5/32  connected  active
+  10.42.252.8/30  connected  active

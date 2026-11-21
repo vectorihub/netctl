@@ -1,0 +1,56 @@
+schema: beaver.topology/v1alpha1
+name: spoke-chain
+# Edge case: spokes chained by direct links; no pair may transit a third spoke
+addressing: { $ref: address-plan.yaml }
+
+sites:
+  - id: aws
+    provider: owned
+  - id: s1
+    provider: owned
+  - id: s2
+    provider: owned
+  - id: s3
+    provider: owned
+  - id: s4
+    provider: owned
+
+nodes:
+  - id: aws-hub
+    site: aws
+    role: hub
+    endpoints: ["203.0.113.10:51820"]
+    nat: none
+    advertises: [site]
+  - id: spoke-1
+    site: s1
+    role: spoke
+    nat: behind
+    advertises: [site]
+  - id: spoke-2
+    site: s2
+    role: spoke
+    nat: behind
+    advertises: [site]
+  - id: spoke-3
+    site: s3
+    role: spoke
+    nat: behind
+    advertises: [site]
+  - id: spoke-4
+    site: s4
+    role: spoke
+    nat: behind
+    advertises: [site]
+
+links:
+  - { kind: hub-spoke, a: aws-hub, b: spoke-1 }
+  - { kind: hub-spoke, a: aws-hub, b: spoke-2 }
+  - { kind: hub-spoke, a: aws-hub, b: spoke-3 }
+  - { kind: hub-spoke, a: aws-hub, b: spoke-4 }
+  - { kind: direct, a: spoke-1, b: spoke-2, cost: 10, health: required }
+  - { kind: direct, a: spoke-2, b: spoke-3, cost: 10, health: required }
+  - { kind: direct, a: spoke-3, b: spoke-4, cost: 10, health: required }
+
+intents:
+  - allow: { from: "*", to: "*" }
