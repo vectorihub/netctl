@@ -89,7 +89,8 @@ func indented(v any) ([]byte, error) {
 // Render returns the bytes of every output file of the plan, keyed by the path relative to
 // the output directory: plan.json, ipam.json, routes.txt, validation.json, simulation.json
 // and nodes/<node>.json. It does no I/O: the caller decides where to write, and every
-// consumer writes the same bytes. The same Result always renders the same bytes. A result
+// consumer writes the same bytes. Rendering leaves the result as it was: each config is
+// copied before it is encoded, so a result can be rendered by several callers at once. The same Result always renders the same bytes. A result
 // with no configs (a plan that was refused and had nothing to keep) renders no node files,
 // and a caller that writes files should not write any for a plan that returned an error.
 //
@@ -111,7 +112,7 @@ func (r Result) Render() (map[string][]byte, error) {
 	}
 	files[FileRoutes] = []byte(r.RoutesText())
 	for _, c := range r.Configs {
-		data, err := c.Encode()
+		data, err := c.Clone().Encode()
 		if err != nil {
 			return nil, fmt.Errorf("render config of %s: %w", c.Node, err)
 		}

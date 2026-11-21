@@ -13,7 +13,12 @@ import (
 
 // ThreeSite builds the three-site network in Go values: an AWS hub and two spokes behind
 // NAT, the two hub links and a direct link between the spokes that must be proven. The
-// address plan is inline, so the first plan needs no saved state.
+// address plan is inline, so the first plan needs no saved state. It cannot fail: the
+// values are fixed.
+//
+// Example:
+//
+//	topo := consumer.ThreeSite() // 3 nodes, 3 links
 func ThreeSite() *topology.Topology {
 	all, _ := topology.ParseSelector("*")
 	hub, _ := topology.ParseSelector("aws-hub")
@@ -50,7 +55,12 @@ func ThreeSite() *topology.Topology {
 }
 
 // PlanThreeSite plans the network once, with the clock fixed so the answer is the same on
-// every machine.
+// every machine. It returns the error of netctl.Plan, which has a code from the types
+// package (for example VALIDATION_FAILED when the validator refuses the plan).
+//
+// Example:
+//
+//	result, err := consumer.PlanThreeSite()
 func PlanThreeSite() (netctl.Result, error) {
 	return netctl.Plan(netctl.Inputs{
 		Topology: ThreeSite(),

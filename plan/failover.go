@@ -19,6 +19,10 @@ func evaluate(in Inputs, t *topology.Topology, from *health.Evaluator, input rou
 	var prev failover.State
 	if in.Failover != nil {
 		prev = *in.Failover
+		prev.Links = nil
+		for _, l := range in.Failover.Links {
+			prev.Links = append(prev.Links, l.Clone())
+		}
 	} else {
 		for _, id := range sortedLinkIDs(from) {
 			prev.Links = append(prev.Links, from.Links[id].Clone())
@@ -29,6 +33,12 @@ func evaluate(in Inputs, t *topology.Topology, from *health.Evaluator, input rou
 		if probed(l) {
 			required[types.LinkIDOf(l.A, l.B)] = true
 		}
+	}
+	// Whether a link must be proven is the topology's word today, not the saved state's
+	// from before: a link changed from assumed to required must prove itself. The links
+	// are copies, so the caller's state is left as it was.
+	for _, l := range prev.Links {
+		l.Required = required[l.ID]
 	}
 	network := failover.Network{
 		Graph:    adapt(topology.BuildGraph(t, func(types.LinkID) bool { return true })),

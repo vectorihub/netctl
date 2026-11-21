@@ -2,6 +2,7 @@ package consumer_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"os/exec"
 	"strings"
 	"testing"
@@ -69,4 +70,20 @@ func TestTheConsumerPullsInNoForbiddenPackage(t *testing.T) {
 			}
 		}
 	}
+}
+
+// ExampleThreeSite shows the size of the network built in code.
+func ExampleThreeSite() {
+	topo := consumer.ThreeSite()
+	fmt.Println(len(topo.Nodes), len(topo.Links))
+	// Output:
+	// 3 3
+}
+
+// ExamplePlanThreeSite plans the network from outside the module.
+func ExamplePlanThreeSite() {
+	result, err := consumer.PlanThreeSite()
+	fmt.Println(err, result.Validation.OK, len(result.Configs))
+	// Output:
+	// <nil> true 3
 }

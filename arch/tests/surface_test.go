@@ -102,6 +102,9 @@ func specSurface(fset *token.FileSet, importPath string, tok token.Token, spec a
 		case *ast.StructType:
 			lines = append(lines, importPath+": type "+s.Name.Name+" struct")
 			for _, f := range ty.Fields.List {
+				if len(f.Names) == 0 && embeddedExported(fset, f.Type) {
+					lines = append(lines, importPath+": embed "+s.Name.Name+" "+text(fset, f.Type))
+				}
 				for _, name := range f.Names {
 					if name.IsExported() {
 						lines = append(lines, importPath+": field "+s.Name.Name+"."+name.Name+" "+text(fset, f.Type))
@@ -111,6 +114,9 @@ func specSurface(fset *token.FileSet, importPath string, tok token.Token, spec a
 		case *ast.InterfaceType:
 			lines = append(lines, importPath+": type "+s.Name.Name+" interface")
 			for _, m := range ty.Methods.List {
+				if len(m.Names) == 0 {
+					lines = append(lines, importPath+": embed "+s.Name.Name+" "+text(fset, m.Type))
+				}
 				for _, name := range m.Names {
 					if name.IsExported() {
 						lines = append(lines, importPath+": imethod "+s.Name.Name+"."+name.Name+strings.TrimPrefix(text(fset, m.Type), "func"))
@@ -126,6 +132,20 @@ func specSurface(fset *token.FileSet, importPath string, tok token.Token, spec a
 		}
 	}
 	return lines
+}
+
+// embeddedExported reports whether an embedded field's type is exported: its name, without
+// a pointer star or a package qualifier, starts with a capital. An embedded exported type
+// promotes its fields and methods, so it is part of the surface.
+func embeddedExported(fset *token.FileSet, expr ast.Expr) bool {
+	name := strings.TrimPrefix(text(fset, expr), "*")
+	if i := strings.LastIndex(name, "."); i >= 0 {
+		name = name[i+1:]
+	}
+	if i := strings.Index(name, "["); i >= 0 {
+		name = name[:i]
+	}
+	return ast.IsExported(name)
 }
 
 // moduleSurface walks the module and returns the sorted surface of every public package:

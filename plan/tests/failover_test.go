@@ -132,3 +132,33 @@ func TestAFailoverThatBreaksAFlowIsRejectedAndTheRoutesStay(t *testing.T) {
 		t.Errorf("the rejected failover still moved traffic: builder-1 reaches dgx-spark via %s", via)
 	}
 }
+
+// TestALinkMadeRequiredMustProveItselfInASavedState checks the topology's word beats the
+// saved state's: a state saved when the direct link was only assumed (and so usable while
+// Unknown) must not let the planner route through the link once the topology requires it to
+// be proven, and the caller's state is left untouched.
+func TestALinkMadeRequiredMustProveItselfInASavedState(t *testing.T) {
+	start := fresh(t)
+	start.Signals = probeSignals(true, 1, 5) // one probe is not proof
+	first := planAt(t, start, 30)
+	if first.Failover == nil {
+		t.Fatal("no failover state")
+	}
+	saved := first.Failover.State
+	for _, l := range saved.Links {
+		if l.ID == direct {
+			l.Required = false // as saved before the topology asked for proof
+		}
+	}
+	in := fresh(t)
+	in.IPAM, in.Failover = first.IPAM, &saved
+	r := mustPlan(t, in)
+	if len(r.Unusable) != 1 || r.Unusable[0] != direct {
+		t.Errorf("unusable %v: an unproven link the topology requires must not be used", r.Unusable)
+	}
+	for _, l := range saved.Links {
+		if l.ID == direct && l.Required {
+			t.Error("the caller's state was changed")
+		}
+	}
+}
