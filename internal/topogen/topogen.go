@@ -10,6 +10,10 @@ import (
 )
 
 // Spec says what network to generate.
+//
+// Example:
+//
+//	topo := topogen.Generate(topogen.Spec{Nodes: 12, Hubs: 2, Seed: 7})
 type Spec struct {
 	// Nodes is the total number of nodes, hubs included.
 	Nodes int
@@ -103,6 +107,10 @@ func Generate(s Spec) *topology.Topology {
 }
 
 // DirectLinks returns the IDs of the direct links of a topology, sorted.
+//
+// Example:
+//
+//	ids := topogen.DirectLinks(topo) // the IDs of the links that carry a transit /30
 func DirectLinks(t *topology.Topology) []string {
 	var ids []string
 	for _, l := range t.Links {

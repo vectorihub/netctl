@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/vectorihub/netctl/internal/e2e"
+	"github.com/vectorihub/netctl/types"
 )
 
 // failure is the panic value fakeT uses to stop a test the way t.Fatalf does.
@@ -344,7 +345,9 @@ func TestEveryFixtureLoadsOrIsRefusedAsDesigned(t *testing.T) {
 	for name, want := range bad {
 		w.Copy("e2e/" + name + ".yaml")
 		_, err := w.TryLoad(name + ".yaml")
-		if err == nil || !strings.Contains(err.Error(), want) {
+		if !types.HasCode(err, types.ErrInvalidTopology) {
+			t.Errorf("%s: got %v, want the code %s", name, err, types.ErrInvalidTopology)
+		} else if !strings.Contains(err.Error(), want) {
 			t.Errorf("%s: got %v, want an error mentioning %q", name, err, want)
 		}
 	}

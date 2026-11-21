@@ -20,6 +20,10 @@ import (
 )
 
 // ExpectOK fails the test unless the plan succeeded.
+//
+// Example:
+//
+//	w.ExpectOK(out) // fails the test unless the plan succeeded and wrote its files
 func (w *W) ExpectOK(o *Out) {
 	w.T.Helper()
 	if !o.OK() {
@@ -46,6 +50,10 @@ func (w *W) ExpectRefused(o *Out, code types.Code) {
 }
 
 // ExpectNoDir fails the test if a directory of that name exists in the workspace.
+//
+// Example:
+//
+//	w.ExpectNoDir("out-2") // a refused plan leaves no output directory
 func (w *W) ExpectNoDir(name string) {
 	w.T.Helper()
 	if _, err := os.Stat(filepath.Join(w.Dir, name)); err == nil {
@@ -54,6 +62,10 @@ func (w *W) ExpectNoDir(name string) {
 }
 
 // ExpectFiles fails the test unless every named file exists in the plan's output.
+//
+// Example:
+//
+//	w.ExpectFiles(out, "plan.json", "ipam.json")
 func (w *W) ExpectFiles(o *Out, names ...string) {
 	w.T.Helper()
 	for _, name := range names {
@@ -64,9 +76,17 @@ func (w *W) ExpectFiles(o *Out, names ...string) {
 }
 
 // Snapshot is the SHA-256 of every file under a directory, by relative path.
+//
+// Example:
+//
+//	snap := e2e.Snapshot{"plan.json": "9f2c..."} // path to content hash
 type Snapshot map[string]string
 
 // Snapshot hashes every file under dir (a workspace-relative or absolute path).
+//
+// Example:
+//
+//	before := w.Snapshot("out-1")
 func (w *W) Snapshot(dir string) Snapshot {
 	w.T.Helper()
 	snap, err := SnapshotDir(w.abs(dir))
@@ -85,6 +105,10 @@ func (w *W) abs(path string) string {
 }
 
 // SnapshotDir hashes every file under dir. A missing directory gives an empty snapshot.
+//
+// Example:
+//
+//	snap, err := e2e.SnapshotDir(dir)
 func SnapshotDir(dir string) (Snapshot, error) {
 	snap := Snapshot{}
 	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
@@ -108,6 +132,10 @@ func SnapshotDir(dir string) (Snapshot, error) {
 
 // ExpectUnchanged fails the test unless the directory is byte-identical to the snapshot,
 // naming the first file that differs.
+//
+// Example:
+//
+//	w.ExpectUnchanged("out-1", before) // before := w.Snapshot("out-1")
 func (w *W) ExpectUnchanged(dir string, before Snapshot) {
 	w.T.Helper()
 	after := w.Snapshot(dir)
@@ -140,12 +168,20 @@ func firstDifference(a, b Snapshot) (string, bool) {
 
 // DirHash is one hash over a whole tree: every path and every file's hash, in path order. Two
 // directories have equal hashes when they hold the same files with the same bytes.
+//
+// Example:
+//
+//	sum := w.DirHash("out-1")
 func (w *W) DirHash(dir string) string {
 	w.T.Helper()
 	return HashSnapshot(w.Snapshot(dir))
 }
 
 // HashSnapshot reduces a snapshot to one hash.
+//
+// Example:
+//
+//	sum := e2e.HashSnapshot(w.Snapshot("out-1"))
 func HashSnapshot(snap Snapshot) string {
 	names := make([]string, 0, len(snap))
 	for name := range snap {
@@ -160,12 +196,20 @@ func HashSnapshot(snap Snapshot) string {
 }
 
 // FileHash is the SHA-256 of one rendered file of a plan.
+//
+// Example:
+//
+//	sum := out.FileHash("plan.json")
 func (o *Out) FileHash(path string) string {
 	sum := sha256.Sum256(o.Files[path])
 	return hex.EncodeToString(sum[:])
 }
 
 // SubtreeHash is DirHash for the files of a plan under one prefix, for example "nodes/".
+//
+// Example:
+//
+//	sum := out.SubtreeHash("nodes/")
 func (o *Out) SubtreeHash(prefix string) string {
 	snap := Snapshot{}
 	for path := range o.Files {
@@ -179,12 +223,16 @@ func (o *Out) SubtreeHash(prefix string) string {
 // J is a parsed JSON document with a small query language: dot-separated keys, array
 // indices (peers.1.allowed_prefixes.0) and [field=value] selectors that pick a list element
 // by one of its fields (peers[node=aws-hub].allowed_prefixes).
+//
+// Example:
+//
+//	j := w.ParseJSON(out.Files["plan.json"]) // then j.Str("plan_id")
 type J struct {
 	w *W
 	v any
 }
 
-// JSON parses a rendered file of a plan for querying. It fails the test if the file is
+// ParseJSON parses a rendered file of a plan for querying. It fails the test if the file is
 // missing or not JSON.
 //
 // Example:
@@ -200,6 +248,10 @@ func (w *W) JSON(o *Out, path string) *J {
 }
 
 // ParseJSON parses JSON bytes into a queryable document.
+//
+// Example:
+//
+//	j := w.ParseJSON(out.Files["validation.json"])
 func (w *W) ParseJSON(data []byte) *J {
 	w.T.Helper()
 	var v any
@@ -210,6 +262,10 @@ func (w *W) ParseJSON(data []byte) *J {
 }
 
 // Get returns the value at the path, or nil if there is none.
+//
+// Example:
+//
+//	v := j.Get("findings.0.rule") // nil when the path is absent
 func (j *J) Get(path string) any {
 	cur := j.v
 	for _, part := range splitPath(path) {
@@ -279,6 +335,10 @@ func step(v any, part string) any {
 
 // Str returns the string at the path, or "" if there is none. Numbers and booleans are
 // written the way fmt prints them.
+//
+// Example:
+//
+//	rule := j.Str("findings[rule=V-ADDR-006].severity")
 func (j *J) Str(path string) string {
 	switch v := j.Get(path).(type) {
 	case nil:
@@ -293,18 +353,30 @@ func (j *J) Str(path string) string {
 }
 
 // Num returns the number at the path, or 0 if there is none.
+//
+// Example:
+//
+//	n := j.Num("summary.errors")
 func (j *J) Num(path string) float64 {
 	n, _ := j.Get(path).(float64)
 	return n
 }
 
 // Bool returns the boolean at the path, or false if there is none.
+//
+// Example:
+//
+//	pass := j.Bool("all_pass")
 func (j *J) Bool(path string) bool {
 	b, _ := j.Get(path).(bool)
 	return b
 }
 
 // Strings returns the list of strings at the path; non-strings are skipped.
+//
+// Example:
+//
+//	rules := j.Strings("peers[node=aws-hub].allowed_prefixes")
 func (j *J) Strings(path string) []string {
 	list, _ := j.Get(path).([]any)
 	out := make([]string, 0, len(list))
@@ -317,6 +389,10 @@ func (j *J) Strings(path string) []string {
 }
 
 // Len returns the length of the list or object at the path, or -1 if there is neither.
+//
+// Example:
+//
+//	n := j.Len("findings")
 func (j *J) Len(path string) int {
 	switch v := j.Get(path).(type) {
 	case []any:
@@ -353,6 +429,10 @@ func findingList(o *Out) string {
 }
 
 // ExpectNoErrors fails the test if the plan's validation holds an error.
+//
+// Example:
+//
+//	w.ExpectNoErrors(out) // no validation finding of severity error
 func (w *W) ExpectNoErrors(o *Out) {
 	w.T.Helper()
 	if errs := o.Result.Validation.Errors(); len(errs) > 0 {
@@ -362,6 +442,10 @@ func (w *W) ExpectNoErrors(o *Out) {
 
 // ExpectSimPass fails the test unless the plan's simulation passed, and unless it ran n
 // flows when n is not negative.
+//
+// Example:
+//
+//	w.ExpectSimPass(out, 6) // six flows simulated, all passing
 func (w *W) ExpectSimPass(o *Out, flows int) {
 	w.T.Helper()
 	rep := o.Result.Simulation
@@ -375,6 +459,10 @@ func (w *W) ExpectSimPass(o *Out, flows int) {
 
 // Flow returns the simulation result whose label is exactly the one given, for example
 // "builder-1→dgx-spark (overlay)". It fails the test if there is none.
+//
+// Example:
+//
+//	flow := w.Flow(out, "builder-to-dgx")
 func (w *W) Flow(o *Out, label string) sim.FlowResult {
 	w.T.Helper()
 	for _, f := range o.Result.Simulation.Flows {
@@ -388,6 +476,10 @@ func (w *W) Flow(o *Out, label string) sim.FlowResult {
 
 // Accounting is the plan's address accounting, what `ipam show` prints: it loads the saved
 // address plan back through the ipam package, so a plan that could not be loaded fails here.
+//
+// Example:
+//
+//	report := w.Accounting(out) // allocated + reserved + quarantined + free == total
 func (w *W) Accounting(o *Out) ipam.Report {
 	w.T.Helper()
 	snap, err := ipam.Unmarshal(o.Files["ipam.json"])
@@ -403,6 +495,10 @@ func (w *W) Accounting(o *Out) ipam.Report {
 
 // ExpectUTC fails the test if any rendered file holds an RFC 3339 timestamp that is not in
 // UTC (does not end in Z). It scans every JSON string that parses as a time.
+//
+// Example:
+//
+//	w.ExpectUTC(out) // every timestamp in the output is UTC
 func (w *W) ExpectUTC(o *Out) {
 	w.T.Helper()
 	for path, data := range o.Files {
@@ -445,6 +541,10 @@ func nonUTC(v any) string {
 
 // ExpectNoSecrets fails the test if a secret value appears in any rendered file or in the
 // error text of the plan.
+//
+// Example:
+//
+//	w.ExpectNoSecrets(out, "hunter2") // the value appears in no output and no error
 func (w *W) ExpectNoSecrets(o *Out, secrets ...string) {
 	w.T.Helper()
 	for _, secret := range secrets {

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/vectorihub/netctl/topology"
+	"github.com/vectorihub/netctl/types"
 )
 
 // overrideTopology is a topology whose site s9 asks for the growth pool, with a reason.
@@ -38,7 +39,10 @@ func TestASiteCanAskForAnotherPoolWithAReason(t *testing.T) {
 func TestAnOverrideWithoutAReasonIsRefused(t *testing.T) {
 	text := strings.Replace(overrideTopology, `, reason: "approved expansion"`, "", 1)
 	_, err := topology.Decode("grow.yaml", []byte(text), 0)
-	if err == nil || !strings.Contains(err.Error(), "reason") {
+	if !types.HasCode(err, types.ErrInvalidTopology) {
+		t.Fatalf("got %v, want the code %s", err, types.ErrInvalidTopology)
+	}
+	if !strings.Contains(err.Error(), "reason") {
 		t.Errorf("got %v, want an error that asks for the reason", err)
 	}
 }

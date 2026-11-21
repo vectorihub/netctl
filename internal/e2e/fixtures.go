@@ -37,6 +37,10 @@ func (w *W) Copy(names ...string) {
 }
 
 // Write puts a file in the workspace root.
+//
+// Example:
+//
+//	w.Write("notes.txt", []byte("hello"))
 func (w *W) Write(name string, data []byte) {
 	w.T.Helper()
 	full := filepath.Join(w.Dir, name)
@@ -49,6 +53,10 @@ func (w *W) Write(name string, data []byte) {
 }
 
 // Read returns a file from the workspace.
+//
+// Example:
+//
+//	data := w.Read("three-site.yaml")
 func (w *W) Read(name string) []byte {
 	w.T.Helper()
 	data, err := os.ReadFile(filepath.Join(w.Dir, name))
@@ -87,6 +95,10 @@ func (w *W) Load(name string) *topology.Topology {
 
 // TryLoad is Load that returns the refusal instead of failing the test. The topology is nil
 // when the file did not decode.
+//
+// Example:
+//
+//	topo, err := w.TryLoad("three-site-typo.yaml") // err carries INVALID_TOPOLOGY
 func (w *W) TryLoad(name string) (*topology.Topology, error) {
 	data, err := os.ReadFile(filepath.Join(w.Dir, name))
 	if err != nil {

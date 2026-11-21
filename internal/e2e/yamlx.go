@@ -12,6 +12,10 @@ import (
 
 // Edit is one change to a YAML fixture, applied to the parsed document so comments and key
 // order elsewhere in the file survive.
+//
+// Example:
+//
+//	var edit e2e.Edit = e2e.Set("name", "renamed")
 type Edit func(root *yaml.Node) error
 
 // Set replaces the value at a path with a Go value. The path uses dots, indices and
@@ -133,6 +137,10 @@ func Shuffle(seed int64, paths ...string) Edit {
 
 // Edit applies edits to a workspace YAML file in order and writes the result back. An edit
 // that cannot apply fails the test.
+//
+// Example:
+//
+//	w.Edit("three-site.yaml", e2e.Set("nodes.0.role", "spoke"))
 func (w *W) Edit(file string, edits ...Edit) {
 	w.T.Helper()
 	out, err := EditBytes(w.Read(file), edits...)
@@ -143,6 +151,10 @@ func (w *W) Edit(file string, edits ...Edit) {
 }
 
 // EditBytes applies edits to YAML text and returns the new text.
+//
+// Example:
+//
+//	edited, err := e2e.EditBytes(data, e2e.Delete("sites.2"))
 func EditBytes(data []byte, edits ...Edit) ([]byte, error) {
 	var doc yaml.Node
 	if err := yaml.Unmarshal(data, &doc); err != nil {

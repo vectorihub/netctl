@@ -11,6 +11,10 @@ import (
 // 10.42.0.4, which all lie inside it. The topology format cannot pin an address, so the
 // conflict is built as saved state, which is how a hand-edited file would carry it. Loading
 // it must be refused with one OVERLAP error per machine.
+//
+// Example:
+//
+//	state := w.DiscussionOverlap() // the overlapping allocations the guide's discussion describes
 func (w *W) DiscussionOverlap() ipam.Snapshot {
 	w.T.Helper()
 	snap := w.EmptyPlan()
@@ -26,6 +30,10 @@ func (w *W) DiscussionOverlap() ipam.Snapshot {
 
 // EmptyPlan returns the standard address plan with no allocations: the pools of the
 // address-plan fixture and nothing handed out, the "empty.json" of the guide.
+//
+// Example:
+//
+//	state := w.EmptyPlan() // a valid address plan with nothing allocated
 func (w *W) EmptyPlan() ipam.Snapshot {
 	w.T.Helper()
 	topo := w.Load(DefaultTopology)
@@ -39,6 +47,10 @@ func (w *W) EmptyPlan() ipam.Snapshot {
 // CorruptOverlap returns a copy of a saved address plan with a second allocation placed on
 // top of the block of site builder: 10.42.16.0/21 for the owner site:extra, the way a hand
 // edit would break it.
+//
+// Example:
+//
+//	bad := w.CorruptOverlap(out.Result.IPAM) // two allocations now overlap
 func (w *W) CorruptOverlap(snap ipam.Snapshot) ipam.Snapshot {
 	out := snap
 	out.Allocations = append([]ipam.Allocation(nil), snap.Allocations...)

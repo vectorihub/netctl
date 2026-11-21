@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -31,6 +32,10 @@ var T0 = time.Date(2026, 11, 20, 10, 0, 0, 0, time.UTC)
 const ArtifactsDir = "artifacts"
 
 // Step is one entry of the log: what the test was doing and what it got.
+//
+// Example:
+//
+//	steps := w.Log() // each Step names an action, its time and any error code
 type Step struct {
 	// N is the step number, starting at 1.
 	N int `json:"step"`
@@ -49,6 +54,10 @@ type Step struct {
 }
 
 // W is one test's workspace: a private directory, a test clock, and a log of steps.
+//
+// Example:
+//
+//	w := e2e.New(t, "P1-E2E-001")
 type W struct {
 	// T is the test that owns the workspace.
 	T testing.TB
@@ -115,6 +124,10 @@ func (w *W) At(d time.Duration) { w.Now = T0.Add(d) }
 // Fatalf fails the test with the context rule H5 asks for: the test ID, the step number and
 // name, and the last action with its error, so nobody has to rerun the test to see where
 // it stopped.
+//
+// Example:
+//
+//	w.Fatalf("%s has no health", name)
 func (w *W) Fatalf(format string, args ...any) {
 	w.T.Helper()
 	var last string
@@ -142,12 +155,37 @@ func (w *W) record(action string, err error, took time.Duration) {
 }
 
 // Log returns a copy of the step log, for the harness self-tests and for reports.
+//
+// Example:
+//
+//	steps := w.Log()
 func (w *W) Log() []Step { return append([]Step(nil), w.log...) }
 
-// saveArtifacts copies the workspace and the step log to artifacts/<id>/. It is best effort:
+// savedMu guards saved.
+var savedMu sync.Mutex
+
+// saved counts, per test ID, how many workspaces this run has saved, so a test that makes
+// several workspaces keeps all of them.
+var saved = map[string]int{}
+
+// artifactDir returns the directory for the next workspace of a test: artifacts/<id>/ for
+// the first, artifacts/<id>-2/ for the second, and so on. Each is cleared before use, which
+// removes what an earlier run left under the same name.
+func artifactDir(id string) string {
+	savedMu.Lock()
+	defer savedMu.Unlock()
+	saved[id]++
+	if n := saved[id]; n > 1 {
+		return filepath.Join(ArtifactsDir, fmt.Sprintf("%s-%d", id, n))
+	}
+	return filepath.Join(ArtifactsDir, id)
+}
+
+// saveArtifacts copies the workspace and the step log to artifacts/<id>/ (artifacts/<id>-2/
+// and so on for a test's further workspaces, so none overwrites another). It is best effort:
 // a failure to save is reported to the test log, not turned into a second failure.
 func (w *W) saveArtifacts() {
-	dest := filepath.Join(ArtifactsDir, w.ID)
+	dest := artifactDir(w.ID)
 	if err := os.RemoveAll(dest); err != nil {
 		w.T.Logf("artifacts: %v", err)
 		return
@@ -168,6 +206,11 @@ func (w *W) saveArtifacts() {
 
 // Out is the result of one plan: the directory it was written to (when it was written), the
 // planner's own result, and the files Render produced.
+//
+// Example:
+//
+//	out := w.MustPlan(e2e.Options{Topology: topo})
+//	files := out.Files
 type Out struct {
 	// Name is the directory name inside the workspace, for example "out-1".
 	Name string
@@ -186,10 +229,18 @@ type Out struct {
 }
 
 // OK reports whether the plan succeeded and wrote its directory.
+//
+// Example:
+//
+//	if out.OK() { /* the plan succeeded */ }
 func (o *Out) OK() bool { return o != nil && o.Err == nil && o.Files != nil }
 
 // Options is everything one plan call can vary. The zero value plans the workspace topology
 // from an empty address plan with no health evidence.
+//
+// Example:
+//
+//	out := w.Plan(e2e.Options{Name: "out-2", Topology: topo, SkipSweep: true})
 type Options struct {
 	// Name names the output directory. Empty means out-N, counting plans from 0.
 	Name string
@@ -280,9 +331,17 @@ func (w *W) MustPlan(o Options) *Out {
 
 // Rel returns the path of a file inside an output directory, joined with the right
 // separator, for tests that read a rendered file.
+//
+// Example:
+//
+//	path := out.Rel("nodes/aws-hub.json")
 func (o *Out) Rel(path string) string { return filepath.Join(o.Dir, filepath.FromSlash(path)) }
 
 // Nodes returns the node IDs that have a config in the output, sorted.
+//
+// Example:
+//
+//	names := out.Nodes() // ["aws-hub", "builder-1", "dgx-spark"]
 func (o *Out) Nodes() []string {
 	var nodes []string
 	for path := range o.Files {
@@ -295,6 +354,10 @@ func (o *Out) Nodes() []string {
 }
 
 // FailoverState returns the failover state the plan saved, or nil when it ran without one.
+//
+// Example:
+//
+//	state := out.FailoverState() // nil when the plan saved none
 func (o *Out) FailoverState() *failover.State {
 	if o == nil || o.Result.Failover == nil {
 		return nil
