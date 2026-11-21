@@ -48,6 +48,7 @@ jobs:
         run: make repro
       - name: API changes since the latest tag (report only)
         if: matrix.os == 'ubuntu-latest'
+        continue-on-error: true
         run: |
           go install golang.org/x/exp/cmd/apidiff@latest
           git fetch --tags --force --unshallow || git fetch --tags --force
