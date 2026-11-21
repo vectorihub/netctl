@@ -23,6 +23,12 @@
 //  11. Guard: a plan that fails validation, when the plan in force passed, is rejected and
 //     the plan in force stays.
 //
+// When the caller passes health signals or the failover state of the last plan, steps 7 and 8
+// run under the failover guard: the signals are folded in, the new routes are simulated
+// before they are used, and a failover that would break a flow that worked is refused. The
+// routes in force stay, the plan still succeeds, and a FailoverRejected decision says why.
+// [Result].Failover holds the state to save for the next plan.
+//
 // A failure in steps 1 to 5 fails the plan before any config exists. Addresses are
 // allocated in sorted order and never in the order the topology lists them, so shuffling
 // the file changes nothing, and idempotency keeps every machine's address on later plans.
