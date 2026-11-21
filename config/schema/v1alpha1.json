@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vectorihub/netctl/config/schema/v1alpha1.json",
+  "title": "Beaver NodeConfig, beaver.netctl/v1alpha1",
+  "description": "The desired network state of one node. It says what the node's network should be, never how to build it: no interface names, no commands, no sysctls, no file paths and no secrets.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "plan_id", "node", "role", "forwarding", "overlay", "advertise", "peers", "routes", "health", "policy", "hash"],
+  "properties": {
+    "schema": { "const": "beaver.netctl/v1alpha1" },
+    "plan_id": { "type": "string", "pattern": "@[0-9a-f]{8}$" },
+    "node": { "$ref": "#/$defs/id" },
+    "role": { "enum": ["hub", "spoke"] },
+    "forwarding": { "type": "boolean" },
+    "overlay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["address", "listen_port"],
+      "properties": {
+        "address": { "$ref": "#/$defs/prefix" },
+        "listen_port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+      }
+    },
+    "site_prefix": { "$ref": "#/$defs/prefix" },
+    "advertise": { "type": "array", "items": { "$ref": "#/$defs/prefix" }, "uniqueItems": true },
+    "peers": { "type": "array", "items": { "$ref": "#/$defs/peer" } },
+    "routes": { "type": "array", "items": { "$ref": "#/$defs/route" } },
+    "health": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["probes", "fail_threshold", "recover_threshold", "hold_down_seconds"],
+      "properties": {
+        "probes": { "type": "array", "items": { "$ref": "#/$defs/probe_target" } },
+        "fail_threshold": { "type": "integer", "minimum": 1 },
+        "recover_threshold": { "type": "integer", "minimum": 1 },
+        "hold_down_seconds": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "policy": { "type": "array", "items": { "$ref": "#/$defs/policy_entry" } },
+    "hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$" },
+    "link_id": { "type": "string", "pattern": "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?~[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$" },
+    "prefix": { "type": "string", "pattern": "^[0-9a-f.:]+/[0-9]{1,3}$" },
+    "address": { "type": "string", "pattern": "^[0-9a-f.:]+$" },
+    "endpoint": { "type": "string", "pattern": "^([0-9.]+|\\[[0-9a-f:]+\\]):[0-9]{1,5}$" },
+    "peer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node", "link", "role", "public_key_ref", "endpoints", "keepalive_seconds", "allowed_prefixes"],
+      "properties": {
+        "node": { "$ref": "#/$defs/id" },
+        "link": { "$ref": "#/$defs/link_id" },
+        "role": { "enum": ["hub", "spoke", "direct"] },
+        "public_key_ref": { "type": "string", "pattern": "^node:[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$" },
+        "endpoints": { "type": "array", "items": { "$ref": "#/$defs/endpoint" }, "uniqueItems": true },
+        "needs_traversal": { "type": "boolean" },
+        "keepalive_seconds": { "type": "integer", "minimum": 0, "maximum": 65535 },
+        "probe": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["local", "remote"],
+          "properties": {
+            "local": { "$ref": "#/$defs/prefix" },
+            "remote": { "$ref": "#/$defs/address" }
+          }
+        },
+        "allowed_prefixes": { "type": "array", "items": { "$ref": "#/$defs/prefix" }, "uniqueItems": true }
+      }
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prefix", "via", "metric", "active"],
+      "properties": {
+        "prefix": { "$ref": "#/$defs/prefix" },
+        "via": { "$ref": "#/$defs/id" },
+        "metric": { "type": "integer", "minimum": 0 },
+        "active": { "type": "boolean" },
+        "backup": { "type": "boolean" }
+      }
+    },
+    "probe_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["link", "target", "interval_seconds"],
+      "properties": {
+        "link": { "$ref": "#/$defs/link_id" },
+        "target": { "$ref": "#/$defs/address" },
+        "interval_seconds": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "policy_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "from", "to"],
+      "properties": {
+        "action": { "enum": ["allow", "deny"] },
+        "from": { "type": "string", "minLength": 1 },
+        "to": { "type": "string", "minLength": 1 },
+        "ports": { "type": "array", "items": { "type": "integer", "minimum": 1, "maximum": 65535 } }
+      }
+    }
+  }
+}

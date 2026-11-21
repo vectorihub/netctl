@@ -45,7 +45,7 @@ process. Everything it needs is passed in as values, and everything it decides c
 - **Safe to embed.** It can run inside a control plane, a CLI, a CI check or a web service.
 
 Today `netctl` provides address management (`ipam`), the network model (`topology`), routing (`route`), a packet
-simulator (`sim`), link health (`health`) and failover (`failover`), with the supporting `types` and `cidr` packages.
+simulator (`sim`), link health (`health`), failover (`failover`) and desired configuration (`config`), with the supporting `types` and `cidr` packages.
 
 ## Status and version support
 
@@ -149,6 +149,7 @@ The full API reference, with runnable examples, is on [pkg.go.dev](https://pkg.g
 | [`route`](https://pkg.go.dev/github.com/vectorihub/netctl/route) | Routing tables for every node: shortest paths, backups, longest-prefix lookup, explanations and diffs. |
 | [`sim`](https://pkg.go.dev/github.com/vectorihub/netctl/sim) | A virtual test bench: pushes packets through the tables, judges every flow, runs failure scenarios, and writes text and JSON reports. |
 | [`health`](https://pkg.go.dev/github.com/vectorihub/netctl/health) | Which links may carry traffic: per-direction state machines, hold-down, staleness, and flap pinning, operator drains, and the rule that a link is only as good as its worse direction. |
+| [`config`](https://pkg.go.dev/github.com/vectorihub/netctl/config) | One desired-state document per node, in Beaver's own words and independent of the machine that applies it: peers with the prefixes each may carry (so failover moves a prefix from the direct peer to the hub), routes, probes, a canonical encoding with a content hash, a plan ID, a structured diff, a JSON Schema and a secret scanner. |
 | [`failover`](https://pkg.go.dev/github.com/vectorihub/netctl/failover) | What the routing tables should be when links fail or recover: folds health signals, recomputes every table through the real engine, explains each change, refuses a failover the simulation shows makes things worse, and saves its state so a restart does not reset a hold-down. |
 
 ## Getting help

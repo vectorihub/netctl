@@ -1,0 +1,126 @@
+{
+  "nodes": [
+    {
+      "node": "builder-1",
+      "moves": [
+        {
+          "prefix": "10.42.32.0/20",
+          "from": "dgx-spark",
+          "to": "aws-hub"
+        },
+        {
+          "prefix": "10.42.240.3/32",
+          "from": "dgx-spark",
+          "to": "aws-hub"
+        }
+      ],
+      "routes_removed": [
+        {
+          "prefix": "10.42.32.0/20",
+          "via": "dgx-spark",
+          "metric": 10,
+          "active": true
+        },
+        {
+          "prefix": "10.42.240.3/32",
+          "via": "dgx-spark",
+          "metric": 10,
+          "active": true
+        }
+      ],
+      "routes_changed": [
+        {
+          "old": {
+            "prefix": "10.42.32.0/20",
+            "via": "aws-hub",
+            "metric": 40,
+            "active": false,
+            "backup": true
+          },
+          "new": {
+            "prefix": "10.42.32.0/20",
+            "via": "aws-hub",
+            "metric": 40,
+            "active": true
+          }
+        },
+        {
+          "old": {
+            "prefix": "10.42.240.3/32",
+            "via": "aws-hub",
+            "metric": 40,
+            "active": false,
+            "backup": true
+          },
+          "new": {
+            "prefix": "10.42.240.3/32",
+            "via": "aws-hub",
+            "metric": 40,
+            "active": true
+          }
+        }
+      ]
+    },
+    {
+      "node": "dgx-spark",
+      "moves": [
+        {
+          "prefix": "10.42.16.0/20",
+          "from": "builder-1",
+          "to": "aws-hub"
+        },
+        {
+          "prefix": "10.42.240.2/32",
+          "from": "builder-1",
+          "to": "aws-hub"
+        }
+      ],
+      "routes_removed": [
+        {
+          "prefix": "10.42.16.0/20",
+          "via": "builder-1",
+          "metric": 10,
+          "active": true
+        },
+        {
+          "prefix": "10.42.240.2/32",
+          "via": "builder-1",
+          "metric": 10,
+          "active": true
+        }
+      ],
+      "routes_changed": [
+        {
+          "old": {
+            "prefix": "10.42.16.0/20",
+            "via": "aws-hub",
+            "metric": 40,
+            "active": false,
+            "backup": true
+          },
+          "new": {
+            "prefix": "10.42.16.0/20",
+            "via": "aws-hub",
+            "metric": 40,
+            "active": true
+          }
+        },
+        {
+          "old": {
+            "prefix": "10.42.240.2/32",
+            "via": "aws-hub",
+            "metric": 40,
+            "active": false,
+            "backup": true
+          },
+          "new": {
+            "prefix": "10.42.240.2/32",
+            "via": "aws-hub",
+            "metric": 40,
+            "active": true
+          }
+        }
+      ]
+    }
+  ]
+}
