@@ -1,0 +1,5 @@
+builder-1 → 10.42.33.7 (site dgx)
+   match:   10.42.32.0/20 (longest of 2 candidates)
+   active:  via dgx-spark over builder-1~dgx-spark, metric 10, path builder-1 → dgx-spark
+   backup:  via aws-hub over aws-hub~builder-1, metric 40, path builder-1 → aws-hub → dgx-spark
+   reason:  the cheapest path, metric 10; link builder-1~dgx-spark is up (healthy)
