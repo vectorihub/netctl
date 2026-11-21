@@ -8,12 +8,13 @@ import (
 	"testing"
 
 	"github.com/vectorihub/netctl/config"
+	"github.com/vectorihub/netctl/internal/jsonschema"
 )
 
 // schemaValidator returns a validator for the published schema.
-func schemaValidator(t testing.TB) *validator {
+func schemaValidator(t testing.TB) *jsonschema.Schema {
 	t.Helper()
-	v, err := newValidator(config.SchemaJSON())
+	v, err := jsonschema.New(config.SchemaJSON())
 	if err != nil {
 		t.Fatalf("the schema is not JSON: %v", err)
 	}
@@ -41,7 +42,7 @@ func TestSchemaFileIsTheEmbeddedSchema(t *testing.T) {
 // TestSchemaUsesOnlyKeywordsTheValidatorKnows checks the schema holds nothing the
 // test validator would silently ignore.
 func TestSchemaUsesOnlyKeywordsTheValidatorKnows(t *testing.T) {
-	if bad := schemaValidator(t).unsupportedKeywords(); len(bad) != 0 {
+	if bad := schemaValidator(t).UnsupportedKeywords(); len(bad) != 0 {
 		t.Errorf("keywords the validator ignores: %v", bad)
 	}
 }
@@ -56,7 +57,7 @@ func TestEveryGeneratedConfigMatchesTheSchema(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		problems, err := v.validate(data)
+		problems, err := v.Validate(data)
 		if err != nil || len(problems) != 0 {
 			t.Errorf("%s: %v %v\n%s", label, err, problems, data)
 		}
@@ -123,7 +124,7 @@ func TestValidatorRejectsBadConfigs(t *testing.T) {
 		m := clone()
 		tc.mutate(m)
 		data, _ := json.Marshal(m)
-		problems, err := v.validate(data)
+		problems, err := v.Validate(data)
 		if err != nil {
 			t.Errorf("%s: %v", name, err)
 			continue
@@ -132,7 +133,7 @@ func TestValidatorRejectsBadConfigs(t *testing.T) {
 			t.Errorf("%s: problems %v, want one mentioning %q", name, problems, tc.want)
 		}
 	}
-	if problems, _ := v.validate(good); len(problems) != 0 {
+	if problems, _ := v.Validate(good); len(problems) != 0 {
 		t.Errorf("the good config does not validate: %v", problems)
 	}
 }
