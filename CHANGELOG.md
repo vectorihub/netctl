@@ -9,7 +9,7 @@ changes, and each one is listed under **Breaking Changes** for that release.
 
 ## [Unreleased]
 
-# Release (unreleased) (v0.9.0)
+# Release 2026-11-21 (v0.9.0)
 
 ## Announcements
 Release R9 makes netctl a package other programs can depend on. The root package is now the one obvious entry point:
