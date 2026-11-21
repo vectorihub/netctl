@@ -5,8 +5,12 @@ import (
 	"runtime"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/vectorihub/netctl/config"
+	"github.com/vectorihub/netctl/failover"
+	"github.com/vectorihub/netctl/health"
+	"github.com/vectorihub/netctl/internal/fixture"
 	"github.com/vectorihub/netctl/route"
 	"github.com/vectorihub/netctl/topology"
 	"github.com/vectorihub/netctl/types"
@@ -127,4 +131,85 @@ func TestGenerateDoesNotChangeItsInputs(t *testing.T) {
 			t.Errorf("Generate changed the table of %s", node)
 		}
 	}
+}
+
+// TestConfigsSurviveAWriteAndRead checks every config of 100 random networks, written
+// and read back, writes the same bytes again and still verifies: nothing in the
+// canonical form is lost or invented by Decode.
+func TestConfigsSurviveAWriteAndRead(t *testing.T) {
+	for seed := 0; seed < 100; seed++ {
+		for _, c := range randomPlan(t, seed).configs {
+			first, err := c.Clone().Encode()
+			if err != nil {
+				t.Fatal(err)
+			}
+			back, err := config.Decode(first)
+			if err != nil {
+				t.Fatalf("seed %d: %s: %v", seed, c.Node, err)
+			}
+			second, err := back.Encode()
+			if err != nil || string(first) != string(second) {
+				t.Fatalf("seed %d: %s: the bytes changed over a write and a read (%v)", seed, c.Node, err)
+			}
+			if err := back.Verify(); err != nil {
+				t.Fatalf("seed %d: %s: %v", seed, c.Node, err)
+			}
+		}
+	}
+}
+
+// TestFailoverAndComputeGiveTheSameConfigs joins the two halves: the tables that
+// failover.Evaluate installs after the direct link fails give the same configs, byte
+// for byte, as tables computed straight from a network with that link down. So a
+// config generated from a failover is the config of the failed-over network, and
+// nothing about how the tables were reached shows in it.
+func TestFailoverAndComputeGiveTheSameConfigs(t *testing.T) {
+	healthyInputs := threeSiteInputs(t, true)
+	net := failover.Network{Graph: fixture.ThreeSite(true), Input: fixture.ThreeSiteInput(), Required: map[types.LinkID]bool{direct: true}}
+	at := func(n int) time.Time { return time.Date(2026, 11, 21, 10, 0, n, 0, time.UTC) }
+	probes := func(ok bool, n, from int) []health.Signal {
+		var out []health.Signal
+		for i := 0; i < n; i++ {
+			for _, end := range []types.NodeID{builder, dgx} {
+				out = append(out, health.Signal{Link: direct, From: end, Kind: health.SignalProbe, OK: ok, At: at(from + 5*i)})
+			}
+		}
+		return out
+	}
+	first, err := failover.Evaluate(net, failover.State{}, probes(true, 5, 5), at(30))
+	if err != nil {
+		t.Fatal(err)
+	}
+	healthy := healthyInputs
+	healthy.Tables = first.Tables
+	fromFailover, err := config.Generate(healthy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(hashes(fromFailover), hashes(mustGenerate(t, threeSiteInputs(t, true)))) {
+		t.Error("the healthy plan from failover differs from the one from route.Compute")
+	}
+	failed, err := failover.Evaluate(net, first.State, probes(false, 3, 35), at(50))
+	if err != nil {
+		t.Fatal(err)
+	}
+	down := threeSiteInputs(t, false)
+	down.Tables = failed.Tables
+	fromFailover, err = config.Generate(down)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(hashes(fromFailover), hashes(mustGenerate(t, threeSiteInputs(t, false)))) {
+		t.Error("the failed-over plan from failover differs from the one from route.Compute")
+	}
+}
+
+// mustGenerate generates configs and fails the test on an error.
+func mustGenerate(t *testing.T, in config.Inputs) []*config.NodeConfig {
+	t.Helper()
+	configs, err := config.Generate(in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return configs
 }
