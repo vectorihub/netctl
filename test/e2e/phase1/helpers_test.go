@@ -20,10 +20,12 @@ func link(w *e2e.W, out *e2e.Out, id string) *health.Link {
 	state := out.FailoverState()
 	if state == nil {
 		w.Fatalf("%s carries no failover state", out.Name)
+		return nil
 	}
 	l, ok := state.Link(types.LinkID(id))
 	if !ok {
 		w.Fatalf("%s has no health for %s", out.Name, id)
+		return nil
 	}
 	return l
 }
