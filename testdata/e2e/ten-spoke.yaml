@@ -1,0 +1,92 @@
+schema: beaver.topology/v1alpha1
+name: ten-spoke
+# Edge case: a hub with ten spokes; ninety ordered spoke pairs all go through the hub
+addressing: { $ref: address-plan.yaml }
+
+sites:
+  - id: aws
+    provider: owned
+  - id: s1
+    provider: owned
+  - id: s2
+    provider: owned
+  - id: s3
+    provider: owned
+  - id: s4
+    provider: owned
+  - id: s5
+    provider: owned
+  - id: s6
+    provider: owned
+  - id: s7
+    provider: owned
+
+nodes:
+  - id: aws-hub
+    site: aws
+    role: hub
+    endpoints: ["203.0.113.10:51820"]
+    nat: none
+    advertises: [site]
+  - id: spoke-01
+    site: s1
+    role: spoke
+    nat: behind
+    advertises: [site]
+  - id: spoke-02
+    site: s2
+    role: spoke
+    nat: behind
+    advertises: [site]
+  - id: spoke-03
+    site: s3
+    role: spoke
+    nat: behind
+    advertises: [site]
+  - id: spoke-04
+    site: s4
+    role: spoke
+    nat: behind
+    advertises: [site]
+  - id: spoke-05
+    site: s5
+    role: spoke
+    nat: behind
+    advertises: [site]
+  - id: spoke-06
+    site: s6
+    role: spoke
+    nat: behind
+    advertises: [site]
+  - id: spoke-07
+    site: s7
+    role: spoke
+    nat: behind
+    advertises: [site]
+  - id: spoke-08
+    site: s1
+    role: spoke
+    nat: behind
+  - id: spoke-09
+    site: s2
+    role: spoke
+    nat: behind
+  - id: spoke-10
+    site: s3
+    role: spoke
+    nat: behind
+
+links:
+  - { kind: hub-spoke, a: aws-hub, b: spoke-01 }
+  - { kind: hub-spoke, a: aws-hub, b: spoke-02 }
+  - { kind: hub-spoke, a: aws-hub, b: spoke-03 }
+  - { kind: hub-spoke, a: aws-hub, b: spoke-04 }
+  - { kind: hub-spoke, a: aws-hub, b: spoke-05 }
+  - { kind: hub-spoke, a: aws-hub, b: spoke-06 }
+  - { kind: hub-spoke, a: aws-hub, b: spoke-07 }
+  - { kind: hub-spoke, a: aws-hub, b: spoke-08 }
+  - { kind: hub-spoke, a: aws-hub, b: spoke-09 }
+  - { kind: hub-spoke, a: aws-hub, b: spoke-10 }
+
+intents:
+  - allow: { from: "*", to: "*" }

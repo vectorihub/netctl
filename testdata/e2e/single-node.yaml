@@ -1,0 +1,18 @@
+schema: beaver.topology/v1alpha1
+name: single-node
+# Edge case: one node and nothing else
+addressing: { $ref: address-plan.yaml }
+
+sites:
+  - id: aws
+    provider: owned
+
+nodes:
+  - id: aws-hub
+    site: aws
+    role: hub
+    endpoints: ["203.0.113.10:51820"]
+    nat: none
+    advertises: [site]
+
+intents: []

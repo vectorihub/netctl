@@ -1,0 +1,153 @@
+{
+  "findings": [
+    {
+      "rule": "V-ADDR-006",
+      "level": "warning",
+      "subject": "sites",
+      "message": "pool sites (10.42.0.0/17) is 100% used: 32768 of 32768",
+      "hint": "plan for a larger pool, or a second one, before it runs out"
+    },
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~spoke-01",
+      "message": "if the link fails, spoke-01 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~spoke-02",
+      "message": "if the link fails, spoke-02 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~spoke-03",
+      "message": "if the link fails, spoke-03 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~spoke-04",
+      "message": "if the link fails, spoke-04 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~spoke-05",
+      "message": "if the link fails, spoke-05 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~spoke-06",
+      "message": "if the link fails, spoke-06 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~spoke-07",
+      "message": "if the link fails, spoke-07 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~spoke-08",
+      "message": "if the link fails, spoke-08 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~spoke-09",
+      "message": "if the link fails, spoke-09 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~spoke-10",
+      "message": "if the link fails, spoke-10 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-TOPO-003",
+      "level": "warning",
+      "subject": "spoke-01",
+      "message": "it has only one link, so losing it cuts the node off",
+      "hint": "add a second link, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-TOPO-003",
+      "level": "warning",
+      "subject": "spoke-02",
+      "message": "it has only one link, so losing it cuts the node off",
+      "hint": "add a second link, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-TOPO-003",
+      "level": "warning",
+      "subject": "spoke-03",
+      "message": "it has only one link, so losing it cuts the node off",
+      "hint": "add a second link, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-TOPO-003",
+      "level": "warning",
+      "subject": "spoke-04",
+      "message": "it has only one link, so losing it cuts the node off",
+      "hint": "add a second link, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-TOPO-003",
+      "level": "warning",
+      "subject": "spoke-05",
+      "message": "it has only one link, so losing it cuts the node off",
+      "hint": "add a second link, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-TOPO-003",
+      "level": "warning",
+      "subject": "spoke-06",
+      "message": "it has only one link, so losing it cuts the node off",
+      "hint": "add a second link, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-TOPO-003",
+      "level": "warning",
+      "subject": "spoke-07",
+      "message": "it has only one link, so losing it cuts the node off",
+      "hint": "add a second link, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-TOPO-003",
+      "level": "warning",
+      "subject": "spoke-08",
+      "message": "it has only one link, so losing it cuts the node off",
+      "hint": "add a second link, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-TOPO-003",
+      "level": "warning",
+      "subject": "spoke-09",
+      "message": "it has only one link, so losing it cuts the node off",
+      "hint": "add a second link, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-TOPO-003",
+      "level": "warning",
+      "subject": "spoke-10",
+      "message": "it has only one link, so losing it cuts the node off",
+      "hint": "add a second link, or suppress this warning with the reason"
+    }
+  ],
+  "suppressed": [],
+  "ok": true
+}

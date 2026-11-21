@@ -1,0 +1,47 @@
+schema: beaver.topology/v1alpha1
+name: two-hubs
+# Edge case: two hubs, every spoke linked to both (a preview of Phase 5 high availability)
+addressing: { $ref: address-plan.yaml }
+
+sites:
+  - id: aws
+    provider: owned
+  - id: aws2
+    provider: owned
+  - id: builder
+    provider: owned
+  - id: dgx
+    provider: owned
+
+nodes:
+  - id: aws-hub-1
+    site: aws
+    role: hub
+    endpoints: ["203.0.113.10:51820"]
+    nat: none
+    advertises: [site]
+  - id: aws-hub-2
+    site: aws2
+    role: hub
+    endpoints: ["203.0.113.20:51820"]
+    nat: none
+    advertises: [site]
+  - id: builder-1
+    site: builder
+    role: spoke
+    nat: behind
+    advertises: [site]
+  - id: dgx-spark
+    site: dgx
+    role: spoke
+    nat: behind
+    advertises: [site]
+
+links:
+  - { kind: hub-spoke, a: aws-hub-1, b: builder-1 }
+  - { kind: hub-spoke, a: aws-hub-1, b: dgx-spark }
+  - { kind: hub-spoke, a: aws-hub-2, b: builder-1 }
+  - { kind: hub-spoke, a: aws-hub-2, b: dgx-spark }
+
+intents:
+  - allow: { from: "*", to: "*" }

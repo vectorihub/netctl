@@ -1,0 +1,135 @@
+{
+  "plan_id": "<masked>",
+  "ok": true,
+  "nodes": [
+    "aws-hub",
+    "spoke-01",
+    "spoke-02",
+    "spoke-03",
+    "spoke-04",
+    "spoke-05",
+    "spoke-06",
+    "spoke-07",
+    "spoke-08",
+    "spoke-09",
+    "spoke-10"
+  ],
+  "unusable": [],
+  "unreachable": [],
+  "changes": [
+    {
+      "kind": "allocated",
+      "subject": "site:aws",
+      "prefix": "10.42.0.0/20"
+    },
+    {
+      "kind": "allocated",
+      "subject": "site:s1",
+      "prefix": "10.42.16.0/20"
+    },
+    {
+      "kind": "allocated",
+      "subject": "site:s2",
+      "prefix": "10.42.32.0/20"
+    },
+    {
+      "kind": "allocated",
+      "subject": "site:s3",
+      "prefix": "10.42.48.0/20"
+    },
+    {
+      "kind": "allocated",
+      "subject": "site:s4",
+      "prefix": "10.42.64.0/20"
+    },
+    {
+      "kind": "allocated",
+      "subject": "site:s5",
+      "prefix": "10.42.80.0/20"
+    },
+    {
+      "kind": "allocated",
+      "subject": "site:s6",
+      "prefix": "10.42.96.0/20"
+    },
+    {
+      "kind": "allocated",
+      "subject": "site:s7",
+      "prefix": "10.42.112.0/20"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:aws-hub",
+      "prefix": "10.42.240.1/32"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:spoke-01",
+      "prefix": "10.42.240.2/32"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:spoke-02",
+      "prefix": "10.42.240.3/32"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:spoke-03",
+      "prefix": "10.42.240.4/32"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:spoke-04",
+      "prefix": "10.42.240.5/32"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:spoke-05",
+      "prefix": "10.42.240.6/32"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:spoke-06",
+      "prefix": "10.42.240.7/32"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:spoke-07",
+      "prefix": "10.42.240.8/32"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:spoke-08",
+      "prefix": "10.42.240.9/32"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:spoke-09",
+      "prefix": "10.42.240.10/32"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:spoke-10",
+      "prefix": "10.42.240.11/32"
+    }
+  ],
+  "decisions": [],
+  "files": [
+    "ipam.json",
+    "nodes/aws-hub.json",
+    "nodes/spoke-01.json",
+    "nodes/spoke-02.json",
+    "nodes/spoke-03.json",
+    "nodes/spoke-04.json",
+    "nodes/spoke-05.json",
+    "nodes/spoke-06.json",
+    "nodes/spoke-07.json",
+    "nodes/spoke-08.json",
+    "nodes/spoke-09.json",
+    "nodes/spoke-10.json",
+    "plan.json",
+    "routes.txt",
+    "simulation.json",
+    "validation.json"
+  ]
+}

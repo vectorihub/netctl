@@ -1,0 +1,124 @@
+{
+  "schema": "beaver.netctl/v1alpha1",
+  "plan_id": "<masked>",
+  "node": "aws-hub",
+  "role": "hub",
+  "forwarding": true,
+  "overlay": {
+    "address": "10.42.240.1/32",
+    "listen_port": 51820
+  },
+  "site_prefix": "10.42.0.0/20",
+  "advertise": [
+    "10.42.0.0/20",
+    "10.42.240.1/32"
+  ],
+  "peers": [
+    {
+      "node": "spoke-1",
+      "link": "aws-hub~spoke-1",
+      "role": "spoke",
+      "public_key_ref": "node:spoke-1",
+      "endpoints": [],
+      "keepalive_seconds": 0,
+      "allowed_prefixes": [
+        "10.42.16.0/20",
+        "10.42.240.2/32"
+      ]
+    },
+    {
+      "node": "spoke-2",
+      "link": "aws-hub~spoke-2",
+      "role": "spoke",
+      "public_key_ref": "node:spoke-2",
+      "endpoints": [],
+      "keepalive_seconds": 0,
+      "allowed_prefixes": [
+        "10.42.32.0/20",
+        "10.42.240.3/32"
+      ]
+    },
+    {
+      "node": "spoke-3",
+      "link": "aws-hub~spoke-3",
+      "role": "spoke",
+      "public_key_ref": "node:spoke-3",
+      "endpoints": [],
+      "keepalive_seconds": 0,
+      "allowed_prefixes": [
+        "10.42.48.0/20",
+        "10.42.240.4/32"
+      ]
+    },
+    {
+      "node": "spoke-4",
+      "link": "aws-hub~spoke-4",
+      "role": "spoke",
+      "public_key_ref": "node:spoke-4",
+      "endpoints": [],
+      "keepalive_seconds": 0,
+      "allowed_prefixes": [
+        "10.42.64.0/20",
+        "10.42.240.5/32"
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "prefix": "10.42.16.0/20",
+      "via": "spoke-1",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.32.0/20",
+      "via": "spoke-2",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.48.0/20",
+      "via": "spoke-3",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.64.0/20",
+      "via": "spoke-4",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.2/32",
+      "via": "spoke-1",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.3/32",
+      "via": "spoke-2",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.4/32",
+      "via": "spoke-3",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.5/32",
+      "via": "spoke-4",
+      "metric": 20,
+      "active": true
+    }
+  ],
+  "health": {
+    "probes": [],
+    "fail_threshold": 3,
+    "recover_threshold": 5,
+    "hold_down_seconds": 60
+  },
+  "policy": [],
+  "hash": "<masked>"
+}

@@ -1,0 +1,247 @@
+{
+  "schema": "beaver.netctl/v1alpha1",
+  "plan_id": "<masked>",
+  "node": "aws-hub",
+  "role": "hub",
+  "forwarding": true,
+  "overlay": {
+    "address": "10.42.240.1/32",
+    "listen_port": 51820
+  },
+  "site_prefix": "10.42.0.0/20",
+  "advertise": [
+    "10.42.0.0/20",
+    "10.42.240.1/32"
+  ],
+  "peers": [
+    {
+      "node": "spoke-01",
+      "link": "aws-hub~spoke-01",
+      "role": "spoke",
+      "public_key_ref": "node:spoke-01",
+      "endpoints": [],
+      "keepalive_seconds": 0,
+      "allowed_prefixes": [
+        "10.42.16.0/20",
+        "10.42.240.2/32"
+      ]
+    },
+    {
+      "node": "spoke-02",
+      "link": "aws-hub~spoke-02",
+      "role": "spoke",
+      "public_key_ref": "node:spoke-02",
+      "endpoints": [],
+      "keepalive_seconds": 0,
+      "allowed_prefixes": [
+        "10.42.32.0/20",
+        "10.42.240.3/32"
+      ]
+    },
+    {
+      "node": "spoke-03",
+      "link": "aws-hub~spoke-03",
+      "role": "spoke",
+      "public_key_ref": "node:spoke-03",
+      "endpoints": [],
+      "keepalive_seconds": 0,
+      "allowed_prefixes": [
+        "10.42.48.0/20",
+        "10.42.240.4/32"
+      ]
+    },
+    {
+      "node": "spoke-04",
+      "link": "aws-hub~spoke-04",
+      "role": "spoke",
+      "public_key_ref": "node:spoke-04",
+      "endpoints": [],
+      "keepalive_seconds": 0,
+      "allowed_prefixes": [
+        "10.42.64.0/20",
+        "10.42.240.5/32"
+      ]
+    },
+    {
+      "node": "spoke-05",
+      "link": "aws-hub~spoke-05",
+      "role": "spoke",
+      "public_key_ref": "node:spoke-05",
+      "endpoints": [],
+      "keepalive_seconds": 0,
+      "allowed_prefixes": [
+        "10.42.80.0/20",
+        "10.42.240.6/32"
+      ]
+    },
+    {
+      "node": "spoke-06",
+      "link": "aws-hub~spoke-06",
+      "role": "spoke",
+      "public_key_ref": "node:spoke-06",
+      "endpoints": [],
+      "keepalive_seconds": 0,
+      "allowed_prefixes": [
+        "10.42.96.0/20",
+        "10.42.240.7/32"
+      ]
+    },
+    {
+      "node": "spoke-07",
+      "link": "aws-hub~spoke-07",
+      "role": "spoke",
+      "public_key_ref": "node:spoke-07",
+      "endpoints": [],
+      "keepalive_seconds": 0,
+      "allowed_prefixes": [
+        "10.42.112.0/20",
+        "10.42.240.8/32"
+      ]
+    },
+    {
+      "node": "spoke-08",
+      "link": "aws-hub~spoke-08",
+      "role": "spoke",
+      "public_key_ref": "node:spoke-08",
+      "endpoints": [],
+      "keepalive_seconds": 0,
+      "allowed_prefixes": [
+        "10.42.240.9/32"
+      ]
+    },
+    {
+      "node": "spoke-09",
+      "link": "aws-hub~spoke-09",
+      "role": "spoke",
+      "public_key_ref": "node:spoke-09",
+      "endpoints": [],
+      "keepalive_seconds": 0,
+      "allowed_prefixes": [
+        "10.42.240.10/32"
+      ]
+    },
+    {
+      "node": "spoke-10",
+      "link": "aws-hub~spoke-10",
+      "role": "spoke",
+      "public_key_ref": "node:spoke-10",
+      "endpoints": [],
+      "keepalive_seconds": 0,
+      "allowed_prefixes": [
+        "10.42.240.11/32"
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "prefix": "10.42.16.0/20",
+      "via": "spoke-01",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.32.0/20",
+      "via": "spoke-02",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.48.0/20",
+      "via": "spoke-03",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.64.0/20",
+      "via": "spoke-04",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.80.0/20",
+      "via": "spoke-05",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.96.0/20",
+      "via": "spoke-06",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.112.0/20",
+      "via": "spoke-07",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.2/32",
+      "via": "spoke-01",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.3/32",
+      "via": "spoke-02",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.4/32",
+      "via": "spoke-03",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.5/32",
+      "via": "spoke-04",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.6/32",
+      "via": "spoke-05",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.7/32",
+      "via": "spoke-06",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.8/32",
+      "via": "spoke-07",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.9/32",
+      "via": "spoke-08",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.10/32",
+      "via": "spoke-09",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.11/32",
+      "via": "spoke-10",
+      "metric": 20,
+      "active": true
+    }
+  ],
+  "health": {
+    "probes": [],
+    "fail_threshold": 3,
+    "recover_threshold": 5,
+    "hold_down_seconds": 60
+  },
+  "policy": [],
+  "hash": "<masked>"
+}

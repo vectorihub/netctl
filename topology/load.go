@@ -261,13 +261,20 @@ func (r *reader) pool(node *yaml.Node, path string) AddressPool {
 }
 
 // site reads one entry of "sites": a required id, and optional provider and
-// region. path is the entry's place in the file, used in messages.
+// region and override (a pool and a reason). path is the entry's place in the file, used in messages.
 func (r *reader) site(node *yaml.Node, path string) Site {
-	f, ok := r.mapping(node, path, "id", "provider", "region")
+	f, ok := r.mapping(node, path, "id", "provider", "region", "override")
 	if !ok {
 		return Site{}
 	}
-	return Site{ID: types.SiteID(f.text("id", true)), Provider: f.text("provider", false), Region: f.text("region", false)}
+	site := Site{ID: types.SiteID(f.text("id", true)), Provider: f.text("provider", false), Region: f.text("region", false)}
+	if f.has("override") {
+		o, ok := r.mapping(f.by["override"], path+".override", "pool", "reason")
+		if ok {
+			site.Override = &SiteOverride{Pool: o.text("pool", true), Reason: o.text("reason", true)}
+		}
+	}
+	return site
 }
 
 // node reads one entry of "nodes": required id, site and role, and optional nat,

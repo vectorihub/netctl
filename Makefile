@@ -3,7 +3,7 @@
 
 STATICCHECK_VERSION := v0.7.0
 
-.PHONY: check fmt-check vet lint purity test race arch fuzz bench repro windows apidiff consumer
+.PHONY: check fmt-check vet lint purity test race arch fuzz bench repro windows apidiff consumer e2e-phase1 e2e-phase1-fast e2e-phase1-chaos cover
 
 ## check: the everyday gate — formatting, vet, tests. A red result fails CI.
 check: fmt-check vet test
@@ -17,10 +17,11 @@ vet:
 	go vet ./...
 
 ## purity: no clock, file or environment reads in library code (D7). Test files
-## are exempt. Any match fails the build.
+## are exempt, and so are internal/e2e, internal/ptimport and internal/covercheck, the test-support packages, which write and read workspaces. Any
+## other match fails the build.
 PURITY_PATTERN := time\.(Now|Since|Until)\(|os\.(Open|OpenFile|Create|ReadFile|WriteFile|ReadDir|Stat|Getenv|LookupEnv|Environ)\b
 purity:
-	@out="$$(grep -rnE --include='*.go' --exclude='*_test.go' --exclude-dir=.git --exclude-dir=features '$(PURITY_PATTERN)' . || true)"; \
+	@out="$$(grep -rnE --include='*.go' --exclude='*_test.go' --exclude-dir=.git --exclude-dir=features --exclude-dir=e2e --exclude-dir=ptimport --exclude-dir=covercheck '$(PURITY_PATTERN)' . || true)"; \
 	if [ -n "$$out" ]; then echo "purity: library code must not read the clock, files or environment:"; echo "$$out"; exit 1; fi
 
 ## lint: purity guard, then staticcheck over the whole module.
@@ -29,12 +30,16 @@ lint: purity
 	  echo "staticcheck not found; install: go install honnef.co/go/tools/cmd/staticcheck@$(STATICCHECK_VERSION)"; exit 1; }
 	staticcheck ./...
 
+## test: every package's tests, one package at a time so the wall-clock performance tests
+## do not compete with each other. The Phase 1 end-to-end suite has its own targets
+## (e2e-phase1, e2e-phase1-fast) and is left out here: its scale and chaos groups take
+## longer than go test's default 10 minutes.
 test:
-	go test -count=1 ./...
+	go test -p 1 -count=1 $$(go list ./... | grep -v '/test/e2e/phase1$$')
 
 ## race: tests under the race detector.
 race:
-	go test -race -count=1 ./...
+	go test -race -count=1 $$(go list ./... | grep -v '/test/e2e/phase1$$')
 
 ## arch: architecture guard. P1-ARCH-001 is the import-graph test in ./arch;
 ## P1-ARCH-002 is the Windows build.
@@ -49,7 +54,7 @@ windows:
 ## 60s for FuzzCanonical (P1-CIDR-009): make fuzz FUZZTIME=60s
 ## Go keeps any failing input under testdata/fuzz, where `make test` replays it.
 FUZZTIME ?= 10s
-FUZZ_TARGETS := cidr/tests:FuzzCanonical cidr/tests:FuzzChildren ipam/tests:FuzzSnapshot topology/tests:FuzzDecode topology/tests:FuzzLoad sim/tests:FuzzParseScenarios
+FUZZ_TARGETS := plan/tests:FuzzPlan cidr/tests:FuzzCanonical cidr/tests:FuzzChildren ipam/tests:FuzzSnapshot topology/tests:FuzzDecode topology/tests:FuzzLoad sim/tests:FuzzParseScenarios
 fuzz:
 	@for target in $(FUZZ_TARGETS); do \
 	  pkg=$${target%%:*}; name=$${target##*:}; \
@@ -70,7 +75,8 @@ bench:
 ## repro: repeatability smoke test — the suite passes twice in shuffled order.
 ## The byte-for-byte determinism proof is V61.
 repro:
-	go test -count=2 -shuffle=on ./...
+	go test -p 1 -count=2 -shuffle=on $$(go list ./... | grep -v '/test/e2e/phase1$$')
+	go test -count=2 -shuffle=on -short ./test/e2e/phase1/...
 
 ## consumer: the consumer-module contract test. testdata/consumer is a separate Go module that
 ## requires netctl at this working tree, builds a network in code, calls netctl.Plan and checks
@@ -96,3 +102,23 @@ apidiff:
 	  ( cd .apidiff-base && apidiff -w old.out "$$pkg" >/dev/null 2>&1 ) || { echo "== $$pkg: new since $(APIBASE)"; continue; }; \
 	  echo "== $$pkg"; apidiff .apidiff-base/old.out "$$pkg"; \
 	done
+
+## e2e-phase1: the whole Phase 1 end-to-end suite (scale and chaos included).
+e2e-phase1:
+	go test ./test/e2e/phase1/... -count=1 -timeout 30m
+
+## e2e-phase1-fast: everything except the scale and chaos groups.
+e2e-phase1-fast:
+	go test ./test/e2e/phase1/... -count=1 -short
+
+## e2e-phase1-chaos: the nightly run, 20,000 random cases. Reproduce one with E2E_CHAOS_SEED=<n>.
+e2e-phase1-chaos:
+	E2E_CHAOS_CASES=20000 go test ./test/e2e/phase1/... -run 'TestE2E/P1-E2E-12' -count=1 -timeout 8h
+
+## cover: coverage of the library across all tests, with the Phase 1 gate's thresholds: 85%
+## overall and 90% for ipam, route, sim and validate. Writes cover.out and coverage.html.
+COVERPKGS := ./cidr/...,./ipam/...,./route/...,./sim/...,./validate/...,./topology/...,./config/...,./health/...,./failover/...,./plan/...,./types/...
+cover:
+	go test -p 2 -short -coverpkg=$(COVERPKGS) -coverprofile=cover.out ./...
+	go tool cover -html=cover.out -o coverage.html
+	COVER_PROFILE=$(CURDIR)/cover.out go test -count=1 -v ./internal/covercheck/tests

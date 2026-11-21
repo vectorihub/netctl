@@ -1,0 +1,13 @@
+{
+  "findings": [
+    {
+      "rule": "V-TOPO-004",
+      "level": "warning",
+      "subject": "builder-1~dgx-spark",
+      "message": "builder-1 and dgx-spark are both behind NAT: the link needs hole punching, and the hub is the only fallback",
+      "hint": "expect traffic over the hub if the two cannot reach each other directly"
+    }
+  ],
+  "suppressed": [],
+  "ok": true
+}

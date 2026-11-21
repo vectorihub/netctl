@@ -1,0 +1,23 @@
+node aws-hub
+  10.42.0.0/20  connected  active
+  10.42.16.0/20  via aws-hub~builder-1  next-hop builder-1  metric 20  computed  active
+  10.42.32.0/20  via aws-hub~dgx-spark  next-hop dgx-spark  metric 20  computed  active
+  10.42.240.1/32  connected  active
+  10.42.240.2/32  via aws-hub~builder-1  next-hop builder-1  metric 20  computed  active
+  10.42.240.3/32  via aws-hub~dgx-spark  next-hop dgx-spark  metric 20  computed  active
+node builder-1
+  10.42.0.0/20  via aws-hub~builder-1  next-hop aws-hub  metric 20  computed  active
+  10.42.16.0/20  connected  active
+  10.42.32.0/20  via aws-hub~builder-1  next-hop aws-hub  metric 40  computed  active
+  10.42.240.1/32  via aws-hub~builder-1  next-hop aws-hub  metric 20  computed  active
+  10.42.240.2/32  connected  active
+  10.42.240.3/32  via aws-hub~builder-1  next-hop aws-hub  metric 40  computed  active
+  10.42.252.0/30  connected  active
+node dgx-spark
+  10.42.0.0/20  via aws-hub~dgx-spark  next-hop aws-hub  metric 20  computed  active
+  10.42.16.0/20  via aws-hub~dgx-spark  next-hop aws-hub  metric 40  computed  active
+  10.42.32.0/20  connected  active
+  10.42.240.1/32  via aws-hub~dgx-spark  next-hop aws-hub  metric 20  computed  active
+  10.42.240.2/32  via aws-hub~dgx-spark  next-hop aws-hub  metric 40  computed  active
+  10.42.240.3/32  connected  active
+  10.42.252.0/30  connected  active

@@ -1,0 +1,164 @@
+{
+  "schema": "beaver.netctl/v1alpha1",
+  "plan_id": "<masked>",
+  "node": "spoke-08",
+  "role": "spoke",
+  "forwarding": false,
+  "overlay": {
+    "address": "10.42.240.9/32",
+    "listen_port": 51820
+  },
+  "advertise": [
+    "10.42.240.9/32"
+  ],
+  "peers": [
+    {
+      "node": "aws-hub",
+      "link": "aws-hub~spoke-08",
+      "role": "hub",
+      "public_key_ref": "node:aws-hub",
+      "endpoints": [
+        "203.0.113.10:51820"
+      ],
+      "keepalive_seconds": 25,
+      "allowed_prefixes": [
+        "10.42.0.0/20",
+        "10.42.16.0/20",
+        "10.42.32.0/20",
+        "10.42.48.0/20",
+        "10.42.64.0/20",
+        "10.42.80.0/20",
+        "10.42.96.0/20",
+        "10.42.112.0/20",
+        "10.42.240.1/32",
+        "10.42.240.2/32",
+        "10.42.240.3/32",
+        "10.42.240.4/32",
+        "10.42.240.5/32",
+        "10.42.240.6/32",
+        "10.42.240.7/32",
+        "10.42.240.8/32",
+        "10.42.240.10/32",
+        "10.42.240.11/32"
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "prefix": "10.42.0.0/20",
+      "via": "aws-hub",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.16.0/20",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.32.0/20",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.48.0/20",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.64.0/20",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.80.0/20",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.96.0/20",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.112.0/20",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.1/32",
+      "via": "aws-hub",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.2/32",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.3/32",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.4/32",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.5/32",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.6/32",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.7/32",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.8/32",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.10/32",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.11/32",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    }
+  ],
+  "health": {
+    "probes": [],
+    "fail_threshold": 3,
+    "recover_threshold": 5,
+    "hold_down_seconds": 60
+  },
+  "policy": [],
+  "hash": "<masked>"
+}

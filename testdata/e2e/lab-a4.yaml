@@ -1,0 +1,48 @@
+schema: beaver.topology/v1alpha1
+name: lab-a4
+# Packet Tracer lab A4 (OSPF): three spokes in a triangle of direct links plus the hub; only final converged paths are compared
+addressing: { $ref: address-plan.yaml }
+
+sites:
+  - id: aws
+    provider: owned
+  - id: builder
+    provider: owned
+  - id: dgx
+    provider: owned
+  - id: studio
+    provider: owned
+
+nodes:
+  - id: aws-hub
+    site: aws
+    role: hub
+    endpoints: ["203.0.113.10:51820"]
+    nat: none
+    advertises: [site]
+  - id: builder-1
+    site: builder
+    role: spoke
+    nat: behind
+    advertises: [site]
+  - id: dgx-spark
+    site: dgx
+    role: spoke
+    nat: behind
+    advertises: [site]
+  - id: mac-studio
+    site: studio
+    role: spoke
+    nat: behind
+    advertises: [site]
+
+links:
+  - { kind: hub-spoke, a: aws-hub, b: builder-1 }
+  - { kind: hub-spoke, a: aws-hub, b: dgx-spark }
+  - { kind: hub-spoke, a: aws-hub, b: mac-studio }
+  - { kind: direct, a: builder-1, b: dgx-spark, cost: 10, health: required }
+  - { kind: direct, a: dgx-spark, b: mac-studio, cost: 10, health: required }
+  - { kind: direct, a: builder-1, b: mac-studio, cost: 30, health: required }
+
+intents:
+  - allow: { from: "*", to: "*" }

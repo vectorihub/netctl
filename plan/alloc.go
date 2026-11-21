@@ -34,9 +34,23 @@ func reconcileAddresses(m *ipam.IPAM, t *topology.Topology) error {
 	for _, s := range t.Sites {
 		present[ipam.KindSite][string(s.ID)] = true
 	}
+	// The pool each site's block must come from today. A site whose block sits in another
+	// pool (its override was added, removed or changed) gives that block back, so it does not
+	// end up holding two.
+	wantPool := map[string]ipam.PoolName{}
+	for _, s := range t.Sites {
+		wantPool[string(s.ID)] = SitesPool
+		if s.Override != nil {
+			wantPool[string(s.ID)] = ipam.PoolName(s.Override.Pool)
+		}
+	}
 	for _, kind := range []string{ipam.KindNode, ipam.KindLink, ipam.KindSite} {
 		for _, a := range m.Snapshot().Allocations {
-			if a.Owner.Kind == kind && a.State == ipam.Allocated && !present[kind][a.Owner.ID] {
+			if a.Owner.Kind != kind || a.State != ipam.Allocated {
+				continue
+			}
+			stale := !present[kind][a.Owner.ID] || (kind == ipam.KindSite && a.Pool != wantPool[a.Owner.ID])
+			if stale {
 				if err := m.Release(a.Prefix, a.Owner); err != nil {
 					errs.Add(problem(err))
 				}
@@ -44,7 +58,12 @@ func reconcileAddresses(m *ipam.IPAM, t *topology.Topology) error {
 		}
 	}
 	for _, s := range sorted(t.Sites, func(s topology.Site) string { return string(s.ID) }) {
-		if _, err := m.Allocate(SitesPool, ipam.Site(string(s.ID))); err != nil {
+		pool, opts := SitesPool, []ipam.Option(nil)
+		if s.Override != nil {
+			// A site that asks for another pool on purpose, with a reason, takes its block there.
+			pool, opts = ipam.PoolName(s.Override.Pool), []ipam.Option{ipam.WithOverride(s.Override.Reason)}
+		}
+		if _, err := m.Allocate(pool, ipam.Site(string(s.ID)), opts...); err != nil {
 			errs.Add(problem(err))
 		}
 	}

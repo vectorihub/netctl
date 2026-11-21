@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/netip"
 	"slices"
@@ -132,10 +133,30 @@ func prefixInTwoPeers(p *Plan) []Finding {
 	return out
 }
 
-// noSecrets scans every config as it would be written for anything shaped like key
-// material or a token.
+// noSecrets scans the labels of the topology and every config as it would be written for
+// anything shaped like key material or a token. A label is the one place a person can type a
+// secret into the input, so it is caught before it can travel into a config; a finding names
+// the label and never repeats its value.
 func noSecrets(p *Plan) []Finding {
 	var out []Finding
+	if p.Topology != nil {
+		for _, n := range p.Topology.Nodes {
+			if len(n.Labels) == 0 {
+				continue
+			}
+			data, err := json.Marshal(n.Labels)
+			if err != nil {
+				continue
+			}
+			for _, f := range config.ScanSecrets(data) {
+				out = append(out, Finding{
+					Subject: fmt.Sprintf("topology:nodes[%s].labels.%s", n.ID, f.Path),
+					Message: fmt.Sprintf("%s: %s (the value is not shown)", f.Rule, f.Why),
+					Hint:    "keep keys and tokens out of the topology; private keys are made on the node and never leave it",
+				})
+			}
+		}
+	}
 	for _, c := range p.Configs {
 		if c == nil {
 			continue
