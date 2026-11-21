@@ -174,8 +174,14 @@ var saved = map[string]int{}
 func artifactDir(id string) string {
 	savedMu.Lock()
 	defer savedMu.Unlock()
-	saved[id]++
-	if n := saved[id]; n > 1 {
+	// The count belongs to one artifacts directory, so a test run in another directory (or
+	// a second time with -count) starts again from the plain name.
+	key := id
+	if abs, err := filepath.Abs(ArtifactsDir); err == nil {
+		key = filepath.Join(abs, id)
+	}
+	saved[key]++
+	if n := saved[key]; n > 1 {
 		return filepath.Join(ArtifactsDir, fmt.Sprintf("%s-%d", id, n))
 	}
 	return filepath.Join(ArtifactsDir, id)
