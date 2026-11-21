@@ -1,0 +1,14 @@
+builder-1
+  moved 10.42.32.0/20 from dgx-spark to aws-hub
+  moved 10.42.240.3/32 from dgx-spark to aws-hub
+  route 10.42.32.0/20 via dgx-spark removed
+  route 10.42.240.3/32 via dgx-spark removed
+  route 10.42.32.0/20 via aws-hub: backup, metric 40, now active, metric 40
+  route 10.42.240.3/32 via aws-hub: backup, metric 40, now active, metric 40
+dgx-spark
+  moved 10.42.16.0/20 from builder-1 to aws-hub
+  moved 10.42.240.2/32 from builder-1 to aws-hub
+  route 10.42.16.0/20 via builder-1 removed
+  route 10.42.240.2/32 via builder-1 removed
+  route 10.42.16.0/20 via aws-hub: backup, metric 40, now active, metric 40
+  route 10.42.240.2/32 via aws-hub: backup, metric 40, now active, metric 40

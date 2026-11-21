@@ -10,6 +10,24 @@ changes, and each one is listed under **Breaking Changes** for that release.
 ## [Unreleased]
 
 ### Added
+* **`config` (new package)**
+  * `NodeConfig` is the desired network state of one node: overlay address, peers, routes, health probes and
+    thresholds, written in Beaver's own words. No interface names, commands, sysctls, table numbers or paths, and no
+    secrets: a peer's public key is named by reference. The JSON Schema is published in `config/schema/v1alpha1.json`
+    (and as `SchemaJSON()`), strict at every level; `v1alpha1` may change until it is declared stable.
+  * `Generate` builds every node's config from one plan. A peer's `allowed_prefixes` are its probe address and every
+    prefix whose active route goes through it, so a prefix is with one peer at a time (WireGuard keeps it with one) and
+    failover moves it from the direct peer to the hub in the next config. Keepalive and `needs_traversal` follow NAT:
+    the hub keeps no keepalive, and two spokes behind NAT need traversal. It refuses a prefix active through two peers,
+    a route to a non-peer and a bad transit block, and reports every problem at once. `FromPlan` collects the inputs
+    from a topology and the address plan.
+  * `Encode` writes a config in one canonical form (sorted lists, masked prefixes, `[]` never `null`, fixed key order)
+    with a SHA-256 `hash`; the same plan gives the same bytes on any run, order or `GOMAXPROCS`. `Verify`, `Decode`
+    (strict), `Clone` and `PlanID` (the topology's name and eight hex digits of a hash of every node's content).
+  * `Diff`, `DiffPlans`: peers added, removed and changed, **prefixes moved** from one peer to another, routes added,
+    removed and changed, with `Text` for people.
+  * `ScanSecrets` and `ScanOSFields` find key material, tokens, interface names, paths, commands and table numbers in a
+    config without repeating the value.
 * **`failover` (new package)**
   * `Evaluate` folds health signals into every link's state machine, marks the links that are not usable as down,
     recomputes every node's table with the real `route.Compute` (once per evaluation), compares with the tables from
@@ -37,6 +55,7 @@ changes, and each one is listed under **Breaking Changes** for that release.
 * `route.Table` has JSON tags (`node`, `routes`); it previously wrote `Node` and `Routes`.
 * `route.Diff` is much faster on tables that did not change (500 nodes: 1.3 s to 0.05 s); its output is unchanged.
 * `sim.NewNet` indexes the tables across the available processors; its output is unchanged.
+* The three-site test fixture's hub has its public endpoint, as in the end-to-end guide.
 
 # Release 2026-11-21 (v0.5.0)
 

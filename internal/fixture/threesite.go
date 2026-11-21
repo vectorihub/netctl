@@ -78,7 +78,7 @@ func ThreeSiteTopology() *topology.Topology {
 			{ID: "dgx", Provider: "owned"},
 		},
 		Nodes: []topology.Node{
-			{ID: "aws-hub", Site: "aws", Role: types.RoleHub, NAT: topology.NATNone, Advertises: []topology.Advertisement{{Site: true}}},
+			{ID: "aws-hub", Site: "aws", Role: types.RoleHub, NAT: topology.NATNone, Endpoints: []netip.AddrPort{netip.MustParseAddrPort("203.0.113.10:51820")}, Advertises: []topology.Advertisement{{Site: true}}},
 			{ID: "builder-1", Site: "builder", Role: types.RoleSpoke, NAT: topology.NATBehind, Advertises: []topology.Advertisement{{Site: true}}},
 			{ID: "dgx-spark", Site: "dgx", Role: types.RoleSpoke, NAT: topology.NATBehind, Advertises: []topology.Advertisement{{Site: true}}},
 		},
