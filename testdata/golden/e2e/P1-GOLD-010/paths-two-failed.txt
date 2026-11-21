@@ -1,0 +1,12 @@
+aws-hub -> builder-1: aws-hub builder-1
+aws-hub -> dgx-spark: aws-hub dgx-spark
+aws-hub -> mac-studio: aws-hub mac-studio
+builder-1 -> aws-hub: builder-1 aws-hub
+builder-1 -> dgx-spark: builder-1 aws-hub dgx-spark
+builder-1 -> mac-studio: builder-1 aws-hub mac-studio
+dgx-spark -> aws-hub: dgx-spark aws-hub
+dgx-spark -> builder-1: dgx-spark aws-hub builder-1
+dgx-spark -> mac-studio: dgx-spark aws-hub mac-studio
+mac-studio -> aws-hub: mac-studio aws-hub
+mac-studio -> builder-1: mac-studio aws-hub builder-1
+mac-studio -> dgx-spark: mac-studio aws-hub dgx-spark

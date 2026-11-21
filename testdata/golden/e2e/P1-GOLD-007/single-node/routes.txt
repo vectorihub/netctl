@@ -1,0 +1,3 @@
+node aws-hub
+  10.42.0.0/20  connected  active
+  10.42.240.1/32  connected  active

@@ -1,0 +1,55 @@
+{
+  "findings": [
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~spoke-1",
+      "message": "if the link fails, spoke-1 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~spoke-2",
+      "message": "if the link fails, spoke-2 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~spoke-3",
+      "message": "if the link fails, spoke-3 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~spoke-4",
+      "message": "if the link fails, spoke-4 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-TOPO-004",
+      "level": "warning",
+      "subject": "spoke-1~spoke-2",
+      "message": "spoke-1 and spoke-2 are both behind NAT: the link needs hole punching, and the hub is the only fallback",
+      "hint": "expect traffic over the hub if the two cannot reach each other directly"
+    },
+    {
+      "rule": "V-TOPO-004",
+      "level": "warning",
+      "subject": "spoke-2~spoke-3",
+      "message": "spoke-2 and spoke-3 are both behind NAT: the link needs hole punching, and the hub is the only fallback",
+      "hint": "expect traffic over the hub if the two cannot reach each other directly"
+    },
+    {
+      "rule": "V-TOPO-004",
+      "level": "warning",
+      "subject": "spoke-3~spoke-4",
+      "message": "spoke-3 and spoke-4 are both behind NAT: the link needs hole punching, and the hub is the only fallback",
+      "hint": "expect traffic over the hub if the two cannot reach each other directly"
+    }
+  ],
+  "suppressed": [],
+  "ok": true
+}

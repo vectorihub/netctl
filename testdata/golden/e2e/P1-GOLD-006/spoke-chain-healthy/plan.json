@@ -1,0 +1,27 @@
+{
+  "plan_id": "<masked>",
+  "ok": true,
+  "nodes": [
+    "aws-hub",
+    "spoke-1",
+    "spoke-2",
+    "spoke-3",
+    "spoke-4"
+  ],
+  "unusable": [],
+  "unreachable": [],
+  "changes": [],
+  "decisions": [],
+  "files": [
+    "ipam.json",
+    "nodes/aws-hub.json",
+    "nodes/spoke-1.json",
+    "nodes/spoke-2.json",
+    "nodes/spoke-3.json",
+    "nodes/spoke-4.json",
+    "plan.json",
+    "routes.txt",
+    "simulation.json",
+    "validation.json"
+  ]
+}

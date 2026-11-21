@@ -1,0 +1,26 @@
+{
+  "schema": "beaver.netctl/v1alpha1",
+  "plan_id": "<masked>",
+  "node": "aws-hub",
+  "role": "hub",
+  "forwarding": true,
+  "overlay": {
+    "address": "10.42.240.1/32",
+    "listen_port": 51820
+  },
+  "site_prefix": "10.42.0.0/20",
+  "advertise": [
+    "10.42.0.0/20",
+    "10.42.240.1/32"
+  ],
+  "peers": [],
+  "routes": [],
+  "health": {
+    "probes": [],
+    "fail_threshold": 3,
+    "recover_threshold": 5,
+    "hold_down_seconds": 60
+  },
+  "policy": [],
+  "hash": "<masked>"
+}
