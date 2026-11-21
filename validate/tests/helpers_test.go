@@ -137,3 +137,8 @@ func withLinksDown(p *validate.Plan, down ...types.LinkID) *validate.Plan {
 func addNode(p *validate.Plan, id types.NodeID, role types.Role) {
 	p.Topology.Nodes = append(p.Topology.Nodes, topology.Node{ID: id, Site: "builder", Role: role, NAT: topology.NATNone})
 }
+
+// suppression returns a suppression for the topology file.
+func suppression(rule, subject, reason string) topology.Suppression {
+	return topology.Suppression{Rule: rule, Subject: subject, Reason: reason}
+}

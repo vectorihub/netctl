@@ -30,6 +30,14 @@
 // ignored and adds a finding of its own. So does a suppression with no reason or for
 // a rule that does not exist. A suppression that matched nothing is reported as Info.
 //
+// # Refusing a plan
+//
+// [Result.Err] returns an error with the code VALIDATION_FAILED when there is any error,
+// listing each; a command-line wrapper maps it to exit code 2, and the planner produces no
+// configs. Warnings alone never refuse a plan. The clean three-site plan has exactly one
+// warning, V-TOPO-004, and no errors; before its direct link is proven it also has V-SIM-003
+// on the two hub links.
+//
 // # Same plan, same findings
 //
 // Findings are sorted by level, rule, subject and message, so the same plan always

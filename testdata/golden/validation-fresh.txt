@@ -1,0 +1,13 @@
+validation: OK (0 errors, 3 warnings, 0 infos)
+
+warning V-SIM-003 aws-hub~builder-1
+  if the link fails, builder-1 is isolated: it can reach no other node
+  hint: add a second path for the node, or suppress this warning with the reason
+
+warning V-SIM-003 aws-hub~dgx-spark
+  if the link fails, dgx-spark is isolated: it can reach no other node
+  hint: add a second path for the node, or suppress this warning with the reason
+
+warning V-TOPO-004 builder-1~dgx-spark
+  builder-1 and dgx-spark are both behind NAT: the link needs hole punching, and the hub is the only fallback
+  hint: expect traffic over the hub if the two cannot reach each other directly
