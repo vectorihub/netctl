@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/vectorihub/netctl/ipam"
+	"github.com/vectorihub/netctl/route"
 	"github.com/vectorihub/netctl/topology"
 	"github.com/vectorihub/netctl/types"
 )
@@ -96,4 +97,14 @@ func ThreeSiteTopology() *topology.Topology {
 	}
 	t.Normalize()
 	return t
+}
+
+// Prefix parses a prefix, panicking on bad text because fixture data is fixed.
+func Prefix(text string) netip.Prefix { return netip.MustParsePrefix(text) }
+
+// ThreeSiteLoop returns a bad static route for the reference network: the hub sends
+// dgx-spark's site to builder-1. While the direct link is not in use, builder-1 sends it
+// back to the hub, and traffic between the spokes loops.
+func ThreeSiteLoop() []route.Override {
+	return []route.Override{{Node: "aws-hub", Prefix: Prefix("10.42.32.0/20"), NextHop: "builder-1"}}
 }
