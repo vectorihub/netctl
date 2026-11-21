@@ -1,6 +1,7 @@
 package health
 
 import (
+	"cmp"
 	"slices"
 	"time"
 
@@ -203,7 +204,7 @@ func (e *Evaluator) expire(l *Link, now time.Time, decisions []Decision) []Decis
 			stale = append(stale, quiet{node, wentStale})
 		}
 	}
-	slices.SortStableFunc(stale, func(a, b quiet) int { return a.at.Compare(b.at) })
+	slices.SortFunc(stale, func(a, b quiet) int { return cmp.Or(a.at.Compare(b.at), cmp.Compare(a.node, b.node)) })
 	for _, q := range stale {
 		decisions = e.settle(l, q.at, "stale: no probe or handshake from "+string(q.node)+" for more than "+e.Cfg.StaleAfter.String(), decisions)
 	}
