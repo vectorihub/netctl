@@ -74,3 +74,23 @@ func TestSPFNeverReturnsANegativeCost(t *testing.T) {
 		t.Errorf("SPF cost to b = %d (found %v), want math.MaxInt, never negative", best.Cost, ok)
 	}
 }
+
+// TestComputeRefusesCostsThatWouldWrapTheTotal checks the running total of edge
+// costs cannot wrap round: one link whose two directed edges each cost
+// math.MaxInt would sum to a negative number in 64 bits, and must still be
+// refused with INVALID_TOPOLOGY, as must many edges that only together exceed
+// MaxTotalCost.
+func TestComputeRefusesCostsThatWouldWrapTheTotal(t *testing.T) {
+	huge := fixture.NewGraph().Hub("h").Spoke("a")
+	huge.Link("h", "a", math.MaxInt)
+	if _, err := route.Compute(huge, route.Input{}); !types.HasCode(err, types.ErrInvalidTopology) {
+		t.Errorf("Compute with two edges of math.MaxInt: %v, want INVALID_TOPOLOGY", err)
+	}
+	many := fixture.NewGraph().Hub("h").Spoke("a", "b", "c")
+	for _, spoke := range []types.NodeID{"a", "b", "c"} {
+		many.Link("h", spoke, route.MaxTotalCost/5) // six edges, each a fifth of the limit
+	}
+	if _, err := route.Compute(many, route.Input{}); !types.HasCode(err, types.ErrInvalidTopology) {
+		t.Errorf("Compute with costs that only together exceed MaxTotalCost: %v, want INVALID_TOPOLOGY", err)
+	}
+}
