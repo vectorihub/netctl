@@ -146,3 +146,29 @@ func TestNoOutsideAddressIsRefused(t *testing.T) {
 		t.Errorf("Flows with supernet 0.0.0.0/0 = %d flows, %v; want INVALID_VALUE and none", len(flows), err)
 	}
 }
+
+// TestReportTellsNilHopsFromEmptyHops gives NewReport two results with one label
+// that differ only in whether the forward trace's Hops is nil or empty, which
+// Report.JSON writes as null and []. Both input orders must give the same report
+// and byte-identical JSON.
+func TestReportTellsNilHopsFromEmptyHops(t *testing.T) {
+	withNil := sim.FlowResult{Flow: sim.Flow{Label: "same", Family: sim.FamilyOverlay}, Verdict: sim.VerdictOK, Forward: sim.Trace{Final: sim.Delivered}}
+	withEmpty := withNil
+	withEmpty.Forward.Hops = []sim.Hop{}
+	first := sim.NewReport([]sim.FlowResult{withNil, withEmpty})
+	second := sim.NewReport([]sim.FlowResult{withEmpty, withNil})
+	if !reflect.DeepEqual(first.Flows, second.Flows) {
+		t.Fatalf("the order depends on the input: %#v then %#v", first.Flows, second.Flows)
+	}
+	firstJSON, err := first.JSON()
+	if err != nil {
+		t.Fatal(err)
+	}
+	secondJSON, err := second.JSON()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(firstJSON) != string(secondJSON) {
+		t.Errorf("JSON differs with the input order:\n%s\n%s", firstJSON, secondJSON)
+	}
+}

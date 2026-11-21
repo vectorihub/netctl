@@ -274,16 +274,31 @@ func takeSnapshot(graph Graph, problems *types.List) *snapshot {
 		}
 		snap.edges[node] = edges
 		for _, edge := range edges {
-			if edge.Cost > 0 {
-				total += int64(edge.Cost)
-			}
+			total = addTotal(total, edge.Cost)
 		}
 	}
 	if total > MaxTotalCost {
 		problems.Add(types.Errf(types.ErrInvalidTopology, "graph",
-			"the link costs add up to %d, more than %d, so a path cost could overflow", total, int64(MaxTotalCost)))
+			"the link costs add up to more than %d, so a path cost could overflow", int64(MaxTotalCost)))
 	}
 	return snap
+}
+
+// addTotal adds one edge's cost to a running total of edge costs and returns the
+// new total. The total saturates at MaxTotalCost+1: once it is over the limit it
+// stays just over it, and the remaining headroom is checked before adding, so
+// the sum can never wrap round however large the costs are (two edges of
+// math.MaxInt each give MaxTotalCost+1, not a negative number). Costs of zero
+// or less add nothing; negative costs are reported separately.
+func addTotal(total int64, cost int) int64 {
+	const over = int64(MaxTotalCost) + 1
+	if cost <= 0 || total >= over {
+		return total
+	}
+	if int64(cost) >= over-total {
+		return over
+	}
+	return total + int64(cost)
 }
 
 // normalise checks one Owned map against the known nodes and returns it with

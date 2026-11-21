@@ -752,35 +752,47 @@ type Report struct {
 // fingerprint writes every field of a flow result as text, following pointers,
 // so two results that share a label still sort the same way whatever order they
 // came in. Every string is quoted, so no text inside a field (a note holding
-// "|", say) can make two different results write the same fingerprint: equal
-// fingerprints mean equal results. It is only a sort key.
+// "|", say) can make two different results write the same fingerprint, and
+// every slice says whether it is nil, because a nil slice and an empty one are
+// different values that Report.JSON writes differently (null and []). Equal
+// fingerprints therefore mean equal results. It is only a sort key.
 func fingerprint(result FlowResult) string {
 	var out strings.Builder
 	flow := result.Flow
-	fmt.Fprintf(&out, "%q|%d|%s|%s|%q|%q|%v|%v|%v|%q|", flow.Label, flow.Family, flow.Src, flow.Dst, flow.From, flow.To,
-		flow.AllowAsymmetric, flow.Intent, flow.Ports, flow.Note)
+	fmt.Fprintf(&out, "%q|%d|%s|%s|%q|%q|%v|%v|ports %s %v|%q|", flow.Label, flow.Family, flow.Src, flow.Dst, flow.From, flow.To,
+		flow.AllowAsymmetric, flow.Intent, nilness(flow.Ports == nil), flow.Ports, flow.Note)
 	fmt.Fprintf(&out, "%d|%v|", result.Verdict, result.Symmetric)
 	for _, trace := range []*Trace{&result.Forward, result.Return} {
 		if trace == nil {
 			out.WriteString("no trace|")
 			continue
 		}
-		fmt.Fprintf(&out, "%s>%s ttl %d flow %q final %d %d hops:", trace.Packet.Src, trace.Packet.Dst,
-			trace.Packet.TTL, trace.Packet.Flow, trace.Final, len(trace.Hops))
+		fmt.Fprintf(&out, "%s>%s ttl %d flow %q final %d hops %s %d:", trace.Packet.Src, trace.Packet.Dst,
+			trace.Packet.TTL, trace.Packet.Flow, trace.Final, nilness(trace.Hops == nil), len(trace.Hops))
 		for _, hop := range trace.Hops {
 			fmt.Fprintf(&out, "%q %d", hop.Node, hop.Result)
 			if r := hop.Route; r != nil {
-				fmt.Fprintf(&out, " route %s %q %q %d %d %q %v", r.Prefix, r.NextHop, r.Via, r.Metric, r.Source, r.Path, r.Active)
+				fmt.Fprintf(&out, " route %s %q %q %d %d path %s %q %v", r.Prefix, r.NextHop, r.Via, r.Metric, r.Source,
+					nilness(r.Path == nil), r.Path, r.Active)
 			}
 			out.WriteString(";")
 		}
 		out.WriteString("|")
 	}
-	fmt.Fprintf(&out, "%d problems:", len(result.Problems))
+	fmt.Fprintf(&out, "problems %s %d:", nilness(result.Problems == nil), len(result.Problems))
 	for _, problem := range result.Problems {
 		fmt.Fprintf(&out, "%q %q %q %q;", problem.Kind, problem.Direction, problem.Node, problem.Detail)
 	}
 	return out.String()
+}
+
+// nilness writes "nil" for a nil slice and "set" for any other, so a fingerprint
+// tells a nil slice from an empty one.
+func nilness(isNil bool) string {
+	if isNil {
+		return "nil"
+	}
+	return "set"
 }
 
 // sortResults sorts flow results in place by label, and results that share a
