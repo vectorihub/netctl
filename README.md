@@ -136,6 +136,30 @@ site: 10.42.0.0/20
 node: 10.42.240.1/32 owned by node:east-1
 ```
 
+### Plan a whole network
+
+The root package is the one entry point. `netctl.Plan` takes the network and its state, and returns the addresses, the
+routes, a config for every node and the validator's verdict. `Result.Render` gives the bytes of every output file
+without doing any I/O, so you decide where they are written.
+
+```go
+result, err := netctl.Plan(netctl.Inputs{
+	Topology: topo,                    // built in code or loaded with topology.Load
+	IPAM:     previous.IPAM,           // the address plan saved by the last run; empty on the first
+	Clock:    &types.FixedClock{T: t}, // time is passed in, never read
+})
+if err != nil {
+	// VALIDATION_FAILED: the plan was refused and has no configs, so write nothing.
+	return err
+}
+files, err := result.Render() // plan.json, ipam.json, routes.txt, nodes/<node>.json, ...
+```
+
+To react to link health, pass `Inputs.Signals` (and the `Result.Failover` state of the last plan as `Inputs.Failover`):
+the routes are then computed by the failover guard, which refuses a change that would break a flow that worked and keeps
+the routes in force. `netctl.Diff(before, after)` shows what a new plan would change on each machine. The exported
+surface is recorded in [`docs/api-surface.txt`](docs/api-surface.txt).
+
 ## Documentation
 
 The full API reference, with runnable examples, is on [pkg.go.dev](https://pkg.go.dev/github.com/vectorihub/netctl).
@@ -151,6 +175,7 @@ The full API reference, with runnable examples, is on [pkg.go.dev](https://pkg.g
 | [`health`](https://pkg.go.dev/github.com/vectorihub/netctl/health) | Which links may carry traffic: per-direction state machines, hold-down, staleness, and flap pinning, operator drains, and the rule that a link is only as good as its worse direction. |
 | [`config`](https://pkg.go.dev/github.com/vectorihub/netctl/config) | One desired-state document per node, in Beaver's own words and independent of the machine that applies it: peers with the prefixes each may carry (so failover moves a prefix from the direct peer to the hub), routes, probes, a canonical encoding with a content hash, a plan ID, a structured diff, a JSON Schema and a secret scanner. |
 | [`validate`](https://pkg.go.dev/github.com/vectorihub/netctl/validate) | The last gate before a configuration leaves the controller: a catalogue of 32 rules (addressing, topology, links, routes, configs, simulation) with stable IDs, a single-failure sweep, suppressions for warnings with a mandatory reason (an error can never be suppressed), and text and JSON reports. |
+| [`netctl`](https://pkg.go.dev/github.com/vectorihub/netctl) | The root package and the one obvious entry point: `Plan`, `Diff` and their types, with `Result.Render` for the bytes of every output file. |
 | [`plan`](https://pkg.go.dev/github.com/vectorihub/netctl/plan) | One pure function from a network description and its state to a plan: the address plan, the routes, a config for every node and the validator's verdict, in a fixed order, the same bytes however the input is ordered; a plan the validator refuses has no configs and a plan in force that was good stays in force. |
 | [`failover`](https://pkg.go.dev/github.com/vectorihub/netctl/failover) | What the routing tables should be when links fail or recover: folds health signals, recomputes every table through the real engine, explains each change, refuses a failover the simulation shows makes things worse, and saves its state so a restart does not reset a hold-down. |
 
