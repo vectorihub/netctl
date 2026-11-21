@@ -314,3 +314,23 @@ func TestOrderWithinABatchDoesNotMatter(t *testing.T) {
 		}
 	}
 }
+
+// TestEverySavedTimeIsWrittenInUTC checks that each time a link can carry (pin end,
+// last admin order, flaps, hold-down, evidence) is written the same whatever zone
+// it was given in, so the bytes of a saved state do not depend on the time zone.
+func TestEverySavedTimeIsWrittenInUTC(t *testing.T) {
+	net := threeSite(t)
+	state := healthy(t, net).State
+	l, _ := state.Link(direct)
+	l.Pinned, l.PinnedUntil, l.LastAdmin, l.Flaps = true, at(1845), at(150), []time.Time{at(100), at(200)}
+	want := stateJSON(t, state)
+	zone := time.FixedZone("far", 5*3600+1800)
+	l.PinnedUntil, l.LastAdmin = l.PinnedUntil.In(zone), l.LastAdmin.In(zone)
+	for i := range l.Flaps {
+		l.Flaps[i] = l.Flaps[i].In(zone)
+	}
+	state.EvaluatedAt = state.EvaluatedAt.In(zone)
+	if got := stateJSON(t, state); got != want {
+		t.Errorf("the JSON depends on the time zone:\n%s\nwant\n%s", got, want)
+	}
+}

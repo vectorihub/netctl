@@ -142,7 +142,7 @@ func (s State) JSON() ([]byte, error) {
 // utc rewrites every time in the link in UTC, so its JSON does not depend on the
 // time zone the times were made in.
 func utc(l *health.Link) {
-	l.PinnedUntil = l.PinnedUntil.UTC()
+	l.PinnedUntil, l.LastAdmin = l.PinnedUntil.UTC(), l.LastAdmin.UTC()
 	for i := range l.Flaps {
 		l.Flaps[i] = l.Flaps[i].UTC()
 	}
