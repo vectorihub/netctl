@@ -34,6 +34,53 @@ type Topology struct {
 	// Intents say who must or must not reach whom. Their order matters for
 	// policy, so it is never changed.
 	Intents []Intent
+	// Validation holds what the file says about the validator: today, the
+	// warnings it accepts. It describes how to judge the network, not the
+	// network, so it is not part of Hash.
+	Validation Validation
+}
+
+// Validation is what a topology file says about the validator.
+//
+// Example:
+//
+//	Validation{Suppress: []Suppression{{Rule: "V-TOPO-003", Subject: "dgx-spark", Reason: "single uplink until the second ISP is installed (BC-41)"}}}.
+type Validation struct {
+	// Suppress lists warnings the file accepts, each with a reason.
+	//
+	// Example:
+	//
+	//	one entry for each accepted warning.
+	Suppress []Suppression
+}
+
+// Suppression accepts one validator warning, with the reason. An error can
+// never be suppressed, and a suppression with no reason is refused by the
+// validator.
+//
+// Example:
+//
+//	Suppression{Rule: "V-TOPO-003", Subject: "dgx-spark", Reason: "single uplink accepted (BC-41)"}.
+type Suppression struct {
+	// Rule is the rule's ID, for example "V-TOPO-003".
+	//
+	// Example:
+	//
+	//	"V-TOPO-003".
+	Rule string
+	// Subject is the node, link or prefix the warning is about. Empty means
+	// every subject of the rule.
+	//
+	// Example:
+	//
+	//	"dgx-spark".
+	Subject string
+	// Reason says why the warning is accepted. It is mandatory.
+	//
+	// Example:
+	//
+	//	"single uplink accepted until the second ISP is installed (BC-41)".
+	Reason string
 }
 
 // Addressing is the address plan: either a reference to a separate plan file

@@ -141,7 +141,7 @@ func byteLimit(bytes int) string {
 
 // topology reads the top-level mapping.
 func (r *reader) topology(root *yaml.Node) *Topology {
-	top, ok := r.mapping(root, "topology", "schema", "name", "addressing", "sites", "nodes", "links", "intents")
+	top, ok := r.mapping(root, "topology", "schema", "name", "addressing", "sites", "nodes", "links", "intents", "validation")
 	if !ok {
 		return nil
 	}
@@ -164,7 +164,32 @@ func (r *reader) topology(root *yaml.Node) *Topology {
 	for i, item := range top.sequence("intents") {
 		result.Intents = append(result.Intents, r.intent(item, fmt.Sprintf("intents[%d]", i)))
 	}
+	if node, given := top.by["validation"]; given {
+		result.Validation = r.validation(node)
+	}
 	return result
+}
+
+// validation reads the "validation" section: a list of suppressions, each with a
+// rule, an optional subject and a reason. A missing reason is not an error here;
+// the validator refuses such a suppression and says so in its findings.
+func (r *reader) validation(node *yaml.Node) Validation {
+	f, ok := r.mapping(node, "validation", "suppress")
+	if !ok {
+		return Validation{}
+	}
+	var out Validation
+	for i, item := range f.sequence("suppress") {
+		path := fmt.Sprintf("validation.suppress[%d]", i)
+		entry, ok := r.mapping(item, path, "rule", "subject", "reason")
+		if !ok {
+			continue
+		}
+		out.Suppress = append(out.Suppress, Suppression{
+			Rule: entry.text("rule", true), Subject: entry.text("subject", false), Reason: entry.text("reason", false),
+		})
+	}
+	return out
 }
 
 // prefix reads an IPv4 prefix with no host bits set. Host bits are an error, not
