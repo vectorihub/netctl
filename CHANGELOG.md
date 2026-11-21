@@ -46,6 +46,11 @@ changes, and each one is listed under **Breaking Changes** for that release.
   eleven seconds. The 2,000-node target in the plan covers validation only, which arrives with the validator.
 * `Compare` orders routes by the canonical block, so a route written with host bits set (`10.42.16.5/20`) sorts
   with `10.42.16.0/20`; the spelling only breaks the very last tie, so the order stays total.
+* `Compute` refuses a graph whose link costs add up to more than `MaxTotalCost` (2,147,483,647) with
+  `INVALID_TOPOLOGY`, so no path cost can wrap round to a negative number on any platform; `SPF`, which returns no
+  error, stops a cost at the largest int instead of wrapping.
+* Two overrides for one block spelled differently (`10.9.0.0/24`, `10.9.0.5/24`) are decided the same way in any
+  input order. `Collect` with no registry returns `INVALID_VALUE`.
 * The package is now in the README and the root documentation.
 
 #### `types`
@@ -66,6 +71,12 @@ changes, and each one is listed under **Breaking Changes** for that release.
 * `Flows` derives everything worth simulating from a topology and its address plan: overlay flows between
   every pair of nodes, site flows between every pair of advertised sites, one flow per deny intent, and one
   negative flow per node. The order is fixed.
+* A route more specific than anything a node holds, such as a static override for one address of its own
+  block, is followed instead of the packet being delivered there, so the override is tested.
+* A site whose block is a single `/32` is tested at that address, not the next one. A supernet that leaves no
+  address outside it for the negative flows is refused with `INVALID_VALUE` instead of testing nothing.
+* `NewReport` orders results that share a label by everything else in them, so the order never depends on the
+  input's.
 * `NewNet` builds the network under test from a `route.Graph` and the prefixes each node holds.
 * Scenarios, fault-injection helpers and the text and JSON reports arrive in the rest of the release.
 

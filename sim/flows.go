@@ -53,9 +53,9 @@ func held(registry *ipam.IPAM, owner ipam.Owner, bits int) (netip.Prefix, bool) 
 //     inherits the list of what the firewall must block.
 //  3. Overlay flows. Every node's overlay address to every other node's. Overlay
 //     addresses are mutually reachable unless a deny intent says otherwise.
-//  4. Site flows. The first usable address of each advertised site block to the
-//     same of every other advertised site, injected at the node that advertises
-//     the site.
+//  4. Site flows. The first usable address of each advertised site block (the
+//     only address of a /32 block) to the same of every other advertised site,
+//     injected at the node that advertises the site.
 //  5. Negative flows. One per node, from its overlay address to an address
 //     outside the supernet. These must not be delivered anywhere.
 //
@@ -65,8 +65,9 @@ func held(registry *ipam.IPAM, owner ipam.Owner, bits int) (netip.Prefix, bool) 
 //
 // Flows returns an error, and no flows, rather than quietly testing less than
 // was asked: a node with no overlay /32 in the address plan (NOT_FOUND), an
-// advertised site with no block (NOT_FOUND), or an intent whose selector picks
-// no node (INVALID_TOPOLOGY). Every problem is reported at once.
+// advertised site with no block (NOT_FOUND), an intent whose selector picks
+// no node (INVALID_TOPOLOGY), or a supernet so large that no candidate address
+// lies outside it for the negative flows (INVALID_VALUE). Every problem is reported at once.
 //
 // Example: for a topology with nodes a, b and c, each advertising its site, and
 // one deny intent, Flows returns 6 overlay, 6 site, 1 deny and 3 negative flows.
@@ -113,7 +114,13 @@ func Flows(t *topology.Topology, registry *ipam.IPAM, opts Options) ([]Flow, err
 				problems.Add(types.Errf(types.ErrNotFound, "site "+string(node.Site), "%s advertises it, but the address plan holds no block for it", node.ID))
 				continue
 			}
-			sites = append(sites, advertised{site: node.Site, node: node.ID, addr: block.Addr().Next()})
+			// The first usable address, or the only one of a /32: the test
+			// address must stay inside the site's own block.
+			addr := block.Addr()
+			if block.Bits() < 32 {
+				addr = addr.Next()
+			}
+			sites = append(sites, advertised{site: node.Site, node: node.ID, addr: addr})
 		}
 	}
 	slices.SortFunc(sites, func(a, b advertised) int { return strings.Compare(string(a.site), string(b.site)) })
@@ -199,8 +206,12 @@ func Flows(t *topology.Topology, registry *ipam.IPAM, opts Options) ([]Flow, err
 			break
 		}
 	}
+	if !outside.IsValid() {
+		problems.Add(types.Errf(types.ErrInvalidValue, "Flows",
+			"the supernet %s holds every candidate address for the negative flows, so none can test an address outside it", supernet))
+	}
 	for _, from := range nodes {
-		if !overlay[from.ID].IsValid() {
+		if !outside.IsValid() || !overlay[from.ID].IsValid() {
 			continue
 		}
 		flows = append(flows, Flow{

@@ -3,6 +3,7 @@ package route
 import (
 	"cmp"
 	"fmt"
+	"math"
 	"net/netip"
 	"slices"
 
@@ -153,11 +154,19 @@ func compareEdges(first, second Edge) int {
 	)
 }
 
+// MaxTotalCost is the most the costs of all a graph's edges may add up to. Any
+// path is a subset of the edges, so no path cost can be larger, and every sum
+// fits a 32-bit int: metrics never wrap round to a negative number, on any
+// platform. Compute refuses a graph over it.
+const MaxTotalCost = math.MaxInt32
+
 // takeSnapshot copies graph. It adds a problem for every edge that leads to a
-// node the graph does not list and for every negative cost, because such a
-// graph has no meaningful shortest path.
+// node the graph does not list, for every negative cost, because such a graph
+// has no meaningful shortest path, and when the costs of all edges add up to
+// more than MaxTotalCost, because a path cost could then overflow.
 func takeSnapshot(graph Graph, problems *types.List) *snapshot {
 	snap := &snapshot{roles: map[types.NodeID]types.Role{}, edges: map[types.NodeID][]Edge{}}
+	var total int64
 	snap.nodes = slices.Clone(graph.Nodes())
 	slices.Sort(snap.nodes)
 	snap.nodes = slices.Compact(snap.nodes)
@@ -180,6 +189,15 @@ func takeSnapshot(graph Graph, problems *types.List) *snapshot {
 			}
 		}
 		snap.edges[node] = edges
+		for _, edge := range edges {
+			if edge.Cost > 0 {
+				total += int64(edge.Cost)
+			}
+		}
+	}
+	if total > MaxTotalCost {
+		problems.Add(types.Errf(types.ErrInvalidTopology, "graph",
+			"the link costs add up to %d, more than %d, so a path cost could overflow", total, int64(MaxTotalCost)))
 	}
 	return snap
 }
@@ -267,8 +285,9 @@ func checkOwners(owned, local map[types.NodeID][]netip.Prefix, nodes []types.Nod
 // on every run.
 //
 // Compute returns an error, and no tables, if the input is broken: an edge to
-// a node that does not exist or with a negative cost, a prefix that is not an
-// IPv4 prefix, a node in Owned or Local that is not in the graph, or a
+// a node that does not exist or with a negative cost, link costs that add up
+// to more than MaxTotalCost (INVALID_TOPOLOGY), a prefix that is not an IPv4
+// prefix, a node in Owned or Local that is not in the graph, or a
 // prefix advertised by two nodes (OVERLAP). Every problem is reported at once
 // as a types.List that types.HasCode searches.
 //
@@ -388,9 +407,10 @@ func reachableIgnoringRoles(graph Graph, src types.NodeID) map[types.NodeID]bool
 	return seen
 }
 
-// compareOverrides orders overrides by node, prefix, next hop, link and
-// metric, so that which of two duplicates is kept never depends on the order
-// they were given in.
+// compareOverrides orders overrides by node, canonical prefix, next hop, link
+// and metric, and last by how the prefix was spelled, so the order is total:
+// which of two duplicates is kept, and which spelling a rejection reports,
+// never depends on the order they were given in.
 func compareOverrides(first, second Override) int {
 	return cmp.Or(
 		cmp.Compare(first.Node, second.Node),
@@ -398,6 +418,8 @@ func compareOverrides(first, second Override) int {
 		cmp.Compare(first.NextHop, second.NextHop),
 		cmp.Compare(first.Link, second.Link),
 		cmp.Compare(first.Metric, second.Metric),
+		first.Prefix.Addr().Compare(second.Prefix.Addr()),
+		cmp.Compare(first.Prefix.Bits(), second.Prefix.Bits()),
 	)
 }
 

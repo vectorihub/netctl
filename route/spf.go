@@ -1,6 +1,7 @@
 package route
 
 import (
+	"math"
 	"slices"
 
 	"github.com/vectorihub/netctl/types"
@@ -54,6 +55,17 @@ type Best struct {
 	Link types.LinkID
 	// Path lists every node on the path, from the source to the destination.
 	Path []types.NodeID
+}
+
+// addCost adds an edge's cost to a path's, stopping at math.MaxInt instead of
+// wrapping round to a negative number. Compute refuses graphs whose costs could
+// get there (see MaxTotalCost); this keeps SPF, which returns no error, from
+// ever producing a negative cost for a graph it was handed directly.
+func addCost(path, edge int) int {
+	if edge > math.MaxInt-path {
+		return math.MaxInt
+	}
+	return path + edge
 }
 
 // none marks "no link to leave out" and "no predecessor".
@@ -285,7 +297,7 @@ func (s *search) run(src, without int32) {
 			if edge.link == without || s.state[edge.to] == settled {
 				continue
 			}
-			cost, hops := s.cost[node]+edge.cost, s.hops[node]+1
+			cost, hops := addCost(s.cost[node], edge.cost), s.hops[node]+1
 			first, link := s.first[node], s.link[node]
 			if node == src {
 				first, link = edge.to, edge.link

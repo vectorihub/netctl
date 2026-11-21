@@ -1,6 +1,8 @@
 package sim
 
 import (
+	"cmp"
+	"fmt"
 	"net/netip"
 	"slices"
 	"strings"
@@ -501,8 +503,39 @@ type Report struct {
 	Passed bool `json:"passed"`
 }
 
-// NewReport gathers flow results into a report: sorted by label, counted, and
-// marked passed if no verdict fails the gate. The input is not changed. A report
+// fingerprint writes everything in a flow result as text, following pointers,
+// so two results that share a label still sort the same way whatever order they
+// came in. It is only a sort key.
+func fingerprint(result FlowResult) string {
+	var out strings.Builder
+	flow := result.Flow
+	fmt.Fprintf(&out, "%d|%s|%s|%s|%s|%v|%v|%v|%s|", flow.Family, flow.Src, flow.Dst, flow.From, flow.To,
+		flow.AllowAsymmetric, flow.Intent, flow.Ports, flow.Note)
+	fmt.Fprintf(&out, "%d|%v|", result.Verdict, result.Symmetric)
+	for _, trace := range []*Trace{&result.Forward, result.Return} {
+		if trace == nil {
+			out.WriteString("no trace|")
+			continue
+		}
+		fmt.Fprintf(&out, "%s>%s ttl %d %d:", trace.Packet.Src, trace.Packet.Dst, trace.Packet.TTL, trace.Final)
+		for _, hop := range trace.Hops {
+			fmt.Fprintf(&out, "%s %d", hop.Node, hop.Result)
+			if r := hop.Route; r != nil {
+				fmt.Fprintf(&out, " %s %s %s %d %d %v %v", r.Prefix, r.NextHop, r.Via, r.Metric, r.Source, r.Path, r.Active)
+			}
+			out.WriteString(";")
+		}
+		out.WriteString("|")
+	}
+	for _, problem := range result.Problems {
+		fmt.Fprintf(&out, "%s %s %s %s;", problem.Kind, problem.Direction, problem.Node, problem.Detail)
+	}
+	return out.String()
+}
+
+// NewReport gathers flow results into a report: sorted by label (results that
+// share a label by everything else in them, so the order never depends on the
+// input's), counted, and marked passed if no verdict fails the gate. The input is not changed. A report
 // of no flows has passed vacuously; its Summary.Total says it tested nothing.
 //
 // Example: results with verdicts OK, OK and NO_RETURN give a summary of 3 flows,
@@ -512,8 +545,9 @@ func NewReport(results []FlowResult) Report {
 	if flows == nil {
 		flows = []FlowResult{}
 	}
-	slices.SortStableFunc(flows, func(first, second FlowResult) int {
-		return strings.Compare(first.Flow.Label, second.Flow.Label)
+	slices.SortFunc(flows, func(first, second FlowResult) int {
+		return cmp.Or(strings.Compare(first.Flow.Label, second.Flow.Label),
+			strings.Compare(fingerprint(first), fingerprint(second)))
 	})
 	summary := Summary{Total: len(flows), Verdicts: []VerdictCount{}, Problems: []ProblemCount{}}
 	byVerdict := map[Verdict]int{}
