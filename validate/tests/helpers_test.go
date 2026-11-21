@@ -124,3 +124,16 @@ func withoutAllocation(s ipam.Snapshot, drop func(ipam.Allocation) bool) ipam.Sn
 func findings0(p *validate.Plan) []validate.Finding {
 	return validate.Validate(p, validate.Options{}).Findings
 }
+
+// withLinksDown rebuilds the plan's graph with the given links down, as health would
+// have marked them, and returns the plan.
+func withLinksDown(p *validate.Plan, down ...types.LinkID) *validate.Plan {
+	p.Graph = fixture.FromTopology(topology.BuildGraph(p.Topology, func(id types.LinkID) bool { return !slices.Contains(down, id) }))
+	p.Unusable = down
+	return p
+}
+
+// addNode adds a node to the plan's topology and joins it to the hub by a hub-spoke link.
+func addNode(p *validate.Plan, id types.NodeID, role types.Role) {
+	p.Topology.Nodes = append(p.Topology.Nodes, topology.Node{ID: id, Site: "builder", Role: role, NAT: topology.NATNone})
+}
