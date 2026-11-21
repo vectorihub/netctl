@@ -1,0 +1,407 @@
+{"Time":"2026-11-21T18:49:04.407367848+03:00","Action":"start","Package":"github.com/vectorihub/netctl/test/e2e/phase1"}
+{"Time":"2026-11-21T18:49:04.411016391+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E"}
+{"Time":"2026-11-21T18:49:04.411112996+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E","Output":"=== RUN   TestE2E\n"}
+{"Time":"2026-11-21T18:49:04.411131067+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-005"}
+{"Time":"2026-11-21T18:49:04.411137354+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-005","Output":"=== RUN   TestE2E/P1-GOLD-005\n"}
+{"Time":"2026-11-21T18:49:04.411152193+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-005","Output":"=== PAUSE TestE2E/P1-GOLD-005\n"}
+{"Time":"2026-11-21T18:49:04.411157877+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-005"}
+{"Time":"2026-11-21T18:49:04.411164692+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-006"}
+{"Time":"2026-11-21T18:49:04.411169717+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-006","Output":"=== RUN   TestE2E/P1-GOLD-006\n"}
+{"Time":"2026-11-21T18:49:04.411175443+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-006","Output":"=== PAUSE TestE2E/P1-GOLD-006\n"}
+{"Time":"2026-11-21T18:49:04.411180412+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-006"}
+{"Time":"2026-11-21T18:49:04.411186114+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-007"}
+{"Time":"2026-11-21T18:49:04.411191118+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-007","Output":"=== RUN   TestE2E/P1-GOLD-007\n"}
+{"Time":"2026-11-21T18:49:04.411196874+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-007","Output":"=== PAUSE TestE2E/P1-GOLD-007\n"}
+{"Time":"2026-11-21T18:49:04.411201933+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-007"}
+{"Time":"2026-11-21T18:49:04.411208197+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-008"}
+{"Time":"2026-11-21T18:49:04.411213328+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-008","Output":"=== RUN   TestE2E/P1-GOLD-008\n"}
+{"Time":"2026-11-21T18:49:04.411219104+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-008","Output":"=== PAUSE TestE2E/P1-GOLD-008\n"}
+{"Time":"2026-11-21T18:49:04.411224046+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-008"}
+{"Time":"2026-11-21T18:49:04.411239446+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-009"}
+{"Time":"2026-11-21T18:49:04.411244768+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-009","Output":"=== RUN   TestE2E/P1-GOLD-009\n"}
+{"Time":"2026-11-21T18:49:04.41125048+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-009","Output":"=== PAUSE TestE2E/P1-GOLD-009\n"}
+{"Time":"2026-11-21T18:49:04.411257205+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-009"}
+{"Time":"2026-11-21T18:49:04.411263106+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-010"}
+{"Time":"2026-11-21T18:49:04.411268133+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-010","Output":"=== RUN   TestE2E/P1-GOLD-010\n"}
+{"Time":"2026-11-21T18:49:04.411285386+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-010","Output":"=== PAUSE TestE2E/P1-GOLD-010\n"}
+{"Time":"2026-11-21T18:49:04.411291081+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-010"}
+{"Time":"2026-11-21T18:49:04.411297187+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-001"}
+{"Time":"2026-11-21T18:49:04.411302121+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-001","Output":"=== RUN   TestE2E/P1-GOLD-001\n"}
+{"Time":"2026-11-21T18:49:04.411311446+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-001","Output":"=== PAUSE TestE2E/P1-GOLD-001\n"}
+{"Time":"2026-11-21T18:49:04.411316627+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-001"}
+{"Time":"2026-11-21T18:49:04.411322401+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-002"}
+{"Time":"2026-11-21T18:49:04.41132742+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-002","Output":"=== RUN   TestE2E/P1-GOLD-002\n"}
+{"Time":"2026-11-21T18:49:04.41133326+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-002","Output":"=== PAUSE TestE2E/P1-GOLD-002\n"}
+{"Time":"2026-11-21T18:49:04.411338447+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-002"}
+{"Time":"2026-11-21T18:49:04.411344323+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-003"}
+{"Time":"2026-11-21T18:49:04.411351032+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-003","Output":"=== RUN   TestE2E/P1-GOLD-003\n"}
+{"Time":"2026-11-21T18:49:04.411360835+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-003","Output":"=== PAUSE TestE2E/P1-GOLD-003\n"}
+{"Time":"2026-11-21T18:49:04.411366001+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-003"}
+{"Time":"2026-11-21T18:49:04.4113717+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-004"}
+{"Time":"2026-11-21T18:49:04.411376729+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-004","Output":"=== RUN   TestE2E/P1-GOLD-004\n"}
+{"Time":"2026-11-21T18:49:04.411382502+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-004","Output":"=== PAUSE TestE2E/P1-GOLD-004\n"}
+{"Time":"2026-11-21T18:49:04.411387506+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-004"}
+{"Time":"2026-11-21T18:49:04.411396347+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-001"}
+{"Time":"2026-11-21T18:49:04.411401528+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-001","Output":"=== RUN   TestE2E/P1-E2E-001\n"}
+{"Time":"2026-11-21T18:49:04.411407395+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-001","Output":"=== PAUSE TestE2E/P1-E2E-001\n"}
+{"Time":"2026-11-21T18:49:04.411412468+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-001"}
+{"Time":"2026-11-21T18:49:04.41142021+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-002"}
+{"Time":"2026-11-21T18:49:04.411425295+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-002","Output":"=== RUN   TestE2E/P1-E2E-002\n"}
+{"Time":"2026-11-21T18:49:04.411435545+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-002","Output":"=== PAUSE TestE2E/P1-E2E-002\n"}
+{"Time":"2026-11-21T18:49:04.41144089+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-002"}
+{"Time":"2026-11-21T18:49:04.411446767+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-003"}
+{"Time":"2026-11-21T18:49:04.41145189+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-003","Output":"=== RUN   TestE2E/P1-E2E-003\n"}
+{"Time":"2026-11-21T18:49:04.411459586+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-003","Output":"=== PAUSE TestE2E/P1-E2E-003\n"}
+{"Time":"2026-11-21T18:49:04.411464719+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-003"}
+{"Time":"2026-11-21T18:49:04.41147051+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-004"}
+{"Time":"2026-11-21T18:49:04.41147544+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-004","Output":"=== RUN   TestE2E/P1-E2E-004\n"}
+{"Time":"2026-11-21T18:49:04.411481491+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-004","Output":"=== PAUSE TestE2E/P1-E2E-004\n"}
+{"Time":"2026-11-21T18:49:04.411486606+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-004"}
+{"Time":"2026-11-21T18:49:04.411492206+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-005"}
+{"Time":"2026-11-21T18:49:04.411497622+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-005","Output":"=== RUN   TestE2E/P1-E2E-005\n"}
+{"Time":"2026-11-21T18:49:04.411503482+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-005","Output":"=== PAUSE TestE2E/P1-E2E-005\n"}
+{"Time":"2026-11-21T18:49:04.411508612+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-005"}
+{"Time":"2026-11-21T18:49:04.411516371+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-020"}
+{"Time":"2026-11-21T18:49:04.411521561+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-020","Output":"=== RUN   TestE2E/P1-E2E-020\n"}
+{"Time":"2026-11-21T18:49:04.411527677+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-020","Output":"=== PAUSE TestE2E/P1-E2E-020\n"}
+{"Time":"2026-11-21T18:49:04.4115326+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-020"}
+{"Time":"2026-11-21T18:49:04.411538322+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-021"}
+{"Time":"2026-11-21T18:49:04.411543974+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-021","Output":"=== RUN   TestE2E/P1-E2E-021\n"}
+{"Time":"2026-11-21T18:49:04.411549938+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-021","Output":"=== PAUSE TestE2E/P1-E2E-021\n"}
+{"Time":"2026-11-21T18:49:04.411554927+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-021"}
+{"Time":"2026-11-21T18:49:04.411560633+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-022"}
+{"Time":"2026-11-21T18:49:04.411565706+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-022","Output":"=== RUN   TestE2E/P1-E2E-022\n"}
+{"Time":"2026-11-21T18:49:04.411575387+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-022","Output":"=== PAUSE TestE2E/P1-E2E-022\n"}
+{"Time":"2026-11-21T18:49:04.411580992+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-022"}
+{"Time":"2026-11-21T18:49:04.411596075+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-023"}
+{"Time":"2026-11-21T18:49:04.411601447+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-023","Output":"=== RUN   TestE2E/P1-E2E-023\n"}
+{"Time":"2026-11-21T18:49:04.411607307+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-023","Output":"=== PAUSE TestE2E/P1-E2E-023\n"}
+{"Time":"2026-11-21T18:49:04.411612363+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-023"}
+{"Time":"2026-11-21T18:49:04.411618446+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-024"}
+{"Time":"2026-11-21T18:49:04.411623514+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-024","Output":"=== RUN   TestE2E/P1-E2E-024\n"}
+{"Time":"2026-11-21T18:49:04.411629473+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-024","Output":"=== PAUSE TestE2E/P1-E2E-024\n"}
+{"Time":"2026-11-21T18:49:04.41163454+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-024"}
+{"Time":"2026-11-21T18:49:04.41164021+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-025"}
+{"Time":"2026-11-21T18:49:04.411645315+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-025","Output":"=== RUN   TestE2E/P1-E2E-025\n"}
+{"Time":"2026-11-21T18:49:04.411674263+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-025","Output":"=== PAUSE TestE2E/P1-E2E-025\n"}
+{"Time":"2026-11-21T18:49:04.411692056+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-025"}
+{"Time":"2026-11-21T18:49:04.411713231+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-026"}
+{"Time":"2026-11-21T18:49:04.411722763+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-026","Output":"=== RUN   TestE2E/P1-E2E-026\n"}
+{"Time":"2026-11-21T18:49:04.411734802+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-026","Output":"=== PAUSE TestE2E/P1-E2E-026\n"}
+{"Time":"2026-11-21T18:49:04.41174514+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-026"}
+{"Time":"2026-11-21T18:49:04.411750845+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-027"}
+{"Time":"2026-11-21T18:49:04.411756744+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-027","Output":"=== RUN   TestE2E/P1-E2E-027\n"}
+{"Time":"2026-11-21T18:49:04.411765518+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-027","Output":"=== PAUSE TestE2E/P1-E2E-027\n"}
+{"Time":"2026-11-21T18:49:04.411770813+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-027"}
+{"Time":"2026-11-21T18:49:04.41177662+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-028"}
+{"Time":"2026-11-21T18:49:04.411781519+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-028","Output":"=== RUN   TestE2E/P1-E2E-028\n"}
+{"Time":"2026-11-21T18:49:04.411803949+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-028","Output":"=== PAUSE TestE2E/P1-E2E-028\n"}
+{"Time":"2026-11-21T18:49:04.411809723+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-028"}
+{"Time":"2026-11-21T18:49:04.411815888+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-029"}
+{"Time":"2026-11-21T18:49:04.411821145+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-029","Output":"=== RUN   TestE2E/P1-E2E-029\n"}
+{"Time":"2026-11-21T18:49:04.411827913+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-029","Output":"=== PAUSE TestE2E/P1-E2E-029\n"}
+{"Time":"2026-11-21T18:49:04.411833137+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-029"}
+{"Time":"2026-11-21T18:49:04.411851736+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-040"}
+{"Time":"2026-11-21T18:49:04.411857341+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-040","Output":"=== RUN   TestE2E/P1-E2E-040\n"}
+{"Time":"2026-11-21T18:49:04.411867+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-040","Output":"=== PAUSE TestE2E/P1-E2E-040\n"}
+{"Time":"2026-11-21T18:49:04.411872518+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-040"}
+{"Time":"2026-11-21T18:49:04.411881157+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-041"}
+{"Time":"2026-11-21T18:49:04.411886458+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-041","Output":"=== RUN   TestE2E/P1-E2E-041\n"}
+{"Time":"2026-11-21T18:49:04.411893773+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-041","Output":"=== PAUSE TestE2E/P1-E2E-041\n"}
+{"Time":"2026-11-21T18:49:04.411899147+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-041"}
+{"Time":"2026-11-21T18:49:04.411905082+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-042"}
+{"Time":"2026-11-21T18:49:04.411910187+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-042","Output":"=== RUN   TestE2E/P1-E2E-042\n"}
+{"Time":"2026-11-21T18:49:04.411916022+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-042","Output":"=== PAUSE TestE2E/P1-E2E-042\n"}
+{"Time":"2026-11-21T18:49:04.411921312+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-042"}
+{"Time":"2026-11-21T18:49:04.411927114+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-043"}
+{"Time":"2026-11-21T18:49:04.411932527+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-043","Output":"=== RUN   TestE2E/P1-E2E-043\n"}
+{"Time":"2026-11-21T18:49:04.411940501+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-043","Output":"=== PAUSE TestE2E/P1-E2E-043\n"}
+{"Time":"2026-11-21T18:49:04.411945798+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-043"}
+{"Time":"2026-11-21T18:49:04.411951821+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-044"}
+{"Time":"2026-11-21T18:49:04.411956734+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-044","Output":"=== RUN   TestE2E/P1-E2E-044\n"}
+{"Time":"2026-11-21T18:49:04.411977924+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-044","Output":"=== PAUSE TestE2E/P1-E2E-044\n"}
+{"Time":"2026-11-21T18:49:04.411984287+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-044"}
+{"Time":"2026-11-21T18:49:04.41199016+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-045"}
+{"Time":"2026-11-21T18:49:04.411995359+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-045","Output":"=== RUN   TestE2E/P1-E2E-045\n"}
+{"Time":"2026-11-21T18:49:04.412001594+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-045","Output":"=== PAUSE TestE2E/P1-E2E-045\n"}
+{"Time":"2026-11-21T18:49:04.41200775+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-045"}
+{"Time":"2026-11-21T18:49:04.412013731+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-046"}
+{"Time":"2026-11-21T18:49:04.412018653+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-046","Output":"=== RUN   TestE2E/P1-E2E-046\n"}
+{"Time":"2026-11-21T18:49:04.412026431+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-046","Output":"=== PAUSE TestE2E/P1-E2E-046\n"}
+{"Time":"2026-11-21T18:49:04.412031798+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-046"}
+{"Time":"2026-11-21T18:49:04.412037674+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-047"}
+{"Time":"2026-11-21T18:49:04.4120431+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-047","Output":"=== RUN   TestE2E/P1-E2E-047\n"}
+{"Time":"2026-11-21T18:49:04.412048969+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-047","Output":"=== PAUSE TestE2E/P1-E2E-047\n"}
+{"Time":"2026-11-21T18:49:04.412054136+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-047"}
+{"Time":"2026-11-21T18:49:04.41205992+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-048"}
+{"Time":"2026-11-21T18:49:04.412065368+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-048","Output":"=== RUN   TestE2E/P1-E2E-048\n"}
+{"Time":"2026-11-21T18:49:04.412073603+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-048","Output":"=== PAUSE TestE2E/P1-E2E-048\n"}
+{"Time":"2026-11-21T18:49:04.412079038+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-048"}
+{"Time":"2026-11-21T18:49:04.412084705+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-060"}
+{"Time":"2026-11-21T18:49:04.41208985+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-060","Output":"=== RUN   TestE2E/P1-E2E-060\n"}
+{"Time":"2026-11-21T18:49:04.412095636+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-060","Output":"=== PAUSE TestE2E/P1-E2E-060\n"}
+{"Time":"2026-11-21T18:49:04.412101233+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-060"}
+{"Time":"2026-11-21T18:49:04.412109779+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-061"}
+{"Time":"2026-11-21T18:49:04.412115322+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-061","Output":"=== RUN   TestE2E/P1-E2E-061\n"}
+{"Time":"2026-11-21T18:49:04.412126708+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-061","Output":"=== PAUSE TestE2E/P1-E2E-061\n"}
+{"Time":"2026-11-21T18:49:04.412132022+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-061"}
+{"Time":"2026-11-21T18:49:04.412139644+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-062"}
+{"Time":"2026-11-21T18:49:04.412144803+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-062","Output":"=== RUN   TestE2E/P1-E2E-062\n"}
+{"Time":"2026-11-21T18:49:04.412151753+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-062","Output":"=== PAUSE TestE2E/P1-E2E-062\n"}
+{"Time":"2026-11-21T18:49:04.412157353+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-062"}
+{"Time":"2026-11-21T18:49:04.412166246+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-063"}
+{"Time":"2026-11-21T18:49:04.412172757+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-063","Output":"=== RUN   TestE2E/P1-E2E-063\n"}
+{"Time":"2026-11-21T18:49:04.412182894+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-063","Output":"=== PAUSE TestE2E/P1-E2E-063\n"}
+{"Time":"2026-11-21T18:49:04.412189395+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-063"}
+{"Time":"2026-11-21T18:49:04.412199846+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-064"}
+{"Time":"2026-11-21T18:49:04.41220549+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-064","Output":"=== RUN   TestE2E/P1-E2E-064\n"}
+{"Time":"2026-11-21T18:49:04.412213118+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-064","Output":"=== PAUSE TestE2E/P1-E2E-064\n"}
+{"Time":"2026-11-21T18:49:04.412218294+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-064"}
+{"Time":"2026-11-21T18:49:04.412229208+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-067"}
+{"Time":"2026-11-21T18:49:04.412234665+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-067","Output":"=== RUN   TestE2E/P1-E2E-067\n"}
+{"Time":"2026-11-21T18:49:04.412347569+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-067","Output":"=== PAUSE TestE2E/P1-E2E-067\n"}
+{"Time":"2026-11-21T18:49:04.412357497+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-067"}
+{"Time":"2026-11-21T18:49:04.41236342+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-090"}
+{"Time":"2026-11-21T18:49:04.412368613+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-090","Output":"=== RUN   TestE2E/P1-E2E-090\n"}
+{"Time":"2026-11-21T18:49:04.412374286+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-090","Output":"=== PAUSE TestE2E/P1-E2E-090\n"}
+{"Time":"2026-11-21T18:49:04.412379201+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-090"}
+{"Time":"2026-11-21T18:49:04.412384634+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-091"}
+{"Time":"2026-11-21T18:49:04.412389536+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-091","Output":"=== RUN   TestE2E/P1-E2E-091\n"}
+{"Time":"2026-11-21T18:49:04.412400608+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-091","Output":"=== PAUSE TestE2E/P1-E2E-091\n"}
+{"Time":"2026-11-21T18:49:04.412419148+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-091"}
+{"Time":"2026-11-21T18:49:04.412425385+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-092"}
+{"Time":"2026-11-21T18:49:04.412430416+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-092","Output":"=== RUN   TestE2E/P1-E2E-092\n"}
+{"Time":"2026-11-21T18:49:04.412438537+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-092","Output":"=== PAUSE TestE2E/P1-E2E-092\n"}
+{"Time":"2026-11-21T18:49:04.412443607+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-092"}
+{"Time":"2026-11-21T18:49:04.41244926+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-100"}
+{"Time":"2026-11-21T18:49:04.412454213+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-100","Output":"=== RUN   TestE2E/P1-E2E-100\n"}
+{"Time":"2026-11-21T18:49:04.41245963+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-100","Output":"    e2e_test.go:40: scale and chaos tests are skipped under -short\n"}
+{"Time":"2026-11-21T18:49:04.412470138+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-100","Output":"--- SKIP: TestE2E/P1-E2E-100 (0.00s)\n"}
+{"Time":"2026-11-21T18:49:04.412476108+03:00","Action":"skip","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-100","Elapsed":0}
+{"Time":"2026-11-21T18:49:04.412483431+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-101"}
+{"Time":"2026-11-21T18:49:04.412500962+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-101","Output":"=== RUN   TestE2E/P1-E2E-101\n"}
+{"Time":"2026-11-21T18:49:04.412508871+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-101","Output":"    e2e_test.go:40: scale and chaos tests are skipped under -short\n"}
+{"Time":"2026-11-21T18:49:04.412515679+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-101","Output":"--- SKIP: TestE2E/P1-E2E-101 (0.00s)\n"}
+{"Time":"2026-11-21T18:49:04.412521273+03:00","Action":"skip","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-101","Elapsed":0}
+{"Time":"2026-11-21T18:49:04.41252665+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-102"}
+{"Time":"2026-11-21T18:49:04.412531487+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-102","Output":"=== RUN   TestE2E/P1-E2E-102\n"}
+{"Time":"2026-11-21T18:49:04.412536831+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-102","Output":"    e2e_test.go:40: scale and chaos tests are skipped under -short\n"}
+{"Time":"2026-11-21T18:49:04.412543164+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-102","Output":"--- SKIP: TestE2E/P1-E2E-102 (0.00s)\n"}
+{"Time":"2026-11-21T18:49:04.412548867+03:00","Action":"skip","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-102","Elapsed":0}
+{"Time":"2026-11-21T18:49:04.412556393+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-120"}
+{"Time":"2026-11-21T18:49:04.41256141+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-120","Output":"=== RUN   TestE2E/P1-E2E-120\n"}
+{"Time":"2026-11-21T18:49:04.412582712+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-120","Output":"    e2e_test.go:40: scale and chaos tests are skipped under -short\n"}
+{"Time":"2026-11-21T18:49:04.41258992+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-120","Output":"--- SKIP: TestE2E/P1-E2E-120 (0.00s)\n"}
+{"Time":"2026-11-21T18:49:04.412596733+03:00","Action":"skip","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-120","Elapsed":0}
+{"Time":"2026-11-21T18:49:04.41260231+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-121"}
+{"Time":"2026-11-21T18:49:04.412607291+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-121","Output":"=== RUN   TestE2E/P1-E2E-121\n"}
+{"Time":"2026-11-21T18:49:04.412614895+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-121","Output":"    e2e_test.go:40: scale and chaos tests are skipped under -short\n"}
+{"Time":"2026-11-21T18:49:04.412621512+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-121","Output":"--- SKIP: TestE2E/P1-E2E-121 (0.00s)\n"}
+{"Time":"2026-11-21T18:49:04.412627087+03:00","Action":"skip","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-121","Elapsed":0}
+{"Time":"2026-11-21T18:49:04.412632661+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-122"}
+{"Time":"2026-11-21T18:49:04.412637524+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-122","Output":"=== RUN   TestE2E/P1-E2E-122\n"}
+{"Time":"2026-11-21T18:49:04.412667197+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-122","Output":"    e2e_test.go:40: scale and chaos tests are skipped under -short\n"}
+{"Time":"2026-11-21T18:49:04.412675354+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-122","Output":"--- SKIP: TestE2E/P1-E2E-122 (0.00s)\n"}
+{"Time":"2026-11-21T18:49:04.412683858+03:00","Action":"skip","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-122","Elapsed":0}
+{"Time":"2026-11-21T18:49:04.412689591+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-123"}
+{"Time":"2026-11-21T18:49:04.412694646+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-123","Output":"=== RUN   TestE2E/P1-E2E-123\n"}
+{"Time":"2026-11-21T18:49:04.412700024+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-123","Output":"    e2e_test.go:40: scale and chaos tests are skipped under -short\n"}
+{"Time":"2026-11-21T18:49:04.412706391+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-123","Output":"--- SKIP: TestE2E/P1-E2E-123 (0.00s)\n"}
+{"Time":"2026-11-21T18:49:04.41271197+03:00","Action":"skip","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-123","Elapsed":0}
+{"Time":"2026-11-21T18:49:04.41273766+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-124"}
+{"Time":"2026-11-21T18:49:04.412744919+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-124","Output":"=== RUN   TestE2E/P1-E2E-124\n"}
+{"Time":"2026-11-21T18:49:04.412750557+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-124","Output":"    e2e_test.go:40: scale and chaos tests are skipped under -short\n"}
+{"Time":"2026-11-21T18:49:04.412757141+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-124","Output":"--- SKIP: TestE2E/P1-E2E-124 (0.00s)\n"}
+{"Time":"2026-11-21T18:49:04.412767503+03:00","Action":"skip","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-124","Elapsed":0}
+{"Time":"2026-11-21T18:49:04.412773117+03:00","Action":"run","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-HARNESS-001"}
+{"Time":"2026-11-21T18:49:04.412778163+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-HARNESS-001","Output":"=== RUN   TestE2E/P1-HARNESS-001\n"}
+{"Time":"2026-11-21T18:49:04.412786082+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-HARNESS-001","Output":"=== PAUSE TestE2E/P1-HARNESS-001\n"}
+{"Time":"2026-11-21T18:49:04.412791279+03:00","Action":"pause","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-HARNESS-001"}
+{"Time":"2026-11-21T18:49:04.41279723+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-005"}
+{"Time":"2026-11-21T18:49:04.412813506+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-005","Output":"=== CONT  TestE2E/P1-GOLD-005\n"}
+{"Time":"2026-11-21T18:49:04.412867953+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-027"}
+{"Time":"2026-11-21T18:49:04.412873951+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-027","Output":"=== CONT  TestE2E/P1-E2E-027\n"}
+{"Time":"2026-11-21T18:49:04.413432883+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-HARNESS-001"}
+{"Time":"2026-11-21T18:49:04.413453124+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-HARNESS-001","Output":"=== CONT  TestE2E/P1-HARNESS-001\n"}
+{"Time":"2026-11-21T18:49:04.413462161+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-026"}
+{"Time":"2026-11-21T18:49:04.413466997+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-026","Output":"=== CONT  TestE2E/P1-E2E-026\n"}
+{"Time":"2026-11-21T18:49:04.48655544+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-HARNESS-001","Output":"--- PASS: TestE2E/P1-HARNESS-001 (0.07s)\n"}
+{"Time":"2026-11-21T18:49:04.486597465+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-HARNESS-001","Elapsed":0.07}
+{"Time":"2026-11-21T18:49:04.486606634+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-002"}
+{"Time":"2026-11-21T18:49:04.486612972+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-002","Output":"=== CONT  TestE2E/P1-E2E-002\n"}
+{"Time":"2026-11-21T18:49:04.516089948+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-027","Output":"--- PASS: TestE2E/P1-E2E-027 (0.10s)\n"}
+{"Time":"2026-11-21T18:49:04.516450179+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-027","Elapsed":0.1}
+{"Time":"2026-11-21T18:49:04.516470758+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-025"}
+{"Time":"2026-11-21T18:49:04.516478627+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-025","Output":"=== CONT  TestE2E/P1-E2E-025\n"}
+{"Time":"2026-11-21T18:49:04.568382+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-025","Output":"--- PASS: TestE2E/P1-E2E-025 (0.05s)\n"}
+{"Time":"2026-11-21T18:49:04.569141759+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-025","Elapsed":0.05}
+{"Time":"2026-11-21T18:49:04.56917212+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-024"}
+{"Time":"2026-11-21T18:49:04.56917867+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-024","Output":"=== CONT  TestE2E/P1-E2E-024\n"}
+{"Time":"2026-11-21T18:49:04.580077557+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-026","Output":"--- PASS: TestE2E/P1-E2E-026 (0.17s)\n"}
+{"Time":"2026-11-21T18:49:04.580106032+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-026","Elapsed":0.17}
+{"Time":"2026-11-21T18:49:04.580113095+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-023"}
+{"Time":"2026-11-21T18:49:04.580117804+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-023","Output":"=== CONT  TestE2E/P1-E2E-023\n"}
+{"Time":"2026-11-21T18:49:04.592618046+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-002","Output":"--- PASS: TestE2E/P1-E2E-002 (0.11s)\n"}
+{"Time":"2026-11-21T18:49:04.592646559+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-002","Elapsed":0.11}
+{"Time":"2026-11-21T18:49:04.592666577+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-022"}
+{"Time":"2026-11-21T18:49:04.592672933+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-022","Output":"=== CONT  TestE2E/P1-E2E-022\n"}
+{"Time":"2026-11-21T18:49:04.619704413+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-005","Output":"--- PASS: TestE2E/P1-GOLD-005 (0.21s)\n"}
+{"Time":"2026-11-21T18:49:04.620253066+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-005","Elapsed":0.21}
+{"Time":"2026-11-21T18:49:04.620271981+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-021"}
+{"Time":"2026-11-21T18:49:04.620279388+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-021","Output":"=== CONT  TestE2E/P1-E2E-021\n"}
+{"Time":"2026-11-21T18:49:04.68490066+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-024","Output":"--- PASS: TestE2E/P1-E2E-024 (0.12s)\n"}
+{"Time":"2026-11-21T18:49:04.688020684+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-024","Elapsed":0.12}
+{"Time":"2026-11-21T18:49:04.688050775+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-020"}
+{"Time":"2026-11-21T18:49:04.688057396+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-020","Output":"=== CONT  TestE2E/P1-E2E-020\n"}
+{"Time":"2026-11-21T18:49:04.69324027+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-021","Output":"--- PASS: TestE2E/P1-E2E-021 (0.07s)\n"}
+{"Time":"2026-11-21T18:49:04.693269604+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-021","Elapsed":0.07}
+{"Time":"2026-11-21T18:49:04.69327655+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-005"}
+{"Time":"2026-11-21T18:49:04.693281241+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-005","Output":"=== CONT  TestE2E/P1-E2E-005\n"}
+{"Time":"2026-11-21T18:49:04.709559812+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-022","Output":"--- PASS: TestE2E/P1-E2E-022 (0.12s)\n"}
+{"Time":"2026-11-21T18:49:04.709587406+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-022","Elapsed":0.12}
+{"Time":"2026-11-21T18:49:04.70960551+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-004"}
+{"Time":"2026-11-21T18:49:04.709611119+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-004","Output":"=== CONT  TestE2E/P1-E2E-004\n"}
+{"Time":"2026-11-21T18:49:04.73279982+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-023","Output":"--- PASS: TestE2E/P1-E2E-023 (0.15s)\n"}
+{"Time":"2026-11-21T18:49:04.733689587+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-023","Elapsed":0.15}
+{"Time":"2026-11-21T18:49:04.73372728+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-003"}
+{"Time":"2026-11-21T18:49:04.733733267+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-003","Output":"=== CONT  TestE2E/P1-E2E-003\n"}
+{"Time":"2026-11-21T18:49:04.765492399+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-003","Output":"    group1_plan_test.go:132: lab-a1: no Packet Tracer observations transcribed yet (owner step); comparing with the reviewed golden output only\n"}
+{"Time":"2026-11-21T18:49:04.767151487+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-020","Output":"--- PASS: TestE2E/P1-E2E-020 (0.08s)\n"}
+{"Time":"2026-11-21T18:49:04.767174959+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-020","Elapsed":0.08}
+{"Time":"2026-11-21T18:49:04.767183+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-001"}
+{"Time":"2026-11-21T18:49:04.767188135+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-001","Output":"=== CONT  TestE2E/P1-GOLD-001\n"}
+{"Time":"2026-11-21T18:49:04.771641739+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-005","Output":"--- PASS: TestE2E/P1-E2E-005 (0.08s)\n"}
+{"Time":"2026-11-21T18:49:04.771682766+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-005","Elapsed":0.08}
+{"Time":"2026-11-21T18:49:04.771693691+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-001"}
+{"Time":"2026-11-21T18:49:04.771701299+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-001","Output":"=== CONT  TestE2E/P1-E2E-001\n"}
+{"Time":"2026-11-21T18:49:04.781965611+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-003","Output":"    group1_plan_test.go:132: lab-a2: no Packet Tracer observations transcribed yet (owner step); comparing with the reviewed golden output only\n"}
+{"Time":"2026-11-21T18:49:04.788908314+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-001","Output":"    golden_labs_test.go:82: lab-a1: no Packet Tracer observations transcribed yet (owner step); comparing with the reviewed golden output only\n"}
+{"Time":"2026-11-21T18:49:04.790091886+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-004","Output":"--- PASS: TestE2E/P1-E2E-004 (0.08s)\n"}
+{"Time":"2026-11-21T18:49:04.790693446+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-004","Elapsed":0.08}
+{"Time":"2026-11-21T18:49:04.790713067+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-001","Output":"--- PASS: TestE2E/P1-GOLD-001 (0.02s)\n"}
+{"Time":"2026-11-21T18:49:04.790737087+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-001","Elapsed":0.02}
+{"Time":"2026-11-21T18:49:04.790749446+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-004"}
+{"Time":"2026-11-21T18:49:04.790755086+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-004","Output":"=== CONT  TestE2E/P1-GOLD-004\n"}
+{"Time":"2026-11-21T18:49:04.791056231+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-003"}
+{"Time":"2026-11-21T18:49:04.791066904+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-003","Output":"=== CONT  TestE2E/P1-GOLD-003\n"}
+{"Time":"2026-11-21T18:49:04.792368203+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-004","Output":"--- PASS: TestE2E/P1-GOLD-004 (0.00s)\n"}
+{"Time":"2026-11-21T18:49:04.792391+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-004","Elapsed":0}
+{"Time":"2026-11-21T18:49:04.792397217+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-002"}
+{"Time":"2026-11-21T18:49:04.792401902+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-002","Output":"=== CONT  TestE2E/P1-GOLD-002\n"}
+{"Time":"2026-11-21T18:49:04.800146376+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-003","Output":"    group1_plan_test.go:132: lab-a3: no Packet Tracer observations transcribed yet (owner step); comparing with the reviewed golden output only\n"}
+{"Time":"2026-11-21T18:49:04.80195037+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-003","Output":"--- PASS: TestE2E/P1-E2E-003 (0.07s)\n"}
+{"Time":"2026-11-21T18:49:04.801977957+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-003","Elapsed":0.07}
+{"Time":"2026-11-21T18:49:04.801986965+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-048"}
+{"Time":"2026-11-21T18:49:04.801993214+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-048","Output":"=== CONT  TestE2E/P1-E2E-048\n"}
+{"Time":"2026-11-21T18:49:04.812781011+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-002","Output":"    golden_labs_test.go:98: lab-a2: no Packet Tracer observations transcribed yet (owner step); comparing with the reviewed golden output only\n"}
+{"Time":"2026-11-21T18:49:04.814158901+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-002","Output":"--- PASS: TestE2E/P1-GOLD-002 (0.02s)\n"}
+{"Time":"2026-11-21T18:49:04.814388726+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-002","Elapsed":0.02}
+{"Time":"2026-11-21T18:49:04.814421356+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-092"}
+{"Time":"2026-11-21T18:49:04.814429061+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-092","Output":"=== CONT  TestE2E/P1-E2E-092\n"}
+{"Time":"2026-11-21T18:49:04.826414338+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-001","Output":"--- PASS: TestE2E/P1-E2E-001 (0.05s)\n"}
+{"Time":"2026-11-21T18:49:04.826439428+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-001","Elapsed":0.05}
+{"Time":"2026-11-21T18:49:04.826446309+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-091"}
+{"Time":"2026-11-21T18:49:04.826451063+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-091","Output":"=== CONT  TestE2E/P1-E2E-091\n"}
+{"Time":"2026-11-21T18:49:04.832312436+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-003","Output":"    golden_labs_test.go:109: lab-a3: no Packet Tracer observations transcribed yet (owner step); comparing with the reviewed golden output only\n"}
+{"Time":"2026-11-21T18:49:04.876136232+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-003","Output":"--- PASS: TestE2E/P1-GOLD-003 (0.09s)\n"}
+{"Time":"2026-11-21T18:49:04.876205687+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-003","Elapsed":0.09}
+{"Time":"2026-11-21T18:49:04.87621789+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-090"}
+{"Time":"2026-11-21T18:49:04.876225596+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-090","Output":"=== CONT  TestE2E/P1-E2E-090\n"}
+{"Time":"2026-11-21T18:49:04.907602647+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-091","Output":"--- PASS: TestE2E/P1-E2E-091 (0.08s)\n"}
+{"Time":"2026-11-21T18:49:04.908122682+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-091","Elapsed":0.08}
+{"Time":"2026-11-21T18:49:04.908144251+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-067"}
+{"Time":"2026-11-21T18:49:04.908151137+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-067","Output":"=== CONT  TestE2E/P1-E2E-067\n"}
+{"Time":"2026-11-21T18:49:04.940189707+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-067","Output":"--- PASS: TestE2E/P1-E2E-067 (0.03s)\n"}
+{"Time":"2026-11-21T18:49:04.940640777+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-067","Elapsed":0.03}
+{"Time":"2026-11-21T18:49:04.940668407+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-064"}
+{"Time":"2026-11-21T18:49:04.940674885+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-064","Output":"=== CONT  TestE2E/P1-E2E-064\n"}
+{"Time":"2026-11-21T18:49:04.942371327+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-064","Output":"--- PASS: TestE2E/P1-E2E-064 (0.00s)\n"}
+{"Time":"2026-11-21T18:49:04.942401328+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-064","Elapsed":0}
+{"Time":"2026-11-21T18:49:04.942409361+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-063"}
+{"Time":"2026-11-21T18:49:04.942414715+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-063","Output":"=== CONT  TestE2E/P1-E2E-063\n"}
+{"Time":"2026-11-21T18:49:04.993929205+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-063","Output":"--- PASS: TestE2E/P1-E2E-063 (0.05s)\n"}
+{"Time":"2026-11-21T18:49:04.994000154+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-063","Elapsed":0.05}
+{"Time":"2026-11-21T18:49:04.994012757+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-062"}
+{"Time":"2026-11-21T18:49:04.994019526+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-062","Output":"=== CONT  TestE2E/P1-E2E-062\n"}
+{"Time":"2026-11-21T18:49:05.000387064+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-062","Output":"--- PASS: TestE2E/P1-E2E-062 (0.01s)\n"}
+{"Time":"2026-11-21T18:49:05.000494599+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-062","Elapsed":0.01}
+{"Time":"2026-11-21T18:49:05.000507044+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-061"}
+{"Time":"2026-11-21T18:49:05.000512733+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-061","Output":"=== CONT  TestE2E/P1-E2E-061\n"}
+{"Time":"2026-11-21T18:49:05.06417893+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-061","Output":"--- PASS: TestE2E/P1-E2E-061 (0.06s)\n"}
+{"Time":"2026-11-21T18:49:05.064286241+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-061","Elapsed":0.06}
+{"Time":"2026-11-21T18:49:05.064299587+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-060"}
+{"Time":"2026-11-21T18:49:05.064316179+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-060","Output":"=== CONT  TestE2E/P1-E2E-060\n"}
+{"Time":"2026-11-21T18:49:05.069027209+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-060","Output":"--- PASS: TestE2E/P1-E2E-060 (0.00s)\n"}
+{"Time":"2026-11-21T18:49:05.069056726+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-060","Elapsed":0}
+{"Time":"2026-11-21T18:49:05.069064201+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-043"}
+{"Time":"2026-11-21T18:49:05.069069217+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-043","Output":"=== CONT  TestE2E/P1-E2E-043\n"}
+{"Time":"2026-11-21T18:49:05.07963763+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-092","Output":"--- PASS: TestE2E/P1-E2E-092 (0.26s)\n"}
+{"Time":"2026-11-21T18:49:05.07973146+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-092","Elapsed":0.26}
+{"Time":"2026-11-21T18:49:05.079739762+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-047"}
+{"Time":"2026-11-21T18:49:05.07974464+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-047","Output":"=== CONT  TestE2E/P1-E2E-047\n"}
+{"Time":"2026-11-21T18:49:05.177821155+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-048","Output":"--- PASS: TestE2E/P1-E2E-048 (0.38s)\n"}
+{"Time":"2026-11-21T18:49:05.177858999+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-048","Elapsed":0.38}
+{"Time":"2026-11-21T18:49:05.177868054+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-046"}
+{"Time":"2026-11-21T18:49:05.177873838+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-046","Output":"=== CONT  TestE2E/P1-E2E-046\n"}
+{"Time":"2026-11-21T18:49:05.236009092+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-043","Output":"--- PASS: TestE2E/P1-E2E-043 (0.17s)\n"}
+{"Time":"2026-11-21T18:49:05.236041206+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-043","Elapsed":0.17}
+{"Time":"2026-11-21T18:49:05.236050064+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-045"}
+{"Time":"2026-11-21T18:49:05.236055698+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-045","Output":"=== CONT  TestE2E/P1-E2E-045\n"}
+{"Time":"2026-11-21T18:49:05.274180829+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-046","Output":"--- PASS: TestE2E/P1-E2E-046 (0.10s)\n"}
+{"Time":"2026-11-21T18:49:05.274216455+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-046","Elapsed":0.1}
+{"Time":"2026-11-21T18:49:05.274225607+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-044"}
+{"Time":"2026-11-21T18:49:05.274232598+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-044","Output":"=== CONT  TestE2E/P1-E2E-044\n"}
+{"Time":"2026-11-21T18:49:05.30269843+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-047","Output":"--- PASS: TestE2E/P1-E2E-047 (0.22s)\n"}
+{"Time":"2026-11-21T18:49:05.302727659+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-047","Elapsed":0.22}
+{"Time":"2026-11-21T18:49:05.30273658+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-040"}
+{"Time":"2026-11-21T18:49:05.302742653+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-040","Output":"=== CONT  TestE2E/P1-E2E-040\n"}
+{"Time":"2026-11-21T18:49:05.33602302+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-045","Output":"--- PASS: TestE2E/P1-E2E-045 (0.10s)\n"}
+{"Time":"2026-11-21T18:49:05.337726941+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-045","Elapsed":0.1}
+{"Time":"2026-11-21T18:49:05.337749202+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-042"}
+{"Time":"2026-11-21T18:49:05.337755126+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-042","Output":"=== CONT  TestE2E/P1-E2E-042\n"}
+{"Time":"2026-11-21T18:49:05.426685631+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-040","Output":"--- PASS: TestE2E/P1-E2E-040 (0.12s)\n"}
+{"Time":"2026-11-21T18:49:05.426719313+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-040","Elapsed":0.12}
+{"Time":"2026-11-21T18:49:05.426729397+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-041"}
+{"Time":"2026-11-21T18:49:05.426738122+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-041","Output":"=== CONT  TestE2E/P1-E2E-041\n"}
+{"Time":"2026-11-21T18:49:05.434390276+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-044","Output":"--- PASS: TestE2E/P1-E2E-044 (0.16s)\n"}
+{"Time":"2026-11-21T18:49:05.434421093+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-044","Elapsed":0.16}
+{"Time":"2026-11-21T18:49:05.434429738+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-029"}
+{"Time":"2026-11-21T18:49:05.434435278+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-029","Output":"=== CONT  TestE2E/P1-E2E-029\n"}
+{"Time":"2026-11-21T18:49:05.509880941+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-029","Output":"--- PASS: TestE2E/P1-E2E-029 (0.07s)\n"}
+{"Time":"2026-11-21T18:49:05.509912907+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-029","Elapsed":0.07}
+{"Time":"2026-11-21T18:49:05.509920396+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-028"}
+{"Time":"2026-11-21T18:49:05.509925811+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-028","Output":"=== CONT  TestE2E/P1-E2E-028\n"}
+{"Time":"2026-11-21T18:49:05.519271133+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-042","Output":"--- PASS: TestE2E/P1-E2E-042 (0.18s)\n"}
+{"Time":"2026-11-21T18:49:05.51936258+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-042","Elapsed":0.18}
+{"Time":"2026-11-21T18:49:05.519379124+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-008"}
+{"Time":"2026-11-21T18:49:05.519384801+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-008","Output":"=== CONT  TestE2E/P1-GOLD-008\n"}
+{"Time":"2026-11-21T18:49:05.558321974+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-008","Output":"--- PASS: TestE2E/P1-GOLD-008 (0.04s)\n"}
+{"Time":"2026-11-21T18:49:05.558538637+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-008","Elapsed":0.04}
+{"Time":"2026-11-21T18:49:05.558547443+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-010"}
+{"Time":"2026-11-21T18:49:05.558552461+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-010","Output":"=== CONT  TestE2E/P1-GOLD-010\n"}
+{"Time":"2026-11-21T18:49:05.598766319+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-028","Output":"--- PASS: TestE2E/P1-E2E-028 (0.09s)\n"}
+{"Time":"2026-11-21T18:49:05.598847991+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-028","Elapsed":0.09}
+{"Time":"2026-11-21T18:49:05.598869222+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-009"}
+{"Time":"2026-11-21T18:49:05.598876607+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-009","Output":"=== CONT  TestE2E/P1-GOLD-009\n"}
+{"Time":"2026-11-21T18:49:05.620770018+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-041","Output":"--- PASS: TestE2E/P1-E2E-041 (0.19s)\n"}
+{"Time":"2026-11-21T18:49:05.620818848+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-041","Elapsed":0.19}
+{"Time":"2026-11-21T18:49:05.620828314+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-007"}
+{"Time":"2026-11-21T18:49:05.620833272+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-007","Output":"=== CONT  TestE2E/P1-GOLD-007\n"}
+{"Time":"2026-11-21T18:49:05.627023446+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-007","Output":"--- PASS: TestE2E/P1-GOLD-007 (0.01s)\n"}
+{"Time":"2026-11-21T18:49:05.628360258+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-007","Elapsed":0.01}
+{"Time":"2026-11-21T18:49:05.628397996+03:00","Action":"cont","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-006"}
+{"Time":"2026-11-21T18:49:05.628406291+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-006","Output":"=== CONT  TestE2E/P1-GOLD-006\n"}
+{"Time":"2026-11-21T18:49:05.773129174+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-010","Output":"    golden_edge_test.go:201: lab-a4: no Packet Tracer observations transcribed yet (owner step); comparing with the reviewed golden output only\n"}
+{"Time":"2026-11-21T18:49:05.775612467+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-010","Output":"--- PASS: TestE2E/P1-GOLD-010 (0.22s)\n"}
+{"Time":"2026-11-21T18:49:05.779279405+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-010","Elapsed":0.22}
+{"Time":"2026-11-21T18:49:05.779311827+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-006","Output":"--- PASS: TestE2E/P1-GOLD-006 (0.15s)\n"}
+{"Time":"2026-11-21T18:49:05.87643696+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-006","Elapsed":0.15}
+{"Time":"2026-11-21T18:49:05.876463492+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-009","Output":"--- PASS: TestE2E/P1-GOLD-009 (0.28s)\n"}
+{"Time":"2026-11-21T18:49:06.507663913+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-GOLD-009","Elapsed":0.28}
+{"Time":"2026-11-21T18:49:06.507793946+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-090","Output":"--- PASS: TestE2E/P1-E2E-090 (1.63s)\n"}
+{"Time":"2026-11-21T18:49:06.507818622+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E/P1-E2E-090","Elapsed":1.63}
+{"Time":"2026-11-21T18:49:06.507824031+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E","Output":"--- PASS: TestE2E (0.00s)\n"}
+{"Time":"2026-11-21T18:49:06.507828284+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Test":"TestE2E","Elapsed":0}
+{"Time":"2026-11-21T18:49:06.507832011+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Output":"PASS\n"}
+{"Time":"2026-11-21T18:49:06.510217412+03:00","Action":"output","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Output":"ok  \tgithub.com/vectorihub/netctl/test/e2e/phase1\t2.103s\n"}
+{"Time":"2026-11-21T18:49:06.510256449+03:00","Action":"pass","Package":"github.com/vectorihub/netctl/test/e2e/phase1","Elapsed":2.103}

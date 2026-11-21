@@ -1,0 +1,14 @@
+go test ./ipam/tests ./topology/tests -run='^$' -bench=. -benchtime=10x
+BenchmarkAllocateOverlay2000-4   	      10	 178010143 ns/op
+BenchmarkAccounting5000-4        	      10	  19906710 ns/op
+PASS
+ok  	github.com/vectorihub/netctl/ipam/tests	2.805s
+BenchmarkLoad500Nodes-4           	      10	  30824481 ns/op
+BenchmarkGraphAndHash500Nodes-4   	      10	   4348774 ns/op
+PASS
+ok  	github.com/vectorihub/netctl/topology/tests	0.392s
+go test ./sim/tests -run='^$' -bench=. -benchtime=3x
+BenchmarkAllPairs500-4   	       3	1435866730 ns/op
+PASS
+ok  	github.com/vectorihub/netctl/sim/tests	7.736s
+exit 0
