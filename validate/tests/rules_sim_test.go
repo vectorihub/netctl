@@ -187,3 +187,26 @@ func TestSweepIsDeterministic(t *testing.T) {
 		}
 	}
 }
+
+// TestRule_V_SIM_002_aFailedFlowFailsTheScenarioEvenWithNoExpectation checks a flow that fails
+// the gate in a declared scenario is reported though the scenario said nothing about it: a
+// static route that works in the baseline and stays active over a link the scenario fails.
+func TestRule_V_SIM_002_aFailedFlowFailsTheScenarioEvenWithNoExpectation(t *testing.T) {
+	p := cleanPlan(t, true)
+	p.Input.Overrides = []route.Override{{Node: builder, Prefix: pfx("10.42.32.0/20"), NextHop: dgx, Link: direct}}
+	p.Scenarios = []sim.Scenario{{Name: "direct-link-fails", LinksDown: []types.LinkID{direct}}}
+	got := fires(t, p, "V-SIM-002")
+	joined := ""
+	for _, f := range got {
+		joined += f.Subject + ": " + f.Message + "\n"
+	}
+	if !strings.Contains(joined, "direct-link-fails") || !strings.Contains(joined, "LINK_DOWN") {
+		t.Errorf("%s", joined)
+	}
+	// Without the override the plan fails over and nothing is reported.
+	clean := cleanPlan(t, true)
+	clean.Scenarios = p.Scenarios
+	if got := findings(clean, "V-SIM-002"); len(got) != 0 {
+		t.Errorf("a plan that fails over: %+v", got)
+	}
+}

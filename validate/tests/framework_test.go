@@ -242,3 +242,23 @@ func TestFindingStringIsOneLine(t *testing.T) {
 		t.Errorf("an empty hint was written: %q", f.String())
 	}
 }
+
+// TestFindingsThatDifferOnlyInDetailAreOrdered checks two findings alike but for their
+// evidence come out in the same order however the rule made them, so the report's bytes
+// never depend on that.
+func TestFindingsThatDifferOnlyInDetailAreOrdered(t *testing.T) {
+	rule := func(details ...string) []validate.Rule {
+		return []validate.Rule{{ID: "T-WARN-001", Level: validate.Warning, Title: "t", Check: func(*validate.Plan) []validate.Finding {
+			var out []validate.Finding
+			for _, d := range details {
+				out = append(out, validate.Finding{Subject: "s", Message: "m", Hint: "h", Detail: d})
+			}
+			return out
+		}}}
+	}
+	a, _ := validate.Run(planWith(), validate.Options{}, rule("b", "a", "c")).JSON()
+	b, _ := validate.Run(planWith(), validate.Options{}, rule("c", "b", "a")).JSON()
+	if string(a) != string(b) || !strings.Contains(string(a), `"detail": "a"`) {
+		t.Errorf("the order of equal findings depends on the rule:\n%s\n%s", a, b)
+	}
+}

@@ -2,11 +2,15 @@ package tests
 
 import (
 	"net/netip"
+	"slices"
 	"strings"
 	"testing"
 
+	"github.com/vectorihub/netctl/health"
+	"github.com/vectorihub/netctl/ipam"
 	"github.com/vectorihub/netctl/plan"
 	"github.com/vectorihub/netctl/route"
+	"github.com/vectorihub/netctl/sim"
 	"github.com/vectorihub/netctl/types"
 )
 
@@ -124,5 +128,87 @@ func TestAConfigThatCannotBeGeneratedFailsThePlan(t *testing.T) {
 	}
 	if len(r.Configs) != 0 {
 		t.Errorf("configs from a failed generation")
+	}
+}
+
+// TestARejectedPlanKeepsTheAddressPlanInForceToo checks the snapshot a rejected plan hands
+// back is the one in force: a node removal that was rejected does not quarantine an address
+// the kept configs still use, and no change is reported as made.
+func TestARejectedPlanKeepsTheAddressPlanInForceToo(t *testing.T) {
+	good := mustPlan(t, fresh(t))
+	in := fresh(t)
+	in.IPAM = good.IPAM
+	in.Previous = &good
+	in.Topology = without(in.Topology, "dgx-spark", "dgx")
+	in.Scenarios = rejectingScenario()
+	r, err := plan.Plan(in)
+	if !types.HasCode(err, types.ErrValidationFailed) {
+		t.Fatalf("%v, want a rejection", err)
+	}
+	a, _ := ipam.Marshal(r.IPAM)
+	b, _ := ipam.Marshal(good.IPAM)
+	if string(a) != string(b) || len(r.Changes) != 0 {
+		t.Errorf("the rejected plan's address changes leaked: %d changes", len(r.Changes))
+	}
+	for _, alloc := range r.IPAM.Allocations {
+		if alloc.Owner == ipam.Node("dgx-spark") && alloc.State != ipam.Allocated {
+			t.Errorf("dgx-spark's address is %s though the kept configs use it", alloc.State)
+		}
+	}
+}
+
+// TestRejectingTwiceInARowKeepsThePlanInForce checks a rejected result passed as the next
+// Previous still protects the plan in force: the second refusal keeps the same configs and
+// says so, even though the result carried the first refusal's failing report.
+func TestRejectingTwiceInARowKeepsThePlanInForce(t *testing.T) {
+	good := mustPlan(t, fresh(t))
+	var previous = &good
+	for round := 1; round <= 3; round++ {
+		in := fresh(t)
+		in.IPAM = previous.IPAM
+		in.Previous = previous
+		in.Scenarios = rejectingScenario()
+		r, err := plan.Plan(in)
+		if !types.HasCode(err, types.ErrValidationFailed) {
+			t.Fatalf("round %d: %v", round, err)
+		}
+		if r.PlanID != good.PlanID || len(r.Configs) != 3 || len(r.Decisions) != 1 || r.Decisions[0].Kind != "FailoverRejected" {
+			t.Fatalf("round %d: plan %q, %d configs, decisions %+v", round, r.PlanID, len(r.Configs), r.Decisions)
+		}
+		previous = &r
+	}
+}
+
+// rejectingScenario is a scenario whose expectation is wrong, so that validation fails
+// whatever else is true of the plan: with the hub link down builder-1 does reach the hub?
+// It cannot, so asking for OK is an error.
+func rejectingScenario() []sim.Scenario {
+	return []sim.Scenario{{Name: "wrong", LinksDown: []types.LinkID{"aws-hub~builder-1"}, Expect: []sim.Expectation{
+		{From: builder, To: hub, Verdict: sim.VerdictOK},
+	}}}
+}
+
+// TestAnAssumedLinkMadeRequiredMustProveItself checks the topology's word on whether a link
+// must be proven wins over the evaluator's from before: a direct link the evaluator held as
+// assumed (and so usable while Unknown) is unusable once the topology requires it, until
+// probes show it works.
+func TestAnAssumedLinkMadeRequiredMustProveItself(t *testing.T) {
+	in := fresh(t)
+	e := evaluator(t, true)
+	assumed, err := health.NewLink(direct, builder, dgx, false) // Unknown, and assumed to work
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !assumed.Usable() {
+		t.Fatal("the premise: an unknown assumed link is usable")
+	}
+	e.Links[direct] = assumed
+	in.Health = e
+	r := mustPlan(t, in)
+	if !slices.Equal(r.Unusable, []types.LinkID{direct}) {
+		t.Errorf("unusable %v: a required link that was never proven must not carry traffic", r.Unusable)
+	}
+	if e.Links[direct] != assumed || assumed.Required {
+		t.Error("the evaluator's link was changed")
 	}
 }

@@ -100,11 +100,19 @@ func ThreeSiteTopology() *topology.Topology {
 }
 
 // Prefix parses a prefix, panicking on bad text because fixture data is fixed.
+//
+// Example:
+//
+//	fixture.Prefix("10.42.0.0/20") is the AWS site block.
 func Prefix(text string) netip.Prefix { return netip.MustParsePrefix(text) }
 
 // ThreeSiteLoop returns a bad static route for the reference network: the hub sends
 // dgx-spark's site to builder-1. While the direct link is not in use, builder-1 sends it
 // back to the hub, and traffic between the spokes loops.
+//
+// Example:
+//
+//	plan.Inputs{Overrides: fixture.ThreeSiteLoop()} makes the validator refuse the plan.
 func ThreeSiteLoop() []route.Override {
 	return []route.Override{{Node: "aws-hub", Prefix: Prefix("10.42.32.0/20"), NextHop: "builder-1"}}
 }

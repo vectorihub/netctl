@@ -36,6 +36,10 @@ const (
 	ErrInvalidScenario Code = "INVALID_SCENARIO"
 	// ErrValidationFailed means the validator found at least one error in a plan, so
 	// no configuration is produced. The message lists every error.
+	//
+	// Example:
+	//
+	//	types.HasCode(res.Err(), types.ErrValidationFailed) is true for a plan with an error.
 	ErrValidationFailed Code = "VALIDATION_FAILED"
 	// ErrInvalidConfig means a setting is out of range, for example a health
 	// threshold of zero.

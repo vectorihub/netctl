@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"errors"
 	"fmt"
 	"net/netip"
 	"slices"
@@ -70,10 +71,23 @@ func accountingHolds(p *Plan) []Finding {
 	}
 	registry, err := ipam.New(p.IPAM, &types.FixedClock{T: time.Time{}}, 0)
 	if err != nil {
-		if types.HasCode(err, types.ErrOverlap) {
+		var list types.List
+		if !errors.As(err, &list) {
+			list = types.List{types.Errf(types.ErrInvalidValue, "address plan", "%v", err)}
+		}
+		// An allocation that overlaps another is V-ADDR-001's to report; everything else
+		// the plan refuses to load, an overlap of two pools included, is reported here.
+		var rest []string
+		for _, e := range list {
+			if e.Code == types.ErrOverlap && !strings.HasPrefix(e.Msg, "pool ") {
+				continue
+			}
+			rest = append(rest, e.Error())
+		}
+		if len(rest) == 0 {
 			return nil
 		}
-		return []Finding{{Subject: p.IPAM.Supernet.String(), Message: "the address plan does not load: " + strings.ReplaceAll(err.Error(), "\n", "; "),
+		return []Finding{{Subject: p.IPAM.Supernet.String(), Message: "the address plan does not load: " + strings.Join(rest, "; "),
 			Hint: "the snapshot was edited by hand or is damaged; restore it from the last good one"}}
 	}
 	var out []Finding

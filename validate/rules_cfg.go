@@ -5,6 +5,7 @@ import (
 	"net/netip"
 	"slices"
 
+	"github.com/vectorihub/netctl/cidr"
 	"github.com/vectorihub/netctl/config"
 	"github.com/vectorihub/netctl/internal/jsonschema"
 	"github.com/vectorihub/netctl/types"
@@ -19,6 +20,13 @@ func init() {
 	register("V-CFG-004", Error, "no prefix is in two peers' allowed_prefixes on one node", prefixInTwoPeers)
 	register("V-CFG-005", Error, "no secret material in any config", noSecrets)
 	register("V-CFG-006", Error, "an allowed prefix has a route back to the node", returnPath)
+}
+
+// masked returns the block a prefix stands for (cidr.Canonical), the form every comparison
+// and map key in these rules uses.
+func masked(prefix netip.Prefix) netip.Prefix {
+	out, _ := cidr.Canonical(prefix)
+	return out
 }
 
 // wellFormed checks every node of the topology has a config, that the hash in each is the
@@ -92,7 +100,7 @@ func prefixIsAllowed(p *Plan) []Finding {
 				continue
 			}
 			i := slices.IndexFunc(c.Peers, func(peer config.Peer) bool { return peer.Node == r.Via })
-			if i >= 0 && !slices.Contains(c.Peers[i].AllowedPrefixes, r.Prefix) {
+			if i >= 0 && !slices.ContainsFunc(c.Peers[i].AllowedPrefixes, func(a netip.Prefix) bool { return masked(a) == masked(r.Prefix) }) {
 				out = append(out, Finding{Subject: string(c.Node), Message: fmt.Sprintf("the active route for %s goes via %s, but %s is not in that peer's allowed_prefixes", r.Prefix, r.Via, r.Prefix),
 					Hint: "WireGuard would drop the traffic; check rule G3"})
 			}
@@ -112,6 +120,7 @@ func prefixInTwoPeers(p *Plan) []Finding {
 		seen := map[netip.Prefix]types.NodeID{}
 		for _, peer := range c.Peers {
 			for _, prefix := range peer.AllowedPrefixes {
+				prefix = masked(prefix) // 10.42.32.5/20 and 10.42.32.0/20 are one block
 				if other, dup := seen[prefix]; dup && other != peer.Node {
 					out = append(out, Finding{Subject: string(c.Node), Message: fmt.Sprintf("%s is allowed for both %s and %s", prefix, other, peer.Node),
 						Hint: "a prefix must belong to exactly one peer; check rule G3"})

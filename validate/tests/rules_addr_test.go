@@ -244,3 +244,24 @@ func TestAddressingRulesLeaveTheCleanPlanAlone(t *testing.T) {
 		}
 	}
 }
+
+// TestRule_V_ADDR_002_overlappingPoolsAreNotLost checks two pools that overlap are reported
+// even when there are no allocations, since the address plan refuses to load, while an
+// overlap of allocations stays V-ADDR-001's alone.
+func TestRule_V_ADDR_002_overlappingPoolsAreNotLost(t *testing.T) {
+	p := cleanPlan(t, true)
+	p.IPAM = ipam.Snapshot{Schema: ipam.Schema, Supernet: pfx("10.42.0.0/16"), Pools: []ipam.Pool{
+		{Name: "a", Prefix: pfx("10.42.0.0/20"), ChildBits: 24},
+		{Name: "b", Prefix: pfx("10.42.8.0/21"), ChildBits: 24},
+	}}
+	got := fires(t, p, "V-ADDR-002")
+	if !strings.Contains(got[0].Message, "pool b overlaps pool a") {
+		t.Errorf("%+v", got)
+	}
+	// Pools that overlap and allocations that overlap: both are said, each by its own rule.
+	p = cleanPlan(t, true)
+	p.IPAM.Pools = append(p.IPAM.Pools, ipam.Pool{Name: "twin", Prefix: pfx("10.42.0.0/20"), ChildBits: 24})
+	p.IPAM.Allocations = append(p.IPAM.Allocations, alloc("10.42.16.0/24", "sites", ipam.Node("intruder"), ""))
+	fires(t, p, "V-ADDR-002")
+	fires(t, p, "V-ADDR-001")
+}
