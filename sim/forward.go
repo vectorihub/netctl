@@ -3,6 +3,7 @@ package sim
 import (
 	"net/netip"
 
+	"github.com/vectorihub/netctl/cidr"
 	"github.com/vectorihub/netctl/route"
 	"github.com/vectorihub/netctl/types"
 )
@@ -78,8 +79,10 @@ func (n Net) overridden(node types.NodeID, dst netip.Addr) bool {
 
 // NewNet builds a Net from a graph and the prefixes each node holds. Delivery is
 // to any address inside a prefix the node holds (owned or local); adjacency is
-// every edge of the graph, up or down; a link is up if its edges are not marked
-// down.
+// every edge of the graph, up or down; a link is up only if the graph has it and
+// none of its edges is marked down, so a link down in one direction is down.
+// Held prefixes are masked to their canonical block (cidr.Canonical) as they are
+// read.
 //
 // NewNet reads the tables once, and indexes them for fast lookup. Changing the
 // tables afterwards does not change the Net; build another.
@@ -93,16 +96,23 @@ func NewNet(graph route.Graph, tables route.Tables, owned, local route.Owned) Ne
 	held := map[types.NodeID][]netip.Prefix{}
 	for _, source := range []route.Owned{owned, local} {
 		for node, prefixes := range source {
-			held[node] = append(held[node], prefixes...)
+			for _, prefix := range prefixes {
+				// Masked once here, at the boundary, so every later comparison
+				// sees the block the prefix stands for.
+				canonical, _ := cidr.Canonical(prefix)
+				held[node] = append(held[node], canonical)
+			}
 		}
 	}
 	adjacent := map[adjacency]bool{}
-	up := map[types.LinkID]bool{}
+	seen := map[types.LinkID]bool{}
+	down := map[types.LinkID]bool{}
 	for _, node := range graph.Nodes() {
 		for _, edge := range graph.Edges(node) {
 			adjacent[adjacency{node, edge.To, edge.Link}] = true
-			if !edge.Down {
-				up[edge.Link] = true
+			seen[edge.Link] = true
+			if edge.Down {
+				down[edge.Link] = true
 			}
 		}
 	}
@@ -122,7 +132,7 @@ func NewNet(graph route.Graph, tables route.Tables, owned, local route.Owned) Ne
 			return false
 		},
 		Adjacent: func(from, to types.NodeID, link types.LinkID) bool { return adjacent[adjacency{from, to, link}] },
-		Up:       func(link types.LinkID) bool { return up[link] },
+		Up:       func(link types.LinkID) bool { return seen[link] && !down[link] },
 		held: func(node types.NodeID, addr netip.Addr) int {
 			longest := -1
 			for _, prefix := range held[node] {

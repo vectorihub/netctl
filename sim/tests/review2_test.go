@@ -172,3 +172,37 @@ func TestReportTellsNilHopsFromEmptyHops(t *testing.T) {
 		t.Errorf("JSON differs with the input order:\n%s\n%s", firstJSON, secondJSON)
 	}
 }
+
+// halfDown is a two-node graph whose one link is marked down in the direction
+// from a to b only.
+type halfDown struct{}
+
+// Nodes returns the two nodes.
+func (halfDown) Nodes() []types.NodeID { return []types.NodeID{"a", "b"} }
+
+// Role makes both nodes hubs.
+func (halfDown) Role(types.NodeID) types.Role { return types.RoleHub }
+
+// Edges returns the link's edge out of node, down from a and up from b.
+func (halfDown) Edges(node types.NodeID) []route.Edge {
+	if node == "a" {
+		return []route.Edge{{Link: "a~b", To: "b", Cost: 1, Down: true}}
+	}
+	return []route.Edge{{Link: "a~b", To: "a", Cost: 1}}
+}
+
+// TestNetLinkDownInOneDirectionIsDown checks NewNet calls a link up only when
+// none of its edges is down: a link down from a to b but up from b to a is down,
+// and a link the graph does not have is never up.
+func TestNetLinkDownInOneDirectionIsDown(t *testing.T) {
+	net := sim.NewNet(halfDown{}, route.Tables{}, nil, nil)
+	if net.Up("a~b") {
+		t.Error("a link down in one direction was called up")
+	}
+	if net.Up("a~c") {
+		t.Error("a link the graph does not have was called up")
+	}
+	if !net.Adjacent("a", "b", "a~b") || !net.Adjacent("b", "a", "a~b") {
+		t.Error("adjacency must cover every edge, up or down")
+	}
+}
