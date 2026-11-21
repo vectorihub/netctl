@@ -26,6 +26,11 @@ var cases []testCase
 // register adds a test to the suite.
 func register(id string, run func(w *e2e.W)) { cases = append(cases, testCase{id: id, run: run}) }
 
+// registerSlow adds a test that -short skips: the scale and chaos groups.
+func registerSlow(id string, run func(w *e2e.W)) {
+	cases = append(cases, testCase{id: id, slow: true, run: run})
+}
+
 // TestE2E runs every registered test as a parallel subtest named by its ID, so
 // `-run 'TestE2E/P1-E2E-020'` selects one and `-run 'TestE2E/P1-E2E-02'` a group.
 func TestE2E(t *testing.T) {
