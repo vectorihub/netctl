@@ -17,11 +17,11 @@ vet:
 	go vet ./...
 
 ## purity: no clock, file or environment reads in library code (D7). Test files
-## are exempt, and so are internal/e2e and internal/ptimport, the test-support packages, which write and read workspaces. Any
+## are exempt, and so are internal/e2e, internal/ptimport and internal/covercheck, the test-support packages, which write and read workspaces. Any
 ## other match fails the build.
 PURITY_PATTERN := time\.(Now|Since|Until)\(|os\.(Open|OpenFile|Create|ReadFile|WriteFile|ReadDir|Stat|Getenv|LookupEnv|Environ)\b
 purity:
-	@out="$$(grep -rnE --include='*.go' --exclude='*_test.go' --exclude-dir=.git --exclude-dir=features --exclude-dir=e2e --exclude-dir=ptimport --exclude-dir=tools '$(PURITY_PATTERN)' . || true)"; \
+	@out="$$(grep -rnE --include='*.go' --exclude='*_test.go' --exclude-dir=.git --exclude-dir=features --exclude-dir=e2e --exclude-dir=ptimport --exclude-dir=covercheck '$(PURITY_PATTERN)' . || true)"; \
 	if [ -n "$$out" ]; then echo "purity: library code must not read the clock, files or environment:"; echo "$$out"; exit 1; fi
 
 ## lint: purity guard, then staticcheck over the whole module.
@@ -116,4 +116,4 @@ COVERPKGS := ./cidr/...,./ipam/...,./route/...,./sim/...,./validate/...,./topolo
 cover:
 	go test -p 2 -short -coverpkg=$(COVERPKGS) -coverprofile=cover.out ./...
 	go tool cover -html=cover.out -o coverage.html
-	go run ./tools/covercheck cover.out
+	COVER_PROFILE=$(CURDIR)/cover.out go test -count=1 -v ./internal/covercheck/tests
