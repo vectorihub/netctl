@@ -73,8 +73,8 @@ func TestPinEndsByItselfAndThenTheLinkMustProveItself(t *testing.T) {
 		t.Fatal("the pin ended a second early")
 	}
 	apply(t, e, nil, sec(2290))
-	if l.Pinned || len(l.Flaps) != 0 || l.State != health.Down {
-		t.Fatalf("after the pin: pinned %v, %d flaps, state %s; want released, none, Down", l.Pinned, len(l.Flaps), l.State)
+	if l.Pinned || len(l.Flaps) != 0 || l.State != health.Down || !l.PinnedUntil.IsZero() {
+		t.Fatalf("after the pin: pinned %v until %v, %d flaps, state %s; want released, zero, none, Down", l.Pinned, l.PinnedUntil, len(l.Flaps), l.State)
 	}
 	for node, d := range l.Dirs {
 		if want := until.Add(cfg.HoldDown); !d.HoldDownUntil.Equal(want) {
@@ -269,5 +269,29 @@ func TestLinkCloneSharesNothing(t *testing.T) {
 	c.Drained = true
 	if l.Dirs[b1].State != health.Healthy || !l.Flaps[0].Equal(at(sec(1))) || l.Drained {
 		t.Errorf("changing the clone changed the original: %+v", l)
+	}
+}
+
+// TestLateAdminSignalsAreSkipped checks an admin order older than the newest one
+// already applied is skipped, across separate calls: a drain at 100 s cannot be
+// undone by a release stamped 50 s that arrives late, and the hold-down is not
+// restarted from the older time.
+func TestLateAdminSignalsAreSkipped(t *testing.T) {
+	e := baseline(t)
+	drain := health.Signal{Link: direct, Kind: health.SignalAdmin, OK: false, At: at(sec(100))}
+	apply(t, e, probes(true, 1, sec(95)), sec(96))
+	apply(t, e, []health.Signal{drain}, sec(100))
+	late := health.Signal{Link: direct, Kind: health.SignalAdmin, OK: true, At: at(sec(50))}
+	_, skipped := e.Apply([]health.Signal{late}, at(sec(101)))
+	if len(skipped) != 1 || !strings.Contains(skipped[0].Why, "outdated") {
+		t.Fatalf("skipped %+v, want the late release skipped as outdated", skipped)
+	}
+	l := e.Links[direct]
+	if !l.Drained || l.State != health.Down || !l.LastAdmin.Equal(at(sec(100))) {
+		t.Errorf("drained %v, state %s, last admin %v: the late release must change nothing", l.Drained, l.State, l.LastAdmin)
+	}
+	same := health.Signal{Link: direct, Kind: health.SignalAdmin, OK: true, At: at(sec(100))}
+	if _, skipped := e.Apply([]health.Signal{same}, at(sec(102))); len(skipped) != 0 {
+		t.Errorf("a release at the same instant as the newest order was skipped: %+v", skipped)
 	}
 }

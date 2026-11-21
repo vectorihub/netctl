@@ -94,12 +94,12 @@ func TestPinAndDrainSurviveARestart(t *testing.T) {
 	start := healthy(t, net)
 	state := start.State
 	l, _ := state.Link(direct)
-	l.Pinned, l.PinnedUntil, l.Flaps = true, at(1845), []time.Time{at(100), at(200)}
+	l.Pinned, l.PinnedUntil, l.Flaps, l.LastAdmin = true, at(1845), []time.Time{at(100), at(200)}, at(150)
 	l, _ = state.Link(hubB)
 	l.Drained = true
 	back := roundTrip(t, state)
 	d, _ := back.Link(direct)
-	if !d.Pinned || !d.PinnedUntil.Equal(at(1845)) || len(d.Flaps) != 2 || !d.Flaps[1].Equal(at(200)) {
+	if !d.Pinned || !d.PinnedUntil.Equal(at(1845)) || len(d.Flaps) != 2 || !d.Flaps[1].Equal(at(200)) || !d.LastAdmin.Equal(at(150)) {
 		t.Errorf("the pin did not survive: %+v", d)
 	}
 	if h, _ := back.Link(hubB); !h.Drained {
@@ -166,6 +166,8 @@ func TestParseStateRefusesWhatItCannotTrust(t *testing.T) {
 		"not json":         {`{`, types.ErrInvalidValue},
 		"unknown field":    {`{"schema":"beaver.failover/v1","links":[],"extra":1}`, types.ErrInvalidValue},
 		"two values":       {good + good, types.ErrInvalidValue},
+		"stray bracket":    {good + `}`, types.ErrInvalidValue},
+		"stray bracket 2":  {good + `]`, types.ErrInvalidValue},
 		"old schema":       {`{"schema":"beaver.failover/v0","links":[]}`, types.ErrUnsupportedSchema},
 		"no schema":        {`{"links":[]}`, types.ErrUnsupportedSchema},
 		"bad state word":   {`{"schema":"beaver.failover/v1","links":[{"link":"a~b","state":"sideways","directions":{}}]}`, types.ErrInvalidValue},

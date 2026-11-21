@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"cmp"
 	"encoding/json"
+	"io"
 	"slices"
 	"time"
 
@@ -37,17 +38,46 @@ const Schema = "beaver.failover/v1"
 type State struct {
 	// Schema is Schema. It is empty on a State that was never saved or returned
 	// by Evaluate.
+	//
+	// Example:
+	//
+	//	"beaver.failover/v1".
 	Schema string `json:"schema"`
 	// EvaluatedAt is the time of the last evaluation.
+	//
+	// Example:
+	//
+	//	10:00:50 when the last Evaluate was given that time.
 	EvaluatedAt time.Time `json:"evaluated_at,omitzero"`
 	// Links holds the health state of every link, sorted by link ID.
+	//
+	// Example:
+	//
+	//	one health.Link for each of the three links of the three-site network.
 	Links []*health.Link `json:"links"`
 	// Tables are the routing tables in force, which after a rejected failover
 	// are the ones from before it.
+	//
+	// Example:
+	//
+	//	state.Tables["aws-hub"] is the hub's installed table.
 	Tables route.Tables `json:"tables,omitempty"`
+	// TablesDown lists the links that were marked down when Tables were made,
+	// sorted. The guard judges a new set of tables against these tables on that
+	// network, so after a rejected failover the baseline stays the one the
+	// kept tables were built for and not the health that has since moved on.
+	//
+	// Example:
+	//
+	//	["builder-1~dgx-spark"] when the installed tables were made with the direct link down.
+	TablesDown []types.LinkID `json:"tables_down,omitempty"`
 	// Unreachable lists the pairs of nodes that had no path when the tables
 	// were made, so a later simulation of them judges a cut-off flow as cut off
 	// and not as a black hole.
+	//
+	// Example:
+	//
+	//	builder-1 to aws-hub when builder-1 was cut off.
 	Unreachable []route.Pair `json:"unreachable,omitempty"`
 }
 
@@ -94,7 +124,7 @@ func (s State) JSON() ([]byte, error) {
 	if err := s.check(); err != nil {
 		return nil, err
 	}
-	out := State{Schema: Schema, EvaluatedAt: s.EvaluatedAt.UTC(), Tables: s.Tables, Unreachable: s.Unreachable}
+	out := State{Schema: Schema, EvaluatedAt: s.EvaluatedAt.UTC(), Tables: s.Tables, TablesDown: s.TablesDown, Unreachable: s.Unreachable}
 	if out.Links = s.links(); out.Links == nil {
 		out.Links = []*health.Link{}
 	}
@@ -171,8 +201,8 @@ func ParseState(data []byte) (State, error) {
 	if err := decoder.Decode(&s); err != nil {
 		return State{}, types.Errf(types.ErrInvalidValue, "failover state", "reading it: %v", err)
 	}
-	if decoder.More() {
-		return State{}, types.Errf(types.ErrInvalidValue, "failover state", "there is more than one value in it")
+	if err := decoder.Decode(&struct{}{}); err != io.EOF {
+		return State{}, types.Errf(types.ErrInvalidValue, "failover state", "there is more than one value in it, or something after the end of it")
 	}
 	if s.Schema != Schema {
 		return State{}, types.Errf(types.ErrUnsupportedSchema, "failover state", "schema %q is not %q", s.Schema, Schema)
