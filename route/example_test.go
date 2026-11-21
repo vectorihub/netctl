@@ -220,6 +220,26 @@ func ExampleRoute() {
 	// {"prefix":"10.42.16.0/20","metric":0,"source":"connected","active":true}
 }
 
+// ExampleTable_Index builds an index of a machine's table once and asks it
+// several times. It gives the same answers as Table.Lookup, without scanning
+// the whole table for each question.
+func ExampleTable_Index() {
+	index := builderTable().Index()
+
+	for _, dst := range []string{"10.42.1.1", "10.42.33.7", "192.168.1.1"} {
+		found, ok := index.Lookup(netip.MustParseAddr(dst))
+		if !ok {
+			fmt.Printf("%s: no route\n", dst)
+			continue
+		}
+		fmt.Printf("%s: via %s over %s\n", dst, found.NextHop, found.Via)
+	}
+	// Output:
+	// 10.42.1.1: via aws-hub over aws-hub~builder-1
+	// 10.42.33.7: via dgx-spark over builder-1~dgx-spark
+	// 192.168.1.1: no route
+}
+
 // ExampleSource_String shows the name of each source of a route.
 func ExampleSource_String() {
 	fmt.Println(route.SourceBackup, route.SourceComputed, route.SourceUnknown)
@@ -249,24 +269,4 @@ func ExampleSource_UnmarshalText() {
 	// Output:
 	// <nil> static
 	// true static
-}
-
-// ExampleTable_Index builds an index of a machine's table once and asks it
-// several times. It gives the same answers as Table.Lookup, without scanning
-// the whole table for each question.
-func ExampleTable_Index() {
-	index := builderTable().Index()
-
-	for _, dst := range []string{"10.42.1.1", "10.42.33.7", "192.168.1.1"} {
-		found, ok := index.Lookup(netip.MustParseAddr(dst))
-		if !ok {
-			fmt.Printf("%s: no route\n", dst)
-			continue
-		}
-		fmt.Printf("%s: via %s over %s\n", dst, found.NextHop, found.Via)
-	}
-	// Output:
-	// 10.42.1.1: via aws-hub over aws-hub~builder-1
-	// 10.42.33.7: via dgx-spark over builder-1~dgx-spark
-	// 192.168.1.1: no route
 }

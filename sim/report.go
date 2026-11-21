@@ -8,6 +8,9 @@ import (
 )
 
 // TextOptions tune the text report.
+//
+// Example: TextOptions{Title: "three-site", Verbose: true} writes the header
+// "SIMULATION three-site · ..." and lists every flow.
 type TextOptions struct {
 	// Title names the network in the header, for example "three-site". It is
 	// left out of the header when empty.

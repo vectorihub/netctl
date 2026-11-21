@@ -1,7 +1,6 @@
 package health
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/vectorihub/netctl/types"
@@ -11,6 +10,9 @@ import (
 //
 // The zero value is SignalUnknown, so a signal whose kind was never set is
 // refused instead of being counted as evidence.
+//
+// Example: SignalProbe is the kind of an answered or unanswered test packet, and
+// ParseSignalKind("probe") returns it.
 type SignalKind int
 
 const (
@@ -38,6 +40,8 @@ var signalNames = map[SignalKind]string{
 }
 
 // String returns "probe", "handshake", "interface", "admin" or "unknown".
+//
+// Example: SignalHandshake.String() returns "handshake".
 func (kind SignalKind) String() string {
 	if name, ok := signalNames[kind]; ok {
 		return name
@@ -59,21 +63,26 @@ func ParseSignalKind(text string) (SignalKind, bool) {
 	return SignalUnknown, false
 }
 
-// MarshalText writes the kind as its name. An unknown kind returns an error, so a
-// signal with no kind cannot be written out.
+// MarshalText writes the kind as its name. An unknown kind returns an
+// INVALID_VALUE error, so a signal with no kind cannot be written out.
+//
+// Example: SignalProbe.MarshalText() returns "probe"; the zero kind returns an error.
 func (kind SignalKind) MarshalText() ([]byte, error) {
 	if _, ok := signalNames[kind]; !ok {
-		return nil, fmt.Errorf("health: cannot write unknown signal kind %d", int(kind))
+		return nil, types.Errf(types.ErrInvalidValue, "signal kind", "cannot write unknown signal kind %d", int(kind))
 	}
 	return []byte(kind.String()), nil
 }
 
 // UnmarshalText reads a name written by MarshalText. An unknown name is an error
 // and leaves the receiver unchanged.
+//
+// Example: UnmarshalText("interface") sets the receiver to SignalInterface; "ping" returns an
+// error and leaves it unchanged.
 func (kind *SignalKind) UnmarshalText(text []byte) error {
 	parsed, ok := ParseSignalKind(string(text))
 	if !ok {
-		return fmt.Errorf("health: unknown signal kind %q: want probe, handshake, interface or admin", text)
+		return types.Errf(types.ErrInvalidValue, "signal kind", "unknown signal kind %q: want probe, handshake, interface or admin", text)
 	}
 	*kind = parsed
 	return nil
@@ -84,6 +93,9 @@ func (kind *SignalKind) UnmarshalText(text []byte) error {
 //
 // A signal can be made up by a test or come from a real probe or WireGuard
 // handshake; the evaluator cannot tell the difference, and does not need to.
+//
+// Example: Signal{Link: "builder-1~dgx-spark", From: "builder-1", Kind: SignalProbe, OK: true, At: t}
+// is a good probe that builder-1 saw on the direct link at time t.
 type Signal struct {
 	// Link is the link the evidence is about.
 	Link types.LinkID `json:"link"`
@@ -108,6 +120,9 @@ type Signal struct {
 // LinkHealth says how far a link, or one direction of it, can be trusted.
 //
 // The zero value is Unknown, which is the safe default: nothing has been proven.
+//
+// Example: a new link is Unknown; five good probes in a row make it Healthy; three failures
+// in a row make it Down.
 type LinkHealth int
 
 const (
@@ -135,6 +150,8 @@ var healthNames = map[LinkHealth]string{
 
 // String returns "unknown", "healthy", "degraded", "down" or "recovering".
 // A value outside the five returns "invalid".
+//
+// Example: Recovering.String() returns "recovering".
 func (state LinkHealth) String() string {
 	if name, ok := healthNames[state]; ok {
 		return name
@@ -157,19 +174,23 @@ func ParseLinkHealth(text string) (LinkHealth, bool) {
 
 // MarshalText writes the state as its name. A value outside the five states
 // returns an error.
+//
+// Example: Down.MarshalText() returns "down"; a value outside the five returns an error.
 func (state LinkHealth) MarshalText() ([]byte, error) {
 	if _, ok := healthNames[state]; !ok {
-		return nil, fmt.Errorf("health: cannot write invalid link health %d", int(state))
+		return nil, types.Errf(types.ErrInvalidValue, "link health", "cannot write invalid link health %d", int(state))
 	}
 	return []byte(state.String()), nil
 }
 
 // UnmarshalText reads a name written by MarshalText. An unknown name is an error
 // and leaves the receiver unchanged.
+//
+// Example: UnmarshalText("healthy") sets the receiver to Healthy; "Healthy" returns an error.
 func (state *LinkHealth) UnmarshalText(text []byte) error {
 	parsed, ok := ParseLinkHealth(string(text))
 	if !ok {
-		return fmt.Errorf("health: unknown link health %q: want unknown, healthy, degraded, down or recovering", text)
+		return types.Errf(types.ErrInvalidValue, "link health", "unknown link health %q: want unknown, healthy, degraded, down or recovering", text)
 	}
 	*state = parsed
 	return nil
@@ -177,6 +198,9 @@ func (state *LinkHealth) UnmarshalText(text []byte) error {
 
 // Config holds the thresholds and times of the state machine. Use DefaultConfig
 // for the standard values and change only what you mean to.
+//
+// Example: DefaultConfig() returns the standard Config; set FailThreshold to 2 on a copy to
+// take a direction Down after two failures instead of three.
 type Config struct {
 	// FailThreshold is how many failures in a row take a Healthy direction to
 	// Down. The first of them already makes it Degraded.

@@ -15,6 +15,9 @@ import (
 // It is a copy: changing the table afterwards is not seen by an Index built
 // before, so build a new one. An Index is safe for concurrent use, because
 // nothing in it changes.
+//
+// Example: table.Index() returns an Index; Index.Lookup(10.42.33.7) answers as table.Lookup
+// would, without scanning the table.
 type Index struct {
 	// v4 and v6 index the IPv4 and IPv6 routes. Keeping them apart means an
 	// IPv4-mapped IPv6 address, which is an IPv6 address, never matches an IPv4

@@ -4,6 +4,7 @@ import (
 	"net/netip"
 	"slices"
 
+	"github.com/vectorihub/netctl/cidr"
 	"github.com/vectorihub/netctl/route"
 	"github.com/vectorihub/netctl/types"
 )
@@ -27,7 +28,9 @@ import (
 //     metric 1 and the source static, so a hand-planted route is never mistaken
 //     for a computed one.
 //
-// The input is not changed. Only the corrupted node's table is copied; the other
+// The prefix is made canonical first, so 10.42.32.7/20 means 10.42.32.0/20, and
+// is matched against the node's routes in their canonical form too. The input is
+// not changed. Only the corrupted node's table is copied; the other
 // tables are shared with the input, so treat both results as read-only. The
 // returned table is sorted. It returns NOT_FOUND if the node has no table and
 // INVALID_PREFIX if prefix is not valid.
@@ -42,14 +45,19 @@ func CorruptTable(tables route.Tables, node types.NodeID, prefix netip.Prefix, n
 	if !prefix.IsValid() {
 		return nil, types.Errf(types.ErrInvalidPrefix, "prefix", "%v is not a valid prefix", prefix)
 	}
+	prefix, _ = cidr.Canonical(prefix)
+	same := func(r route.Route) bool {
+		stored, _ := cidr.Canonical(r.Prefix)
+		return stored == prefix
+	}
 	routes := slices.Clone(table.Routes)
 	switch {
 	case nextHop == "":
-		routes = slices.DeleteFunc(routes, func(r route.Route) bool { return r.Prefix == prefix })
+		routes = slices.DeleteFunc(routes, same)
 	default:
 		planted := false
 		for i := range routes {
-			if routes[i].Prefix == prefix && routes[i].Active {
+			if same(routes[i]) && routes[i].Active {
 				routes[i].NextHop = nextHop
 				routes[i].Via = types.LinkIDOf(node, nextHop)
 				routes[i].Path = []types.NodeID{node, nextHop}

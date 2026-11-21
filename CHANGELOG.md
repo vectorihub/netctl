@@ -95,6 +95,8 @@ changes, and each one is listed under **Breaking Changes** for that release.
   that matter always shown), PASS or FAIL, and each failing flow's forward and return journey link by link.
   `Report.JSON` and `ScenarioResult.JSON` write JSON with a fixed key order and sorted flows, byte-identical for
   the same run (golden files in `testdata/golden`).
+* `CorruptTable` makes its prefix canonical and matches stored routes in canonical form, so `10.42.32.7/20` means
+  `10.42.32.0/20` and a deletion can no longer succeed while doing nothing.
 * `NewNet` indexes each table once, so the all-pairs overlay flows of 500 nodes (249,500 flows, each sent and
   answered) take about two seconds against a budget of ten. The index is a snapshot: change the tables, build
   a new `Net`.
@@ -122,6 +124,9 @@ changes, and each one is listed under **Breaking Changes** for that release.
 * `Evaluator.Apply` returns every change as a `Decision` with a reason, and every signal it could not use as a
   `Skipped` with a reason. `UnusableLinks` is the list to mark down in the routing graph or hand to a
   simulation scenario.
+* A signal older than the newest one already applied to the same direction (interface signals included) is
+  skipped as outdated, so a late-arriving success cannot erase a failure that came after it. When both ends of a
+  link go quiet, the one that went stale first is recorded, whatever the nodes are called.
 * Not yet built: flap pinning and operator drain (admin signals are skipped with a reason), saving state, and
   recomputing routes on a change.
 

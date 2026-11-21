@@ -40,24 +40,26 @@ type Net struct {
 	// link is up.
 	Up func(link types.LinkID) bool
 
-	// held returns the length of the longest prefix node holds that contains
-	// addr, or -1. NewNet sets it so that a route more specific than what the
-	// node holds, such as a static override for one address of its own block,
-	// is followed instead of the packet being delivered.
-	held func(node types.NodeID, addr netip.Addr) int
-
 	// index holds a longest-prefix index of each node's table, built by NewNet.
 	// It answers the same lookups as the tables, a few hundred times faster,
 	// which is what makes 250,000 flows over 500 nodes finish in seconds. A Net
 	// with no index falls back to the tables.
 	index map[types.NodeID]*route.Index
+
+	// held returns the length of the longest prefix node holds that contains
+	// addr, or -1. NewNet sets it so that a route more specific than what the
+	// node holds, such as a static override for one address of its own block,
+	// is followed instead of the packet being delivered.
+	held func(node types.NodeID, addr netip.Addr) int
 }
 
-// lookup finds the route a packet for dst follows at node, through the index if
-// the Net has one and the node's table otherwise. Both give the same answer.
+// lookup finds the route a packet for dst follows at node. A Net made by NewNet
+// answers only from its index, so a node that had no table when it was built has
+// no route, whatever is added to Tables later: the Net is one consistent
+// snapshot. A Net with no index at all reads the live tables.
 func (n Net) lookup(node types.NodeID, dst netip.Addr) (route.Route, bool) {
-	if index, ok := n.index[node]; ok {
-		return index.Lookup(dst)
+	if n.index != nil {
+		return n.index[node].Lookup(dst)
 	}
 	return n.Tables[node].Lookup(dst)
 }

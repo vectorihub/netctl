@@ -49,3 +49,22 @@ func TestNewNetReadsTablesOnce(t *testing.T) {
 		t.Errorf("the Net with no index did not see the change: %s", got.Verdict)
 	}
 }
+
+// TestNetSnapshotCoversNodesWithNoTable checks a Net made by NewNet is one
+// consistent snapshot even for a node that had no table when it was built: adding
+// that table afterwards is not seen, so the old network does not quietly mix old
+// and new routes, while a Net with no index sees the live tables.
+func TestNetSnapshotCoversNodesWithNoTable(t *testing.T) {
+	p := computePlan(t, fixture.ThreeSite(false))
+	hub := p.tables["aws-hub"]
+	delete(p.tables, "aws-hub")
+	indexed := p.net()
+	plain := scanning(indexed)
+	p.tables["aws-hub"] = hub // the hub's table appears after the Net was built
+	if got := verdictOf(indexed, "builder-1", "dgx-spark"); got.Verdict != sim.VerdictBlackHole {
+		t.Errorf("the indexed Net saw a table added later: %s, want BLACK_HOLE at the hub", got.Verdict)
+	}
+	if got := verdictOf(plain, "builder-1", "dgx-spark"); got.Verdict != sim.VerdictOK {
+		t.Errorf("the Net with no index did not see the live table: %s, want OK", got.Verdict)
+	}
+}

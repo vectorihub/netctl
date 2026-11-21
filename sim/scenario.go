@@ -15,6 +15,9 @@ import (
 
 // Expectation is one assertion inside a scenario: the flow from one node to
 // another must get this verdict. It turns a scenario from a report into a test.
+//
+// Example: Expectation{From: "builder-1", To: "dgx-spark", Verdict: VerdictOK} asserts the overlay
+// flow from builder-1 to dgx-spark is OK.
 type Expectation struct {
 	// From is the node the flow is injected at.
 	From types.NodeID `yaml:"from" json:"from"`
@@ -33,6 +36,9 @@ type Expectation struct {
 // A scenario never changes the network. It describes health, and the runner
 // applies it to the graph, recomputes every route through route.Compute, and
 // simulates the flows over the new tables.
+//
+// Example: Scenario{Name: "direct-link-down", LinksDown: []types.LinkID{"builder-1~dgx-spark"}}
+// fails the direct link.
 type Scenario struct {
 	// Name identifies the scenario in reports. It must be unique in a set.
 	Name string `yaml:"name" json:"name"`
@@ -48,9 +54,14 @@ type Scenario struct {
 // ComputeFunc is the signature of route.Compute. A scenario runner calls one of
 // these exactly once per scenario; tests pass a counting wrapper around the real
 // function to prove it.
+//
+// Example: route.Compute is a ComputeFunc; a test passes a wrapper that counts calls.
 type ComputeFunc func(graph route.Graph, input route.Input) (route.Result, error)
 
 // ScenarioInput is everything a scenario run needs besides the scenario.
+//
+// Example: ScenarioInput{Graph: g, Input: in, Flows: flows} runs scenarios on graph g with the
+// routing input in and the given flows, using route.Compute.
 type ScenarioInput struct {
 	// Graph is the network with every link as it is when healthy (or as it is
 	// already marked). Scenarios fail links on top of it.
@@ -66,6 +77,9 @@ type ScenarioInput struct {
 }
 
 // Mismatch is an expectation a scenario did not meet.
+//
+// Example: an expectation of OK for a flow that was BLACK_HOLE gives a Mismatch whose Detail
+// says "expected OK, got BLACK_HOLE" and names the flow.
 type Mismatch struct {
 	// Expect is the expectation that failed.
 	Expect Expectation `json:"expect"`
@@ -79,6 +93,9 @@ type Mismatch struct {
 }
 
 // ScenarioResult is the outcome of one scenario.
+//
+// Example: the result of the scenario "hub-down" has Name "hub-down", a Report of every flow,
+// the Unreachable pairs, and Passed true only if no flow fails and every expectation holds.
 type ScenarioResult struct {
 	// Name is the scenario's name.
 	Name string `json:"name"`

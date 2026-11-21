@@ -220,3 +220,31 @@ func TestEveryPlantedFaultIsCaught(t *testing.T) {
 		})
 	}
 }
+
+// TestCorruptTableCanonicalisesThePrefix checks a prefix written with host bits set
+// means the block it stands for: deleting 10.42.32.7/20 removes the routes for
+// 10.42.32.0/20 and does not report success while doing nothing, retargeting it
+// changes the existing route and adds no second one, and a stored route that is
+// itself written with host bits is matched too.
+func TestCorruptTableCanonicalisesThePrefix(t *testing.T) {
+	p := computePlan(t, fixture.ThreeSite(true))
+	gone := corrupt(t, p.tables, "builder-1", "", "10.42.32.7/20")
+	if len(gone["builder-1"].Routes) != len(p.tables["builder-1"].Routes)-2 {
+		t.Errorf("deleting 10.42.32.7/20 left %d routes of %d, want the primary and backup gone",
+			len(gone["builder-1"].Routes), len(p.tables["builder-1"].Routes))
+	}
+	moved := corrupt(t, p.tables, "builder-1", "aws-hub", "10.42.32.7/20")
+	if len(moved["builder-1"].Routes) != len(p.tables["builder-1"].Routes) {
+		t.Errorf("retargeting added a route: %d routes, want %d", len(moved["builder-1"].Routes), len(p.tables["builder-1"].Routes))
+	}
+	if found, ok := moved["builder-1"].Lookup(addrOf("10.42.33.1")); !ok || found.NextHop != "aws-hub" || found.Prefix != prefixOf("10.42.32.0/20") {
+		t.Errorf("lookup after retargeting = %+v, %v", found, ok)
+	}
+	odd := &route.Table{Node: "n", Routes: []route.Route{{
+		Prefix: prefixOf("10.42.32.7/20"), NextHop: "a", Via: "a~n", Metric: 1, Source: route.SourceComputed, Active: true,
+	}}}
+	removed, err := sim.CorruptTable(route.Tables{"n": odd}, "n", prefixOf("10.42.32.0/20"), "")
+	if err != nil || len(removed["n"].Routes) != 0 {
+		t.Errorf("a stored route written with host bits was not matched: %v, %v", removed["n"].Routes, err)
+	}
+}
