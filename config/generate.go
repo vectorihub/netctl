@@ -2,6 +2,7 @@ package config
 
 import (
 	"cmp"
+	"errors"
 	"net/netip"
 	"slices"
 	"time"
@@ -216,7 +217,7 @@ func hosts(prefix netip.Prefix, a, b types.NodeID) (map[types.NodeID]netip.Addr,
 //     every node's content. See PlanID.
 //
 // Every problem is found before it returns, and reported at once: a missing
-// overlay address, site block or transit /30 (NOT_FOUND); a missing routing table
+// overlay address, site block or transit /30 (NOT_FOUND) or one that is not an IPv4 prefix of the right size (INVALID_PREFIX); a missing routing table
 // or a route whose next hop is not a peer (NOT_FOUND, INVALID_CONFIG); a prefix
 // active through two peers, which WireGuard cannot do (INVALID_CONFIG); a bad
 // health setting (INVALID_CONFIG); two links to the same neighbour or a link with
@@ -235,11 +236,19 @@ func Generate(in Inputs) ([]*NodeConfig, error) {
 		g.cfg = health.DefaultConfig()
 	}
 	if err := g.cfg.Validate(); err != nil {
-		return nil, err
+		var list types.List
+		if errors.As(err, &list) {
+			g.problems = append(g.problems, list...)
+		} else {
+			g.problems.Add(types.Errf(types.ErrInvalidConfig, "health", "%v", err))
+		}
 	}
-	for name, d := range map[string]time.Duration{"probe_interval": g.cfg.ProbeInterval, "hold_down": g.cfg.HoldDown} {
-		if _, whole := seconds(d); !whole {
-			g.problems.Add(types.Errf(types.ErrInvalidConfig, "health "+name, "it is %v, which is not a whole number of seconds", d))
+	for _, setting := range []struct {
+		name string
+		d    time.Duration
+	}{{"probe_interval", g.cfg.ProbeInterval}, {"hold_down", g.cfg.HoldDown}} {
+		if _, whole := seconds(setting.d); !whole {
+			g.problems.Add(types.Errf(types.ErrInvalidConfig, "health "+setting.name, "it is %v, which is not a whole number of seconds", setting.d))
 		}
 	}
 	if g.in.ListenPort == 0 {
@@ -294,12 +303,13 @@ func (g *generator) nodeConfig(n topology.Node) *NodeConfig {
 		Schema: Schema, Node: n.ID, Role: n.Role.String(), Forwarding: n.Role == types.RoleHub, // G5
 		Overlay: Overlay{ListenPort: g.in.ListenPort},
 	}
-	if addr, ok := g.in.Overlay[n.ID]; ok {
-		c.Overlay.Address = addr
-	} else {
+	switch addr, ok := g.in.Overlay[n.ID]; {
+	case !ok:
 		g.problems.Add(types.Errf(types.ErrNotFound, subject, "there is no overlay address for it"))
-	}
-	if addr := c.Overlay.Address; addr.IsValid() {
+	case !addr.IsValid() || !addr.Addr().Is4() || addr.Bits() != 32:
+		g.problems.Add(types.Errf(types.ErrInvalidPrefix, subject, "its overlay address %s is not an IPv4 /32", addr))
+	default:
+		c.Overlay.Address = addr
 		c.Advertise = append(c.Advertise, addr)
 	}
 	for _, advert := range n.Advertises {
@@ -310,11 +320,17 @@ func (g *generator) nodeConfig(n topology.Node) *NodeConfig {
 				g.problems.Add(types.Errf(types.ErrNotFound, subject, "it advertises its site, but there is no block for site %q", n.Site))
 				continue
 			}
+			if !block.IsValid() || !block.Addr().Is4() {
+				g.problems.Add(types.Errf(types.ErrInvalidPrefix, subject, "the block %s of site %q is not an IPv4 prefix", block, n.Site))
+				continue
+			}
 			c.Advertise = append(c.Advertise, block)
 			site := block
 			c.SitePrefix = &site
-		case advert.Prefix.IsValid():
+		case advert.Prefix.IsValid() && advert.Prefix.Addr().Is4():
 			c.Advertise = append(c.Advertise, advert.Prefix)
+		default:
+			g.problems.Add(types.Errf(types.ErrInvalidPrefix, subject, "it advertises %s, which is not an IPv4 prefix", advert.Prefix))
 		}
 	}
 

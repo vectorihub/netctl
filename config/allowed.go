@@ -46,11 +46,25 @@ func AllowedPrefixes(table *route.Table, probeRemote map[types.NodeID]netip.Addr
 		owner[masked] = peer
 		out[peer] = append(out[peer], masked)
 	}
-	for peer, addr := range probeRemote {
+	// Claims are made in a fixed order, probes by peer and then routes by
+	// route.Compare, so which peer is "first" in a conflict never depends on
+	// map order or on the order the table happens to be in.
+	probePeers := make([]types.NodeID, 0, len(probeRemote))
+	for peer := range probeRemote {
+		probePeers = append(probePeers, peer)
+	}
+	slices.Sort(probePeers)
+	for _, peer := range probePeers {
+		addr := probeRemote[peer]
 		claim(peer, netip.PrefixFrom(addr, addr.BitLen()))
 	}
 	if table != nil {
-		for _, r := range table.Routes {
+		routes := slices.Clone(table.Routes)
+		for i := range routes {
+			routes[i].Prefix, _ = cidr.Canonical(routes[i].Prefix)
+		}
+		slices.SortFunc(routes, route.Compare)
+		for _, r := range routes {
 			if r.Active && r.NextHop != "" {
 				claim(r.NextHop, r.Prefix)
 			}

@@ -11,6 +11,7 @@ import (
 	"github.com/vectorihub/netctl/internal/fixture"
 	"github.com/vectorihub/netctl/ipam"
 	"github.com/vectorihub/netctl/route"
+	"github.com/vectorihub/netctl/topology"
 	"github.com/vectorihub/netctl/types"
 )
 
@@ -109,3 +110,6 @@ func newEmptyPlan() (*ipam.IPAM, error) { return fixture.NewPlan() }
 
 // typesNode converts text to a node ID.
 func typesNode(text string) types.NodeID { return types.NodeID(text) }
+
+// advertisement returns an advertisement of a prefix.
+func advertisement(p netip.Prefix) topology.Advertisement { return topology.Advertisement{Prefix: p} }
