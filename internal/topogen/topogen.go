@@ -112,3 +112,26 @@ func DirectLinks(t *topology.Topology) []string {
 	}
 	return ids
 }
+
+// Random returns a random valid topology of two to sixty nodes with one or two hubs, a few
+// direct links and a random share of NAT. It also returns the spec it drew, so a failing case
+// can be described. The same seed always gives the same topology.
+//
+// Example:
+//
+//	topo, spec := topogen.Random(42)
+func Random(seed uint64) (*topology.Topology, Spec) {
+	rng := rand.New(rand.NewPCG(seed, 0x72616e64))
+	nodes := 2 + rng.IntN(59)
+	hubs := 1
+	if nodes >= 4 && rng.IntN(4) == 0 {
+		hubs = 2
+	}
+	spokes := nodes - hubs
+	direct := 0
+	if spokes >= 2 {
+		direct = rng.IntN(min(8, spokes*(spokes-1)/2) + 1)
+	}
+	spec := Spec{Nodes: nodes, Hubs: hubs, Direct: direct, NATRatio: rng.Float64(), Seed: seed}
+	return Generate(spec), spec
+}

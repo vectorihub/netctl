@@ -60,6 +60,10 @@ type W struct {
 	// Now is the test clock. Advance moves it; every plan runs with it.
 	Now time.Time
 
+	// NoDisk keeps rendered plans in memory only. The chaos runs plan thousands of times and
+	// have no use for the files.
+	NoDisk bool
+
 	step  int
 	name  string
 	log   []Step
@@ -200,6 +204,9 @@ type Options struct {
 	Signals []health.Signal
 	// Overrides are static routes applied on top of the computed ones.
 	Overrides []route.Override
+	// SkipSweep leaves out the validator's single-failure sweep, which recomputes the routes
+	// once per link and dominates the time of a large plan. The chaos runs use it.
+	SkipSweep bool
 	// NoPrevious plans without handing From over as the plan in force.
 	NoPrevious bool
 }
@@ -223,6 +230,7 @@ func (w *W) Plan(o Options) *Out {
 	}
 	w.plans++
 	in := netctl.Inputs{Topology: topo, Clock: &types.FixedClock{T: w.Now}, Signals: o.Signals, Overrides: o.Overrides}
+	in.Validate.SkipSweep = o.SkipSweep
 	if from := o.From; from.OK() {
 		in.IPAM = from.Result.IPAM
 		if !o.NoPrevious {
@@ -244,7 +252,9 @@ func (w *W) Plan(o Options) *Out {
 		out.Files, err = result.Render()
 		if err == nil {
 			out.Dir = filepath.Join(w.Dir, name)
-			err = writeFiles(out.Dir, out.Files)
+			if !w.NoDisk {
+				err = writeFiles(out.Dir, out.Files)
+			}
 		}
 		if err != nil {
 			out.Err, out.Files = err, nil
