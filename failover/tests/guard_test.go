@@ -9,6 +9,7 @@ import (
 	"github.com/vectorihub/netctl/health"
 	"github.com/vectorihub/netctl/route"
 	"github.com/vectorihub/netctl/sim"
+	"github.com/vectorihub/netctl/types"
 )
 
 // loopyNetwork returns the three-site network with a bad static override planted
@@ -110,5 +111,47 @@ func TestFlowsThatWereAlreadyBrokenDoNotBlockAFailover(t *testing.T) {
 	}
 	if len(result.Changes) == 0 {
 		t.Error("the failover was not installed")
+	}
+}
+
+// TestRejectionPersistsWhileTheProblemDoes checks a rejected failover is rejected
+// again on the next evaluation if nothing has changed: the baseline is the network
+// the kept tables were made for, not the health that has moved on, so the loop is
+// not mistaken for something that was already broken.
+func TestRejectionPersistsWhileTheProblemDoes(t *testing.T) {
+	net := loopyNetwork(t)
+	start := healthy(t, net)
+	first := down(t, net, start.State)
+	if first.Rejected == nil {
+		t.Fatal("the first evaluation should be rejected")
+	}
+	if len(first.State.TablesDown) != 0 {
+		t.Fatalf("the kept tables were made with %v down, want none", first.State.TablesDown)
+	}
+	second := evaluate(t, net, first.State, probes(direct, false, 1, 55), 56)
+	if second.Rejected == nil {
+		t.Fatal("the second evaluation installed the failover that was rejected")
+	}
+	if diff := route.Diff(start.Tables, second.Tables); len(diff) != 0 {
+		t.Errorf("the tables changed: %+v", diff)
+	}
+	again := roundTrip(t, second.State)
+	third := evaluate(t, net, again, nil, 60)
+	if third.Rejected == nil {
+		t.Error("after a restart the rejection was forgotten")
+	}
+}
+
+// TestFlowLabelsMustBeDistinct checks flows the guard could not tell apart are
+// refused, with every problem at once.
+func TestFlowLabelsMustBeDistinct(t *testing.T) {
+	net := threeSite(t)
+	net.Flows = append(net.Flows[:2:2], net.Flows[0], sim.Flow{})
+	_, err := failover.Evaluate(net, failover.State{}, nil, at(0))
+	if !types.HasCode(err, types.ErrInvalidValue) {
+		t.Fatalf("%v, want INVALID_VALUE", err)
+	}
+	if msg := err.Error(); !strings.Contains(msg, "more than one flow") || !strings.Contains(msg, "no label") {
+		t.Errorf("the error should list both problems: %v", err)
 	}
 }

@@ -60,6 +60,7 @@ func (e *Evaluator) release(l *Link, now time.Time) {
 	l.Pinned = false
 	l.Flaps = nil
 	l.restart(l.PinnedUntil, e.Cfg)
+	l.PinnedUntil = time.Time{}
 }
 
 // admin applies an operator's signal to a link and returns the decisions it

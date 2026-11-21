@@ -27,25 +27,49 @@ import (
 type Network struct {
 	// Graph is the network with every link present. A link the graph already
 	// marks down stays down whatever its health.
+	//
+	// Example:
+	//
+	//	fixture.ThreeSite(true) is the three-site network with its direct link.
 	Graph route.Graph
 	// Input is what the routing engine needs: who owns which prefixes, and any
 	// static overrides.
+	//
+	// Example:
+	//
+	//	route.Input{Owned: owned, Local: local} says which node advertises which prefix.
 	Input route.Input
 	// Required lists the links that must be proven before they carry traffic,
 	// which are the direct ones; RequiredLinks reads it from a topology. Any
 	// other link is assumed to work until a failure arrives. It only matters the
 	// first time Evaluate sees a link: a link already in the State keeps the
 	// choice it was made with.
+	//
+	// Example:
+	//
+	//	map[types.LinkID]bool{"builder-1~dgx-spark": true} makes the direct link prove itself first.
 	Required map[types.LinkID]bool
 	// Flows are simulated over the new tables before they are installed. With
 	// none, the guard has nothing to check and lets every failover in.
+	//
+	// Example:
+	//
+	//	the flows from sim.Flows are simulated before a failover is installed.
 	Flows []sim.Flow
 	// Health holds the thresholds and times. The zero value means
 	// health.DefaultConfig.
+	//
+	// Example:
+	//
+	//	the zero value means health.DefaultConfig(); set FailThreshold to change one setting.
 	Health health.Config
 	// Compute is the routing computation; nil means route.Compute. It exists so
 	// a test can count the calls. It is not a way to substitute another routing
 	// algorithm.
+	//
+	// Example:
+	//
+	//	a test passes a wrapper around route.Compute that counts calls; nil means route.Compute.
 	Compute sim.ComputeFunc
 }
 
@@ -72,6 +96,10 @@ func RequiredLinks(t *topology.Topology) map[types.LinkID]bool {
 //	NodeRoute{Node: "builder-1", Route: r} is the route r in builder-1's table.
 type NodeRoute struct {
 	// Node is the node whose table holds the route.
+	//
+	// Example:
+	//
+	//	NodeRoute{Node: "builder-1", Route: r} is r in builder-1's table.
 	Node types.NodeID `json:"node"`
 	// Route is the route.
 	route.Route
@@ -85,26 +113,58 @@ type NodeRoute struct {
 //	why, and lists the backups that became active on builder-1 and dgx-spark.
 type Decision struct {
 	// Link is the link that changed.
+	//
+	// Example:
+	//
+	//	"builder-1~dgx-spark" when the direct link changed.
 	Link types.LinkID `json:"link"`
 	// Before and After are the link's health on either side of the change.
+	//
+	// Example:
+	//
+	//	health.Degraded when the link was degraded just before it went down.
 	Before health.LinkHealth `json:"before"`
 	// After is the health the link has now.
+	//
+	// Example:
+	//
+	//	health.Down when the direct link has just failed.
 	After health.LinkHealth `json:"after"`
 	// Activated lists the routes that became active because of this change on
 	// any node: backups promoted when the link went away, primaries when it
 	// came back.
+	//
+	// Example:
+	//
+	//	the hub backups for 10.42.32.0/20 on builder-1 when the direct link goes down.
 	Activated []NodeRoute `json:"activated,omitempty"`
 	// Withdrawn lists the active routes that stopped being active because of
 	// this change: primaries that crossed a link that went away, backups that
 	// gave way when it came back.
+	//
+	// Example:
+	//
+	//	the direct routes for 10.42.32.0/20 on builder-1 when the direct link goes down.
 	Withdrawn []NodeRoute `json:"withdrawn,omitempty"`
 	// Installed says the route changes are in force. It is false when the
 	// guard rejected the failover: the health change is real, but the old
 	// tables stayed, so Activated and Withdrawn are empty.
+	//
+	// Example:
+	//
+	//	false after the guard rejected the failover, true otherwise.
 	Installed bool `json:"installed"`
 	// Reason says in words what caused it and what it did to the routes.
+	//
+	// Example:
+	//
+	//	"probe from builder-1: consecutive failures reached the threshold: 4 active route(s) withdrawn, 4 activated".
 	Reason string `json:"reason"`
 	// At is when the change happened.
+	//
+	// Example:
+	//
+	//	10:00:45 when the third failed probe arrived at that time.
 	At time.Time `json:"at"`
 }
 
@@ -115,10 +175,22 @@ type Decision struct {
 //	Failure{Flow: "builder-1→dgx-spark (overlay)", Verdict: sim.VerdictLoop, Detail: "..."}
 type Failure struct {
 	// Flow is the flow's label.
+	//
+	// Example:
+	//
+	//	"builder→dgx (site)".
 	Flow string `json:"flow"`
 	// Verdict is what the simulation made of it.
+	//
+	// Example:
+	//
+	//	sim.VerdictLoop when the packet looped.
 	Verdict sim.Verdict `json:"verdict"`
 	// Detail says what went wrong.
+	//
+	// Example:
+	//
+	//	the problems the simulation found, joined with "; ".
 	Detail string `json:"detail"`
 }
 
@@ -131,8 +203,16 @@ type Failure struct {
 //	a failover that makes builder-1 to dgx-spark loop is rejected, with that flow listed.
 type FailoverRejected struct {
 	// Reason says it in words.
+	//
+	// Example:
+	//
+	//	"the new tables break 2 flow(s) that worked before, so the previous tables stay in force: builder→dgx (site) is LOOP".
 	Reason string `json:"reason"`
 	// Failures are the flows the new tables break that the old ones did not.
+	//
+	// Example:
+	//
+	//	one Failure for each flow the new tables break that the old ones did not.
 	Failures []Failure `json:"failures"`
 }
 
@@ -144,26 +224,62 @@ type FailoverRejected struct {
 //	save(result.State); install(result.Tables)
 type Result struct {
 	// State is the state to carry into the next evaluation and to save.
+	//
+	// Example:
+	//
+	//	save result.State.JSON() and pass result.State to the next Evaluate.
 	State State
 	// Tables are the routing tables to install: the new ones, or, when
 	// Rejected is set, the ones from before.
+	//
+	// Example:
+	//
+	//	result.Tables["builder-1"].FIB() is what builder-1 should install.
 	Tables route.Tables
 	// Decisions lists each link whose health changed, in order, with the
 	// routes it moved.
+	//
+	// Example:
+	//
+	//	two decisions when a link goes Degraded and then Down in one batch.
 	Decisions []Decision
 	// Changes is every difference between the tables from before and Tables,
 	// whether or not a decision accounts for it.
+	//
+	// Example:
+	//
+	//	route.Diff of the tables from before and result.Tables.
 	Changes []route.TableDiff
 	// Report is the simulation of the new tables over the network as health
 	// now has it, whether or not they were installed.
+	//
+	// Example:
+	//
+	//	result.Report.Passed is true when every simulated flow passes the gate.
 	Report sim.Report
 	// Unreachable lists the pairs with no healthy path in Tables.
+	//
+	// Example:
+	//
+	//	builder-1 to dgx-spark when both of builder-1's links are down.
 	Unreachable []route.Pair
 	// RejectedOverrides lists static overrides the routing engine refused.
+	//
+	// Example:
+	//
+	//	a static override whose next hop is not a neighbour.
 	RejectedOverrides []route.Rejection
 	// Skipped lists the signals that could not be used, with the reason.
+	//
+	// Example:
+	//
+	//	a signal for a link the network does not have.
 	Skipped []health.Skipped
 	// Rejected is set when the guard refused the failover; nil otherwise.
+	//
+	// Example:
+	//
+	//	nil when the failover was installed.
 	Rejected *FailoverRejected
 }
 
@@ -257,6 +373,24 @@ func (n Network) links(prev State, ends map[types.LinkID][2]types.NodeID) ([]*he
 	return out, nil
 }
 
+// checkFlows refuses flows the guard could not tell apart: the guard compares
+// flows by label between two simulations, so an empty or repeated label would let
+// one flow hide another's failure (INVALID_VALUE, every problem at once).
+func (n Network) checkFlows() error {
+	var problems types.List
+	seen := map[string]bool{}
+	for i, flow := range n.Flows {
+		switch {
+		case flow.Label == "":
+			problems.Add(types.Errf(types.ErrInvalidValue, "failover flows", "flow %d has no label", i))
+		case seen[flow.Label]:
+			problems.Add(types.Errf(types.ErrInvalidValue, "failover flows", "the label %q is used by more than one flow", flow.Label))
+		}
+		seen[flow.Label] = true
+	}
+	return problems.Err()
+}
+
 // simulate runs every flow over the tables on the graph and reports.
 func (n Network) simulate(graph route.Graph, tables route.Tables, unreachable []route.Pair) sim.Report {
 	net := sim.NewNet(graph, tables, n.Input.Owned, n.Input.Local)
@@ -331,6 +465,9 @@ func Evaluate(net Network, prev State, signals []health.Signal, now time.Time) (
 	if err := prev.check(); err != nil {
 		return Result{}, err
 	}
+	if err := net.checkFlows(); err != nil {
+		return Result{}, err
+	}
 	cfg := net.Health
 	if cfg == (health.Config{}) {
 		cfg = health.DefaultConfig()
@@ -359,7 +496,15 @@ func Evaluate(net Network, prev State, signals []health.Signal, now time.Time) (
 	healthDecisions, skipped := after.Apply(signals, now)
 	wasUnusable, nowUnusable := before.UnusableLinks(), after.UnusableLinks()
 
-	oldGraph := marked{net.Graph, downSet(wasUnusable)}
+	// The baseline is the network the previous tables were made for. Before the
+	// first evaluation that is the health as it was; afterwards it is the links
+	// the State says the tables were made with, which after a rejection is not
+	// the health of the day.
+	baselineDown := wasUnusable
+	if prev.Tables != nil {
+		baselineDown = prev.TablesDown
+	}
+	oldGraph := marked{net.Graph, downSet(baselineDown)}
 	newGraph := marked{net.Graph, downSet(nowUnusable)}
 	computed, err := compute(newGraph, net.Input)
 	if err != nil {
@@ -374,6 +519,7 @@ func Evaluate(net Network, prev State, signals []health.Signal, now time.Time) (
 		oldTables, oldUnreachable = first.Tables, first.Unreachable
 	}
 
+	tablesDown := nowUnusable
 	result := Result{
 		Tables: computed.Tables, Unreachable: computed.Unreachable, RejectedOverrides: computed.Rejected, Skipped: skipped,
 		Report: net.simulate(newGraph, computed.Tables, computed.Unreachable),
@@ -389,12 +535,13 @@ func Evaluate(net Network, prev State, signals []health.Signal, now time.Time) (
 				Failures: worse,
 			}
 			result.Tables, result.Unreachable = oldTables, oldUnreachable
+			tablesDown = baselineDown
 		}
 	}
 	result.Changes = route.Diff(oldTables, result.Tables)
 	result.Decisions = explain(healthDecisions, result.Changes, result.Rejected == nil, wasUnusable, nowUnusable, ends, requiredOf(links))
 
-	state := State{Schema: Schema, EvaluatedAt: now, Links: links, Tables: result.Tables, Unreachable: result.Unreachable}
+	state := State{Schema: Schema, EvaluatedAt: now, Links: links, Tables: result.Tables, TablesDown: slices.Clone(tablesDown), Unreachable: result.Unreachable}
 	slices.SortFunc(state.Links, func(a, b *health.Link) int { return strings.Compare(string(a.ID), string(b.ID)) })
 	result.State = state
 	return result, nil

@@ -35,15 +35,39 @@ type Link struct {
 	Dirs map[types.NodeID]*Direction `json:"directions"`
 	// Drained says an operator took the link out of service. A drained link is
 	// Down whatever the evidence says, until an operator undrains it.
+	//
+	// Example:
+	//
+	//	with a drain applied, Drained is true and the link is Down until an admin signal that is OK releases it.
 	Drained bool `json:"drained,omitempty"`
 	// Pinned says the link flapped too often and is held Down until PinnedUntil
 	// or until an operator clears it.
+	//
+	// Example:
+	//
+	//	after a fifth Down within ten minutes, Pinned is true and the link stays Down whatever the probes say.
 	Pinned bool `json:"pinned,omitempty"`
 	// PinnedUntil is when a flap pin ends by itself. It is zero for a link that
 	// is not pinned.
+	//
+	// Example:
+	//
+	//	a link pinned at 10:00:45 with a 30 minute pin has PinnedUntil 10:30:45.
 	PinnedUntil time.Time `json:"pinned_until,omitzero"`
+	// LastAdmin is the time of the newest admin signal applied to the link. An
+	// admin signal older than it is skipped, so a late release cannot undo a
+	// newer drain. It is zero until an admin signal has been applied.
+	//
+	// Example:
+	//
+	//	after a drain stamped 10:01:40, a release stamped 10:00:50 is skipped as outdated.
+	LastAdmin time.Time `json:"last_admin,omitzero"`
 	// Flaps holds the times the link went Down within the flap window, oldest
 	// first. More than the flap limit of them pins the link.
+	//
+	// Example:
+	//
+	//	a link that went Down at 10:00:45 and 10:02:25 has those two times in Flaps.
 	Flaps []time.Time `json:"flaps,omitempty"`
 }
 
@@ -288,7 +312,7 @@ func (e *Evaluator) expire(l *Link, now time.Time, decisions []Decision) []Decis
 //     drained or pinned evidence is still recorded but cannot make it usable.
 //
 // A signal is skipped, not applied, when its link is not tracked, its From is not
-// one of the link's ends, its kind is unknown, an admin signal asks for nothing
+// one of the link's ends, its kind is unknown, an admin signal is older than the newest admin signal for the link or asks for nothing
 // that can be done (draining a drained link, releasing a link that is neither
 // drained nor pinned), or it is
 // older than the newest signal already applied to the same direction, in this
@@ -312,6 +336,11 @@ func (e *Evaluator) Apply(signals []Signal, now time.Time) ([]Decision, []Skippe
 		}
 		if s.Kind == SignalAdmin {
 			var why string
+			if s.At.Before(l.LastAdmin) {
+				skipped = append(skipped, Skipped{s, "outdated: older than the newest admin signal already applied to this link"})
+				continue
+			}
+			l.LastAdmin = s.At
 			decisions = e.expire(l, s.At, decisions)
 			if decisions, why = e.admin(l, s, decisions); why != "" {
 				skipped = append(skipped, Skipped{s, why})
