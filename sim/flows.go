@@ -1,6 +1,7 @@
 package sim
 
 import (
+	"cmp"
 	"fmt"
 	"net/netip"
 	"slices"
@@ -131,7 +132,9 @@ func Flows(t *topology.Topology, registry *ipam.IPAM, opts Options) ([]Flow, err
 			sites = append(sites, advertised{site: node.Site, node: node.ID, addr: addr})
 		}
 	}
-	slices.SortFunc(sites, func(a, b advertised) int { return strings.Compare(string(a.site), string(b.site)) })
+	slices.SortFunc(sites, func(a, b advertised) int {
+		return cmp.Or(cmp.Compare(a.site, b.site), cmp.Compare(a.node, b.node), a.addr.Compare(b.addr))
+	})
 
 	allowed := map[[2]types.NodeID]bool{}
 	for _, pair := range opts.AllowAsymmetric {
@@ -232,6 +235,35 @@ func Flows(t *topology.Topology, registry *ipam.IPAM, opts Options) ([]Flow, err
 	if err := problems.Err(); err != nil {
 		return nil, err
 	}
-	slices.SortStableFunc(flows, func(a, b Flow) int { return strings.Compare(a.Label, b.Label) })
+	slices.SortFunc(flows, compareFlows)
 	return flows, nil
+}
+
+// compareFlows orders flows by label and then by every other field, so the
+// order is total: two flows compare equal only if they are identical, and the
+// derived set never depends on the order it was built in.
+func compareFlows(a, b Flow) int {
+	return cmp.Or(
+		strings.Compare(a.Label, b.Label),
+		cmp.Compare(a.Family, b.Family),
+		a.Src.Compare(b.Src),
+		a.Dst.Compare(b.Dst),
+		cmp.Compare(a.From, b.From),
+		cmp.Compare(a.To, b.To),
+		compareFlag(a.AllowAsymmetric, b.AllowAsymmetric),
+		compareFlag(a.Intent, b.Intent),
+		slices.Compare(a.Ports, b.Ports),
+		strings.Compare(a.Note, b.Note),
+	)
+}
+
+// compareFlag orders false before true.
+func compareFlag(a, b bool) int {
+	switch {
+	case a == b:
+		return 0
+	case !a:
+		return -1
+	}
+	return 1
 }
