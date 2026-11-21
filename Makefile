@@ -3,7 +3,7 @@
 
 STATICCHECK_VERSION := v0.7.0
 
-.PHONY: check fmt-check vet lint purity test race arch fuzz bench repro windows
+.PHONY: check fmt-check vet lint purity test race arch fuzz bench repro windows apidiff
 
 ## check: the everyday gate — formatting, vet, tests. A red result fails CI.
 check: fmt-check vet test
@@ -71,3 +71,22 @@ bench:
 ## The byte-for-byte determinism proof is V61.
 repro:
 	go test -count=2 -shuffle=on ./...
+
+## apidiff: report how the exported API changed since the latest tag (APIBASE overrides it).
+## It never fails the build: the report is read on every tag, and a breaking change before
+## v1.0 is allowed as long as the changelog lists it. Packages the tag does not have are new.
+## The tag is checked out in .apidiff-base (git-ignored) and reused on the next run; remove
+## that directory yourself when you no longer need it. Install the tool with:
+##   go install golang.org/x/exp/cmd/apidiff@latest
+APIBASE ?= $(shell git describe --tags --abbrev=0 2>/dev/null)
+apidiff:
+	@command -v apidiff >/dev/null 2>&1 || { echo "apidiff not found; install: go install golang.org/x/exp/cmd/apidiff@latest"; exit 1; }
+	@test -n "$(APIBASE)" || { echo "apidiff: no tag to compare with"; exit 0; }
+	@if [ -d .apidiff-base ]; then git -C .apidiff-base checkout --detach --quiet "$(APIBASE)"; \
+	else git worktree add --detach .apidiff-base "$(APIBASE)" >/dev/null 2>&1; fi || { echo "apidiff: cannot check out $(APIBASE)"; exit 0; }
+	@mod="$$(go list -m)"; \
+	for dir in $$(go list -f '{{.Dir}}' ./... | grep -v -e '/tests$$' -e '/internal' -e '/testdata'); do \
+	  rel="$${dir#$$PWD}"; pkg="$$mod$$rel"; \
+	  ( cd .apidiff-base && apidiff -w old.out "$$pkg" >/dev/null 2>&1 ) || { echo "== $$pkg: new since $(APIBASE)"; continue; }; \
+	  echo "== $$pkg"; apidiff .apidiff-base/old.out "$$pkg"; \
+	done

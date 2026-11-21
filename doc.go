@@ -58,15 +58,28 @@
 //     (probes, handshakes, interface state) into which links may carry
 //     traffic, with hold-down, staleness, and a link counting as usable only
 //     when it is healthy in both directions.
+//   - [github.com/vectorihub/netctl/failover]: the failover guard. Folds link
+//     evidence into the routes, simulates the new routes before they are used,
+//     and keeps the routes in force if the change would break a flow.
+//   - [github.com/vectorihub/netctl/config]: the config of every node, in a
+//     canonical form with a hash, a JSON Schema and a diff.
+//   - [github.com/vectorihub/netctl/validate]: the catalogue of rules a plan must
+//     pass before it can leave the controller.
+//   - [github.com/vectorihub/netctl/plan]: the pipeline that runs all of the
+//     above in a fixed order.
 //
 // # A typical flow
 //
 // Describe the network in a topology file and load it with
 // [github.com/vectorihub/netctl/topology.Load], which returns every rule
-// violation at once. Create an address registry with
-// [github.com/vectorihub/netctl/ipam.New] from a saved snapshot, allocate
-// blocks for each site and node in the topology, and store the new snapshot
-// for next time. Each package's documentation has runnable examples.
+// violation at once, or build a [github.com/vectorihub/netctl/topology.Topology]
+// in code. Pass it to [Plan] with the address plan saved by the last run (empty on
+// the first) and a clock. The [Result] holds the routes, a config for every node and
+// the verdict of the validator. Call Result.Render for the bytes of every output
+// file, write them wherever your program keeps its state, and keep Result.IPAM for
+// the next run. A plan the validator refuses returns an error with the code
+// VALIDATION_FAILED and no configs, so a program that writes files writes nothing.
 //
-// This root package holds documentation only; import the packages above.
+// This root package is the one obvious entry point: [Plan], [Diff] and the types they
+// use. Each package's documentation has runnable examples.
 package netctl
