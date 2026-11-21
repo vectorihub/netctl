@@ -1,7 +1,6 @@
 package route
 
 import (
-	"errors"
 	"net/netip"
 	"slices"
 	"strings"
@@ -59,7 +58,7 @@ type Announcer struct {
 // prefix 10.42.252.0/30.
 func Collect(registry *ipam.IPAM, announcers []Announcer, links []types.LinkID) (owned, local Owned, err error) {
 	if registry == nil {
-		return nil, nil, errors.New("route: Collect needs an IPAM registry, got nil")
+		return nil, nil, types.Errf(types.ErrInvalidValue, "Collect", "it needs an IPAM registry, got nil")
 	}
 	var problems types.List
 	owned, local = Owned{}, Owned{}

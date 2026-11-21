@@ -28,6 +28,24 @@ type Net struct {
 	// Up says whether a link can carry packets right now. A nil Up means every
 	// link is up.
 	Up func(link types.LinkID) bool
+
+	// held returns the length of the longest prefix node holds that contains
+	// addr, or -1. NewNet sets it so that a route more specific than what the
+	// node holds, such as a static override for one address of its own block,
+	// is followed instead of the packet being delivered.
+	held func(node types.NodeID, addr netip.Addr) int
+}
+
+// overridden reports whether a packet for dst that Local says is node's own
+// should still be forwarded, because the node's matching route is a forwarding
+// route more specific than any prefix the node holds. Only a Net made by NewNet
+// knows what the node holds; for any other Net it is false.
+func (n Net) overridden(node types.NodeID, dst netip.Addr) bool {
+	if n.held == nil {
+		return false
+	}
+	found, ok := n.Tables[node].Lookup(dst)
+	return ok && found.NextHop != "" && found.Prefix.Bits() > n.held(node, dst)
 }
 
 // NewNet builds a Net from a graph and the prefixes each node holds. Delivery is
@@ -67,6 +85,15 @@ func NewNet(graph route.Graph, tables route.Tables, owned, local route.Owned) Ne
 		},
 		Adjacent: func(from, to types.NodeID, link types.LinkID) bool { return adjacent[adjacency{from, to, link}] },
 		Up:       func(link types.LinkID) bool { return up[link] },
+		held: func(node types.NodeID, addr netip.Addr) int {
+			longest := -1
+			for _, prefix := range held[node] {
+				if prefix.Contains(addr) && prefix.Bits() > longest {
+					longest = prefix.Bits()
+				}
+			}
+			return longest
+		},
 	}
 }
 
@@ -81,7 +108,11 @@ type adjacency struct {
 // something stops it, and records every step.
 //
 // At each node, in this order:
-//  1. If the destination is the node's own, the packet is delivered.
+//  1. If the destination is the node's own, the packet is delivered, unless
+//     (for a Net made by NewNet) the node's matching route forwards it and is
+//     more specific than every prefix the node holds that contains it: a
+//     static override for one address of the node's own block is followed,
+//     and so tested, rather than skipped.
 //  2. If the hop limit is used up, the packet is dropped: TTL exceeded.
 //  3. If the packet has been at this node before, it is in a loop. Forwarding
 //     is deterministic and the destination is fixed, so a packet that returns
@@ -116,7 +147,7 @@ func (n Net) Send(packet Packet, start types.NodeID) Trace {
 	seen := map[types.NodeID]bool{}
 	current := start
 	for remaining := packet.TTL; ; remaining-- {
-		if n.Local != nil && n.Local(current, packet.Dst) {
+		if n.Local != nil && n.Local(current, packet.Dst) && !n.overridden(current, packet.Dst) {
 			return finish(current, nil, Delivered)
 		}
 		if remaining <= 0 {
