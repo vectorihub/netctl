@@ -1,0 +1,34 @@
+{
+  "findings": [
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~builder-1",
+      "message": "if the link fails, builder-1 is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-SIM-003",
+      "level": "warning",
+      "subject": "aws-hub~dgx-spark",
+      "message": "if the link fails, dgx-spark is isolated: it can reach no other node",
+      "hint": "add a second path for the node, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-TOPO-003",
+      "level": "warning",
+      "subject": "builder-1",
+      "message": "it has only one link, so losing it cuts the node off",
+      "hint": "add a second link, or suppress this warning with the reason"
+    },
+    {
+      "rule": "V-TOPO-003",
+      "level": "warning",
+      "subject": "dgx-spark",
+      "message": "it has only one link, so losing it cuts the node off",
+      "hint": "add a second link, or suppress this warning with the reason"
+    }
+  ],
+  "suppressed": [],
+  "ok": true
+}

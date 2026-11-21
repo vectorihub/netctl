@@ -1,0 +1,90 @@
+{
+  "schema": "beaver.netctl/v1alpha1",
+  "plan_id": "<masked>",
+  "node": "dgx-spark",
+  "role": "spoke",
+  "forwarding": false,
+  "overlay": {
+    "address": "10.42.240.3/32",
+    "listen_port": 51820
+  },
+  "site_prefix": "10.42.32.0/20",
+  "advertise": [
+    "10.42.32.0/20",
+    "10.42.240.3/32"
+  ],
+  "peers": [
+    {
+      "node": "aws-hub",
+      "link": "aws-hub~dgx-spark",
+      "role": "hub",
+      "public_key_ref": "node:aws-hub",
+      "endpoints": [
+        "203.0.113.10:51820"
+      ],
+      "keepalive_seconds": 25,
+      "allowed_prefixes": [
+        "10.42.0.0/20",
+        "10.42.16.0/20",
+        "10.42.240.1/32",
+        "10.42.240.2/32"
+      ]
+    },
+    {
+      "node": "builder-1",
+      "link": "builder-1~dgx-spark",
+      "role": "direct",
+      "public_key_ref": "node:builder-1",
+      "endpoints": [],
+      "needs_traversal": true,
+      "keepalive_seconds": 25,
+      "probe": {
+        "local": "10.42.252.2/30",
+        "remote": "10.42.252.1"
+      },
+      "allowed_prefixes": [
+        "10.42.252.1/32"
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "prefix": "10.42.0.0/20",
+      "via": "aws-hub",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.16.0/20",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.1/32",
+      "via": "aws-hub",
+      "metric": 20,
+      "active": true
+    },
+    {
+      "prefix": "10.42.240.2/32",
+      "via": "aws-hub",
+      "metric": 40,
+      "active": true
+    }
+  ],
+  "health": {
+    "probes": [
+      {
+        "link": "builder-1~dgx-spark",
+        "target": "10.42.252.1",
+        "interval_seconds": 5
+      }
+    ],
+    "fail_threshold": 3,
+    "recover_threshold": 5,
+    "hold_down_seconds": 60
+  },
+  "policy": [],
+  "hash": "<masked>"
+}
