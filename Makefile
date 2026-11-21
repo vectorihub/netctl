@@ -3,7 +3,7 @@
 
 STATICCHECK_VERSION := v0.7.0
 
-.PHONY: check fmt-check vet lint purity test race arch fuzz bench repro windows apidiff consumer e2e-phase1 e2e-phase1-fast
+.PHONY: check fmt-check vet lint purity test race arch fuzz bench repro windows apidiff consumer e2e-phase1 e2e-phase1-fast e2e-phase1-chaos
 
 ## check: the everyday gate — formatting, vet, tests. A red result fails CI.
 check: fmt-check vet test
@@ -105,3 +105,7 @@ e2e-phase1:
 ## e2e-phase1-fast: everything except the scale and chaos groups.
 e2e-phase1-fast:
 	go test ./test/e2e/phase1/... -count=1 -short
+
+## e2e-phase1-chaos: the nightly run, 20,000 random cases. Reproduce one with E2E_CHAOS_SEED=<n>.
+e2e-phase1-chaos:
+	E2E_CHAOS_CASES=20000 go test ./test/e2e/phase1/... -run 'TestE2E/P1-E2E-12' -count=1 -timeout 8h
