@@ -34,6 +34,9 @@ const (
 	// ErrInvalidScenario means a failure scenario is malformed: unreadable, a
 	// name used twice, or a node or link it names that the network does not have.
 	ErrInvalidScenario Code = "INVALID_SCENARIO"
+	// ErrValidationFailed means the validator found at least one error in a plan, so
+	// no configuration is produced. The message lists every error.
+	ErrValidationFailed Code = "VALIDATION_FAILED"
 	// ErrInvalidConfig means a setting is out of range, for example a health
 	// threshold of zero.
 	ErrInvalidConfig Code = "INVALID_CONFIG"
