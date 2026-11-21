@@ -151,8 +151,12 @@ func (g degraded) Edges(node types.NodeID) []route.Edge {
 }
 
 // check returns an error naming every link and node of the scenario that the
-// graph does not have.
-func (sc Scenario) check(graph route.Graph) error {
+// graph does not have, or nil.
+func (sc Scenario) check(graph route.Graph) error { return sc.problems(graph).Err() }
+
+// problems lists everything wrong with the scenario on graph: a missing name,
+// and every link and node it names that the graph does not have.
+func (sc Scenario) problems(graph route.Graph) types.List {
 	var problems types.List
 	if sc.Name == "" {
 		problems.Add(types.Errf(types.ErrInvalidScenario, "scenario", "it has no name"))
@@ -175,7 +179,7 @@ func (sc Scenario) check(graph route.Graph) error {
 			problems.Add(types.Errf(types.ErrInvalidScenario, "scenario "+sc.Name, "nodes_down names %s, which is not a node of the network", node))
 		}
 	}
-	return problems.Err()
+	return problems
 }
 
 // RunScenario runs one scenario: it fails the links and nodes the scenario names,
@@ -284,13 +288,18 @@ func check(report Report, expects []Expectation) []Mismatch {
 }
 
 // RunScenarios runs each scenario in order, one route computation each, and
-// returns the results in the same order. Two scenarios with the same name are
-// refused with INVALID_SCENARIO before any runs.
+// returns the results in the same order. Every scenario is checked before any
+// runs, and every problem is reported at once as INVALID_SCENARIO: two
+// scenarios with the same name, a scenario with no name, and every link or node
+// a scenario names that the network does not have, as is a missing network.
 //
 // Example:
 //
 //	the set baseline, direct-link-down and hub-down gives three results.
 func RunScenarios(in ScenarioInput, scenarios []Scenario) ([]ScenarioResult, error) {
+	if in.Graph == nil {
+		return nil, types.Errf(types.ErrInvalidScenario, "scenarios", "there is no network to run them on")
+	}
 	seen := map[string]bool{}
 	var problems types.List
 	for _, sc := range scenarios {
@@ -298,6 +307,7 @@ func RunScenarios(in ScenarioInput, scenarios []Scenario) ([]ScenarioResult, err
 			problems.Add(types.Errf(types.ErrInvalidScenario, "scenario "+sc.Name, "the name is used more than once"))
 		}
 		seen[sc.Name] = true
+		problems = append(problems, sc.problems(in.Graph)...)
 	}
 	if err := problems.Err(); err != nil {
 		return nil, err

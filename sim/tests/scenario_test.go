@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"errors"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -336,6 +337,33 @@ func TestRunScenariosRefusesDuplicateNames(t *testing.T) {
 	_, err := sim.RunScenarios(in, []sim.Scenario{{Name: "a"}, {Name: "a"}})
 	if !types.HasCode(err, types.ErrInvalidScenario) || spy.calls != 0 {
 		t.Errorf("error %v after %d computations, want INVALID_SCENARIO and none", err, spy.calls)
+	}
+}
+
+// TestRunScenariosReportsEveryProblemAtOnce gives a good scenario followed by
+// two broken ones, one naming a link and one a node the network lacks, and
+// checks nothing runs and both problems come back together as a types.List of
+// INVALID_SCENARIO errors. A missing network is refused too.
+func TestRunScenariosReportsEveryProblemAtOnce(t *testing.T) {
+	in := threeSiteScenarioInput(t)
+	spy := &countingCompute{}
+	in.Compute = spy.compute
+	_, err := sim.RunScenarios(in, []sim.Scenario{
+		{Name: "fine"},
+		{Name: "bad-link", LinksDown: []types.LinkID{"nowhere~else"}},
+		{Name: "bad-node", NodesDown: []types.NodeID{"ghost"}},
+	})
+	var problems types.List
+	if !errors.As(err, &problems) || len(problems) != 2 || spy.calls != 0 {
+		t.Fatalf("error %v after %d computations, want both problems at once and no computation", err, spy.calls)
+	}
+	for _, problem := range problems {
+		if !types.HasCode(problem, types.ErrInvalidScenario) {
+			t.Errorf("problem %v, want INVALID_SCENARIO", problem)
+		}
+	}
+	if _, err := sim.RunScenarios(sim.ScenarioInput{}, []sim.Scenario{{Name: "x"}}); !types.HasCode(err, types.ErrInvalidScenario) {
+		t.Errorf("no network: %v, want INVALID_SCENARIO", err)
 	}
 }
 
