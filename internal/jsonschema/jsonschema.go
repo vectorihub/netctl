@@ -1,4 +1,14 @@
-package tests
+// Package jsonschema is a small JSON Schema validator for the one schema netctl
+// publishes, so that the validator can check every generated config against it
+// without a dependency (only yaml.v3 is allowed).
+//
+// It supports exactly the keywords the NodeConfig schema uses: type (string, boolean,
+// array, object, integer), const, enum, pattern, minimum, maximum, minLength,
+// properties, required, additionalProperties (as a boolean), items, uniqueItems and
+// local $ref. [Schema.UnsupportedKeywords] lists any other keyword a schema uses, and
+// a test insists there is none, so a keyword added to the schema cannot be silently
+// ignored.
+package jsonschema
 
 import (
 	"encoding/json"
@@ -9,12 +19,6 @@ import (
 	"strings"
 )
 
-// This file is a small JSON Schema validator for tests only. netctl takes no
-// dependency for it: it supports exactly the keywords the NodeConfig schema uses
-// (type, const, enum, pattern, minimum, maximum, minLength, properties, required,
-// additionalProperties, items, uniqueItems and local $ref), and a test checks the
-// schema uses nothing else, so a keyword added to the schema cannot be ignored.
-
 // supported lists the keywords the validator understands, and the ones that only
 // describe the schema.
 var supported = map[string]bool{
@@ -23,24 +27,37 @@ var supported = map[string]bool{
 	"properties": true, "required": true, "additionalProperties": true, "items": true, "uniqueItems": true, "$ref": true,
 }
 
-// validator checks documents against one schema.
-type validator struct {
+// Schema is a JSON Schema ready to check documents against.
+//
+// Example:
+//
+//	s, err := jsonschema.New(config.SchemaJSON()); problems, err := s.Validate(doc)
+type Schema struct {
 	// root is the whole schema, where $ref points into.
 	root map[string]any
 }
 
-// newValidator parses a schema.
-func newValidator(schema []byte) (*validator, error) {
+// New parses a schema. It returns an error if the schema is not JSON.
+//
+// Example:
+//
+//	s, err := jsonschema.New(config.SchemaJSON())
+func New(schema []byte) (*Schema, error) {
 	var root map[string]any
 	if err := json.Unmarshal(schema, &root); err != nil {
 		return nil, err
 	}
-	return &validator{root: root}, nil
+	return &Schema{root: root}, nil
 }
 
-// unsupportedKeywords returns every keyword in the schema the validator does not
-// understand, with where it is.
-func (v *validator) unsupportedKeywords() []string {
+// UnsupportedKeywords returns every keyword in the schema the validator does not
+// understand, with where it is, sorted. A schema that uses one would be checked less
+// strictly than it reads, so a test should insist the list is empty.
+//
+// Example:
+//
+//	jsonschema.New(schema) then s.UnsupportedKeywords() is empty for the NodeConfig schema.
+func (v *Schema) UnsupportedKeywords() []string {
 	var out []string
 	var rec func(path string, node any)
 	rec = func(path string, node any) {
@@ -67,8 +84,13 @@ func (v *validator) unsupportedKeywords() []string {
 	return out
 }
 
-// validate checks the document and returns every violation, with its path.
-func (v *validator) validate(doc []byte) ([]string, error) {
+// Validate checks the JSON document against the schema and returns every violation,
+// each with its path, sorted. It returns an error only if the document is not JSON.
+//
+// Example:
+//
+//	problems, err := s.Validate(data); len(problems) == 0 means it is valid.
+func (v *Schema) Validate(doc []byte) ([]string, error) {
 	var value any
 	if err := json.Unmarshal(doc, &value); err != nil {
 		return nil, err
@@ -80,7 +102,7 @@ func (v *validator) validate(doc []byte) ([]string, error) {
 }
 
 // resolve follows a local $ref such as "#/$defs/id".
-func (v *validator) resolve(ref string) map[string]any {
+func (v *Schema) resolve(ref string) map[string]any {
 	node := any(v.root)
 	for _, part := range strings.Split(strings.TrimPrefix(ref, "#/"), "/") {
 		m, _ := node.(map[string]any)
@@ -91,7 +113,7 @@ func (v *validator) resolve(ref string) map[string]any {
 }
 
 // check validates one value against one schema node.
-func (v *validator) check(schema map[string]any, value any, path string, problems *[]string) {
+func (v *Schema) check(schema map[string]any, value any, path string, problems *[]string) {
 	add := func(format string, args ...any) {
 		*problems = append(*problems, path+": "+fmt.Sprintf(format, args...))
 	}
