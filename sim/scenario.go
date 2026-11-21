@@ -150,6 +150,50 @@ func (g degraded) Edges(node types.NodeID) []route.Edge {
 	return out
 }
 
+// Degrade returns the graph with the given links and nodes failed: every edge of a
+// failed link, and every edge that leaves or enters a failed node, is marked down on
+// top of what the graph already says. The graph itself is not changed, and the failed
+// nodes stay in it (a failed node is still in the network). It does not check the
+// names; RunScenario does.
+//
+// Example:
+//
+//	sim.Degrade(graph, []types.LinkID{"builder-1~dgx-spark"}, nil) is the three-site
+//	network with its direct link down.
+func Degrade(graph route.Graph, links []types.LinkID, nodes []types.NodeID) route.Graph {
+	g := degraded{base: graph, links: map[types.LinkID]bool{}, nodes: map[types.NodeID]bool{}}
+	for _, link := range links {
+		g.links[link] = true
+	}
+	for _, node := range nodes {
+		g.nodes[node] = true
+	}
+	return g
+}
+
+// Simulate sends every flow through the network given by the tables, over the graph,
+// and reports. It computes nothing: the tables are taken as they are, so a fault planted
+// in them, or a failover that did not happen, shows in the report. unreachable lists the
+// pairs the routing engine found no path between (its Result.Unreachable), so that a flow
+// between two cut-off nodes is judged NO_HEALTHY_PATH and not a black hole.
+//
+// Example:
+//
+//	report := sim.Simulate(graph, result.Tables, input, result.Unreachable, flows)
+//	if !report.Passed { ... }
+func Simulate(graph route.Graph, tables route.Tables, in route.Input, unreachable []route.Pair, flows []Flow) Report {
+	net := NewNet(graph, tables, in.Owned, in.Local)
+	cutOff := map[[2]types.NodeID]bool{}
+	for _, pair := range unreachable {
+		cutOff[[2]types.NodeID{pair.From, pair.To}] = true
+	}
+	results := make([]FlowResult, 0, len(flows))
+	for _, flow := range flows {
+		results = append(results, net.Run(flow, cutOff[[2]types.NodeID{flow.From, flow.To}]))
+	}
+	return NewReport(results)
+}
+
 // check returns an error naming every link and node of the scenario that the
 // graph does not have, or nil.
 func (sc Scenario) check(graph route.Graph) error { return sc.problems(graph).Err() }
@@ -211,13 +255,7 @@ func RunScenario(in ScenarioInput, sc Scenario) (ScenarioResult, error) {
 	if err := sc.check(in.Graph); err != nil {
 		return ScenarioResult{}, err
 	}
-	g := degraded{base: in.Graph, links: map[types.LinkID]bool{}, nodes: map[types.NodeID]bool{}}
-	for _, link := range sc.LinksDown {
-		g.links[link] = true
-	}
-	for _, node := range sc.NodesDown {
-		g.nodes[node] = true
-	}
+	g := Degrade(in.Graph, sc.LinksDown, sc.NodesDown).(degraded)
 	compute := in.Compute
 	if compute == nil {
 		compute = route.Compute

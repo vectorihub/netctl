@@ -63,7 +63,7 @@ func cleanPlan(t testing.TB, directUp bool) *validate.Plan {
 	}
 	return &validate.Plan{
 		Topology: topo, IPAM: registry.Snapshot(), Unusable: unusable, Graph: graph, Input: input,
-		Tables: computed.Tables, Configs: configs, Flows: flows,
+		Tables: computed.Tables, Unreachable: computed.Unreachable, Configs: configs, Flows: flows,
 	}
 }
 

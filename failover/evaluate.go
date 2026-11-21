@@ -393,16 +393,7 @@ func (n Network) checkFlows() error {
 
 // simulate runs every flow over the tables on the graph and reports.
 func (n Network) simulate(graph route.Graph, tables route.Tables, unreachable []route.Pair) sim.Report {
-	net := sim.NewNet(graph, tables, n.Input.Owned, n.Input.Local)
-	cutOff := map[[2]types.NodeID]bool{}
-	for _, pair := range unreachable {
-		cutOff[[2]types.NodeID{pair.From, pair.To}] = true
-	}
-	results := make([]sim.FlowResult, 0, len(n.Flows))
-	for _, flow := range n.Flows {
-		results = append(results, net.Run(flow, cutOff[[2]types.NodeID{flow.From, flow.To}]))
-	}
-	return sim.NewReport(results)
+	return sim.Simulate(graph, tables, n.Input, unreachable, n.Flows)
 }
 
 // failing returns the flows of the report that fail the gate, by label.

@@ -225,3 +225,30 @@ func ExampleScenarioResult_JSON() {
 	// {
 	//   "name": "baseline",
 }
+
+// ExampleDegrade shows a network with its direct link failed: the same graph, with every
+// edge of the link marked down, and the original left alone.
+func ExampleDegrade() {
+	g := network{direct: true}
+	down := sim.Degrade(g, linkIDs("builder-1~dgx-spark"), nil)
+	for _, e := range down.Edges("builder-1") {
+		fmt.Println(e.Link, "down:", e.Down)
+	}
+	fmt.Println("the original is untouched:", !g.Edges("builder-1")[0].Down)
+	// Output:
+	// aws-hub~builder-1 down: false
+	// builder-1~dgx-spark down: true
+	// the original is untouched: true
+}
+
+// ExampleSimulate shows flows sent over tables the routing engine made, with no
+// recomputation: every flow of the three-node network is delivered both ways.
+func ExampleSimulate() {
+	g := network{direct: true}
+	in := route.Input{Owned: owned()}
+	computed, _ := route.Compute(g, in)
+	report := sim.Simulate(g, computed.Tables, in, computed.Unreachable, exampleFlows())
+	fmt.Println(report.Passed, report.Summary.Total, report.Summary.Count(sim.VerdictOK))
+	// Output:
+	// true 6 6
+}

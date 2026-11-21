@@ -59,6 +59,14 @@ type Plan struct {
 	//
 	//	the Tables of route.Compute.
 	Tables route.Tables
+	// Unreachable lists the pairs of nodes the routing engine found no path between
+	// (its Result.Unreachable), so a flow between two cut-off nodes is judged cut
+	// off and not a black hole.
+	//
+	// Example:
+	//
+	//	the Unreachable of route.Compute.
+	Unreachable []route.Pair
 	// Configs are the generated configs, one for each node.
 	//
 	// Example:
