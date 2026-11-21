@@ -30,12 +30,16 @@ lint: purity
 	  echo "staticcheck not found; install: go install honnef.co/go/tools/cmd/staticcheck@$(STATICCHECK_VERSION)"; exit 1; }
 	staticcheck ./...
 
+## test: every package's tests, one package at a time so the wall-clock performance tests
+## do not compete with each other. The Phase 1 end-to-end suite has its own targets
+## (e2e-phase1, e2e-phase1-fast) and is left out here: its scale and chaos groups take
+## longer than go test's default 10 minutes.
 test:
-	go test -count=1 ./...
+	go test -p 1 -count=1 $$(go list ./... | grep -v '/test/e2e/phase1$$')
 
 ## race: tests under the race detector.
 race:
-	go test -race -count=1 ./...
+	go test -race -count=1 $$(go list ./... | grep -v '/test/e2e/phase1$$')
 
 ## arch: architecture guard. P1-ARCH-001 is the import-graph test in ./arch;
 ## P1-ARCH-002 is the Windows build.
