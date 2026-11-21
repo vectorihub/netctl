@@ -9,6 +9,39 @@ changes, and each one is listed under **Breaking Changes** for that release.
 
 ## [Unreleased]
 
+# Release (unreleased) (R11)
+
+## Announcements
+The Phase 1 end-to-end suite and its gate tooling. This release changes the library in two small ways, both
+needed to run the suite end to end; everything else is test code.
+
+## Package Highlights
+
+#### `topology`
+* A site can take its block from another pool on purpose: `override: {pool: growth, reason: "approved expansion"}`
+  (`Site.Override`). The reason is required and is kept in the allocation's note.
+
+#### `validate`
+* V-CFG-005 also scans node labels, so a key typed into the input is refused before it reaches a config. The
+  finding names the label and never repeats the value.
+
+#### `plan`
+* Honours the site override when it allocates.
+
+## Documentation
+* `docs/quickstart.md`: planning, re-planning with state, and reading a refusal.
+* `make e2e-phase1`, `e2e-phase1-fast`, `e2e-phase1-chaos` and `cover` (coverage gate: 85% overall, 90% for
+  ipam, route, sim and validate).
+
+## Breaking Changes
+None.
+
+## Schema Versions
+Unchanged.
+
+## Upgrading
+Nothing to do.
+
 # Release (unreleased) (v0.9.0)
 
 ## Announcements

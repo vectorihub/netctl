@@ -138,6 +138,8 @@ node: 10.42.240.1/32 owned by node:east-1
 
 ## Documentation
 
+A short walkthrough of planning, re-planning with state and reading a refusal is in [docs/quickstart.md](docs/quickstart.md).
+
 The full API reference, with runnable examples, is on [pkg.go.dev](https://pkg.go.dev/github.com/vectorihub/netctl).
 
 | Package | Purpose |
