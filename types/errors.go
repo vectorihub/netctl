@@ -31,6 +31,9 @@ const (
 	ErrNoRoute Code = "NO_ROUTE"
 	// ErrUnsupportedSchema means an input uses a format version netctl does not know.
 	ErrUnsupportedSchema Code = "UNSUPPORTED_SCHEMA"
+	// ErrInvalidValue means a value is not one of the allowed names, for example
+	// an unknown route source or verdict read from text or JSON.
+	ErrInvalidValue Code = "INVALID_VALUE"
 )
 
 // Error is a coded error about one subject (a prefix, node, link or file).

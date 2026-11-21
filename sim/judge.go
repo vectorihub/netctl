@@ -148,6 +148,9 @@ func pathOf(trace Trace) string {
 // The forward trace of a negative flow that was correctly dropped is not a
 // problem, and neither is a trace that failed only because the pair is
 // partitioned.
+//
+// Example: a forward trace that ended in a black hole at aws-hub gives one problem, of kind
+// black_hole, direction forward, node aws-hub.
 func ProblemsOf(forward Trace, ret *Trace, verdict Verdict) []Problem {
 	if !verdict.FailsGate() && verdict != VerdictOKAsymmetricAllowed {
 		return nil

@@ -219,3 +219,34 @@ func ExampleRoute() {
 	// {"prefix":"10.42.32.0/20","next_hop":"dgx-spark","via":"builder-1~dgx-spark","metric":10,"source":"computed","path":["builder-1","dgx-spark"],"active":true}
 	// {"prefix":"10.42.16.0/20","metric":0,"source":"connected","active":true}
 }
+
+// ExampleSource_String shows the name of each source of a route.
+func ExampleSource_String() {
+	fmt.Println(route.SourceBackup, route.SourceComputed, route.SourceUnknown)
+	// Output:
+	// backup computed unknown
+}
+
+// ExampleSource_MarshalText shows a source written as its name, and the zero
+// source refused with a coded error so that a half-filled route is never written.
+func ExampleSource_MarshalText() {
+	text, _ := route.SourceComputed.MarshalText()
+	fmt.Println(string(text))
+	_, err := route.SourceUnknown.MarshalText()
+	fmt.Println(types.HasCode(err, types.ErrInvalidValue))
+	// Output:
+	// computed
+	// true
+}
+
+// ExampleSource_UnmarshalText shows a name read back, and a name that is not one
+// refused with a coded error and the receiver left alone.
+func ExampleSource_UnmarshalText() {
+	var source route.Source
+	fmt.Println(source.UnmarshalText([]byte("static")), source)
+	err := source.UnmarshalText([]byte("learned"))
+	fmt.Println(types.HasCode(err, types.ErrInvalidValue), source)
+	// Output:
+	// <nil> static
+	// true static
+}

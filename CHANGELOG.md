@@ -44,7 +44,13 @@ changes, and each one is listed under **Breaking Changes** for that release.
 * Shortest paths run on integers with a typed heap: 500 nodes, one hub and 200 direct links compute in about
   half a second on a 2016 laptop (the target is under one second), and 2,000 nodes with four hubs in about
   eleven seconds. The 2,000-node target in the plan covers validation only, which arrives with the validator.
+* `Compare` orders routes by the canonical block, so a route written with host bits set (`10.42.16.5/20`) sorts
+  with `10.42.16.0/20`; the spelling only breaks the very last tie, so the order stays total.
 * The package is now in the README and the root documentation.
+
+#### `types`
+* New error code `INVALID_VALUE`, returned (and found with `errors.Is`, also through `encoding/json`) when a route
+  source, hop result, verdict or flow family is unset or not a known name, and when `Flows` is given no input.
 
 #### `sim` (new, not yet complete)
 * The vocabulary of simulation: `Packet`, `Hop`, `Trace`, `Flow`, `FlowResult`, `Report`, and the verdicts
