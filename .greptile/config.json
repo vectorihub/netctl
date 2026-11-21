@@ -6,7 +6,7 @@
     {
       "id": "library-stays-pure",
       "severity": "high",
-      "rule": "Outside package main and *_test.go, code must do no file, clock, environment or network access. Flag os.Open, os.ReadFile, os.Getenv, time.Now(), and imports of os/exec, syscall, net/http, database/sql, netlink, WireGuard or nftables. Time must come in through the Clock interface; the caller does all I/O."
+      "rule": "Outside package main and *_test.go, code must do no file, clock, environment or network access. Flag os.Open, os.ReadFile, os.Getenv, time.Now(), and imports of os/exec, syscall, net/http, database/sql, netlink, WireGuard or nftables. Time must come in through the Clock interface; the caller does all I/O. Exempt: the test-support packages internal/e2e, internal/ptimport and internal/covercheck (the same list the Makefile's purity target exempts), which exist to write and read workspaces and fixtures for tests and are never imported by the library."
     },
     {
       "id": "deterministic-output",

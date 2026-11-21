@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -18,15 +19,15 @@ import (
 	"github.com/vectorihub/netctl/types"
 )
 
-// chaosCases is how many random cases a run plans: E2E_CHAOS_CASES, or 300. A case takes about
-// three seconds on four cores, so the guide's 2,000 per push and 20,000 nightly are set with
+// chaosCases is how many random cases a run plans: E2E_CHAOS_CASES, or 100. A case takes about
+// four seconds on four cores, so the guide's 2,000 per push and 20,000 nightly are set with
 // E2E_CHAOS_CASES by CI. A single case is reproduced with E2E_CHAOS_SEED.
 func chaosCases() []uint64 {
 	if s := os.Getenv("E2E_CHAOS_SEED"); s != "" {
 		n, _ := strconv.ParseUint(s, 10, 64)
 		return []uint64{n}
 	}
-	count := 300
+	count := 100
 	if s := os.Getenv("E2E_CHAOS_CASES"); s != "" {
 		count, _ = strconv.Atoi(s)
 	}
@@ -137,6 +138,30 @@ func (t timeline) signalsBetween(from, to time.Duration) []health.Signal {
 	return s.List()
 }
 
+// checkpoints returns the moments at which a case plans while the links are living through
+// their outages, in order and without repeats: twenty seconds into every outage, when the link
+// is down, and ninety seconds after it ends, when it has had time to prove itself again. A
+// plan at each of them means a failover that misbehaves while a link is down cannot hide
+// behind a healthy plan at the end. Quiet stretches are still planned every ten minutes.
+func (t timeline) checkpoints() []time.Duration {
+	seen := map[time.Duration]bool{}
+	for _, minutes := range []int{10, 20, 30} {
+		seen[time.Duration(minutes)*time.Minute] = true
+	}
+	for _, starts := range t.outage {
+		for _, start := range starts {
+			seen[start+20*time.Second] = true
+			seen[start+15*time.Second+90*time.Second] = true
+		}
+	}
+	var out []time.Duration
+	for at := range seen {
+		out = append(out, at)
+	}
+	slices.Sort(out)
+	return out
+}
+
 // runCase plans one random network through a random life and returns the invariants it broke.
 func runCase(seed uint64) (found []violation) {
 	rng := rand.New(rand.NewPCG(seed, 99))
@@ -176,6 +201,7 @@ func runCase(seed uint64) (found []violation) {
 	}
 	fresh := plan("out-0", topo, nil, 0)
 	if !fresh.OK() {
+		add(inv123, "the fresh plan of a generated network was refused: %v", fresh.Err)
 		return found
 	}
 	proof := new(e2e.Signals)
@@ -184,17 +210,19 @@ func runCase(seed uint64) (found []violation) {
 	}
 	base := plan("out-1", topo, proof.List(), 30*time.Second)
 	if !base.OK() {
+		add(inv123, "the proven baseline plan of a generated network was refused: %v", base.Err)
 		return found
 	}
 	cursor := 30 * time.Second
-	for slice := 1; slice <= 6; slice++ {
-		end := time.Duration(slice) * 300 * time.Second
-		plan(fmt.Sprintf("slice-%d", slice), topo, tl.signalsBetween(cursor+5*time.Second, end), end)
+	for i, end := range tl.checkpoints() {
+		plan(fmt.Sprintf("slice-%d", i+1), topo, tl.signalsBetween(cursor+5*time.Second, end), end)
 		cursor = end
 	}
 	heal := cursor + 4*time.Minute
 	final := plan("healed", topo, tl.signalsBetween(cursor+5*time.Second, heal), heal)
-	if final.OK() && final.Result.PlanID != base.Result.PlanID {
+	if !final.OK() {
+		add(inv124, "the healed plan was refused: %v", final.Err)
+	} else if final.Result.PlanID != base.Result.PlanID {
 		add(inv124, "after healing the plan is %s, the baseline %s (%d nodes, %d direct links)", final.Result.PlanID, base.Result.PlanID, spec.Nodes, spec.Direct)
 	}
 	cursor = heal
