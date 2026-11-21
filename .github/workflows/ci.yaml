@@ -36,6 +36,8 @@ jobs:
         run: make race
       - name: make arch (builds for Windows)
         run: make arch
+      - name: make consumer (netctl as a dependency)
+        run: make consumer
       - name: API changes since the latest tag (report only)
         if: matrix.os == 'ubuntu-latest'
         run: |

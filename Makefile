@@ -3,7 +3,7 @@
 
 STATICCHECK_VERSION := v0.7.0
 
-.PHONY: check fmt-check vet lint purity test race arch fuzz bench repro windows apidiff
+.PHONY: check fmt-check vet lint purity test race arch fuzz bench repro windows apidiff consumer
 
 ## check: the everyday gate — formatting, vet, tests. A red result fails CI.
 check: fmt-check vet test
@@ -71,6 +71,12 @@ bench:
 ## The byte-for-byte determinism proof is V61.
 repro:
 	go test -count=2 -shuffle=on ./...
+
+## consumer: the consumer-module contract test. testdata/consumer is a separate Go module that
+## requires netctl at this working tree, builds a network in code, calls netctl.Plan and checks
+## the result, and that depending on netctl pulls in no forbidden package.
+consumer:
+	cd testdata/consumer && go vet ./... && go test -count=1 ./...
 
 ## apidiff: report how the exported API changed since the latest tag (APIBASE overrides it).
 ## It never fails the build: the report is read on every tag, and a breaking change before
