@@ -51,6 +51,10 @@ func (w *W) Golden(name string, got []byte) {
 
 // GoldenAt is Golden for an explicit file path, shared with the lab tests whose goldens
 // live beside their observations.
+//
+// Example:
+//
+//	e2e.GoldenAt(w, path, data)
 func GoldenAt(w *W, path string, got []byte) {
 	w.T.Helper()
 	if *update {
@@ -74,13 +78,14 @@ func GoldenAt(w *W, path string, got []byte) {
 // GoldenDir compares every file of a plan's output with the golden directory of that name
 // (testdata/golden/e2e/<test-id>/<name>/), in both directions: a file that exists on only
 // one side fails.
+//
+// Example:
+//
+//	w.GoldenDir(out, "baseline")
 func (w *W) GoldenDir(o *Out, name string) {
 	w.T.Helper()
 	for path, data := range o.Files {
 		w.Golden(filepath.Join(name, filepath.FromSlash(path)), Masked(data))
-	}
-	if *update {
-		return
 	}
 	root, err := ModuleRoot()
 	if err != nil {
@@ -92,8 +97,17 @@ func (w *W) GoldenDir(o *Out, name string) {
 			return nil
 		}
 		rel, _ := filepath.Rel(base, path)
-		if _, ok := o.Files[filepath.ToSlash(rel)]; !ok {
+		if _, ok := o.Files[filepath.ToSlash(rel)]; ok {
+			return nil
+		}
+		if !*update {
 			w.Fatalf("golden %s has %s, the plan does not", name, rel)
+			return nil
+		}
+		// -update makes the directory match the plan: a file the plan no longer
+		// produces is removed, so the next normal run agrees.
+		if rmErr := os.Remove(path); rmErr != nil {
+			w.Fatalf("golden %s: removing stale %s: %v", name, rel, rmErr)
 		}
 		return nil
 	})

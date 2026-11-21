@@ -9,9 +9,15 @@ import (
 	"sort"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/vectorihub/netctl/cidr"
 )
 
 // Route is one line of show ip route, as transcribed.
+//
+// Example:
+//
+//	r := ptimport.Route{Code: "S", Prefix: netip.MustParsePrefix("10.42.32.0/20"), Via: "10.42.252.6"}
 type Route struct {
 	// Code is the Cisco route code: C connected, S static.
 	Code string `yaml:"code"`
@@ -25,6 +31,10 @@ type Route struct {
 }
 
 // Traceroute is one traceroute, as transcribed.
+//
+// Example:
+//
+//	t := ptimport.Traceroute{From: "PC-BUILDER", To: "10.42.32.10", Hops: []string{"10.42.252.1", "10.42.32.10"}}
 type Traceroute struct {
 	// From is the host or router the trace started on.
 	From string `yaml:"from"`
@@ -38,6 +48,10 @@ type Traceroute struct {
 }
 
 // Device is one file of an observation: one device and what it showed.
+//
+// Example:
+//
+//	d := ptimport.Device{Device: "R-HUB", MapsTo: "aws-hub"}
 type Device struct {
 	// Device is the name in Packet Tracer, for example "R-HUB".
 	Device string `yaml:"device"`
@@ -53,6 +67,10 @@ type Device struct {
 
 // Mapping is the optional mapping.yaml of an observation: names and addresses that the
 // plan's allocations cannot tell the importer.
+//
+// Example:
+//
+//	m := ptimport.Mapping{Hosts: map[string]string{"PC-BUILDER": "builder-1"}}
 type Mapping struct {
 	// Hosts maps a host name (a PC) to the node whose site it sits in.
 	Hosts map[string]string `yaml:"hosts"`
@@ -62,6 +80,11 @@ type Mapping struct {
 }
 
 // Observation is everything transcribed for one lab.
+//
+// Example:
+//
+//	obs, err := ptimport.Parse(files)
+//	devices := obs.Devices
 type Observation struct {
 	// Devices are the device files, sorted by name.
 	Devices []Device
@@ -102,6 +125,14 @@ func Parse(files map[string][]byte) (Observation, error) {
 		if d.Device == "" || d.MapsTo == "" {
 			return obs, fmt.Errorf("%s: device and maps_to are required", name)
 		}
+		// Prefixes are masked once, here, so 10.42.16.1/20 and 10.42.16.0/20 compare as the one
+		// network they are.
+		for i, r := range d.ShowIPRoute {
+			if !r.Prefix.IsValid() {
+				return obs, fmt.Errorf("%s: route %d has no valid prefix", name, i+1)
+			}
+			d.ShowIPRoute[i].Prefix, _ = cidr.Canonical(r.Prefix)
+		}
 		obs.Devices = append(obs.Devices, d)
 	}
 	return obs, nil
@@ -109,6 +140,10 @@ func Parse(files map[string][]byte) (Observation, error) {
 
 // Load reads every .yaml file of a directory into an Observation. A missing directory is
 // reported as os.ErrNotExist so a test can skip a lab whose results are not transcribed yet.
+//
+// Example:
+//
+//	obs, err := ptimport.Load("testdata/golden/lab-a2/observed")
 func Load(dir string) (Observation, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -132,6 +167,10 @@ func Load(dir string) (Observation, error) {
 }
 
 // States returns the lab states the observation covers, sorted; "" stands for the only state.
+//
+// Example:
+//
+//	states := obs.States() // [""] for a lab with one state
 func (o Observation) States() []string {
 	seen := map[string]bool{}
 	for _, d := range o.Devices {

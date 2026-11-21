@@ -15,6 +15,10 @@ import (
 var Thresholds = map[string]float64{"": 85, "ipam": 90, "route": 90, "sim": 90, "validate": 90}
 
 // Result is the coverage of one package against its threshold.
+//
+// Example:
+//
+//	res := covercheck.Result{Percent: 96.8, Need: 85}
 type Result struct {
 	// Package is the directory, or "overall".
 	Package string
@@ -25,9 +29,17 @@ type Result struct {
 }
 
 // Ok reports whether the threshold is met.
+//
+// Example:
+//
+//	ok := res.Ok() // true when the coverage meets the threshold
 func (r Result) Ok() bool { return r.Percent >= r.Need }
 
 // String writes the result on one line.
+//
+// Example:
+//
+//	fmt.Println(res.String()) // a one-line verdict for the test log
 func (r Result) String() string {
 	status := "ok"
 	if !r.Ok() {

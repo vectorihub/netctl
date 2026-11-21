@@ -23,6 +23,10 @@ func Baseline(w *W) (fresh, base *Out) {
 }
 
 // BaselineFrom is Baseline for a topology file already in the workspace.
+//
+// Example:
+//
+//	fresh, base := e2e.BaselineFrom(w, "three-site.yaml")
 func BaselineFrom(w *W, file string) (fresh, base *Out) {
 	w.T.Helper()
 	return BaselineWith(w, file, nil)

@@ -53,3 +53,49 @@ func TestWithoutTheOverrideTheGrowthPoolStaysClosed(t *testing.T) {
 		}
 	}
 }
+
+// TestChangingASitesPoolMovesItsBlock checks that giving an existing site an override, and
+// later taking it away, moves the site's block between pools instead of leaving it holding
+// two allocated blocks.
+func TestChangingASitesPoolMovesItsBlock(t *testing.T) {
+	in := fresh(t)
+	in.Topology.Sites = append(in.Topology.Sites, topology.Site{ID: "extra"})
+	in.Topology.Nodes = append(in.Topology.Nodes, topology.Node{ID: "extra-1", Site: "extra", Role: types.RoleSpoke})
+	in.Topology.Links = append(in.Topology.Links, topology.Link{Kind: types.LinkHubSpoke, A: hub, B: "extra-1"})
+	in.Topology.Normalize()
+	first := mustPlan(t, in)
+
+	// held counts the allocated blocks the site holds, and reports the pool of the last.
+	held := func(r ipam.Snapshot) (n int, pool ipam.PoolName) {
+		for _, a := range r.Allocations {
+			if a.Owner == ipam.Site("extra") && a.State == ipam.Allocated {
+				n, pool = n+1, a.Pool
+			}
+		}
+		return n, pool
+	}
+	if n, pool := held(first.IPAM); n != 1 || pool == "growth" {
+		t.Fatalf("before the override the site holds %d blocks (last from %s), want 1 from the sites pool", n, pool)
+	}
+
+	moved := fresh(t)
+	withOverride := *in.Topology // a copy, so the baseline keeps its sites
+	moved.Topology, moved.IPAM = &withOverride, first.IPAM
+	withOverride.Sites = append([]topology.Site(nil), in.Topology.Sites...)
+	for i := range withOverride.Sites {
+		if withOverride.Sites[i].ID == "extra" {
+			withOverride.Sites[i].Override = &topology.SiteOverride{Pool: "growth", Reason: "approved expansion"}
+		}
+	}
+	second := mustPlan(t, moved)
+	if n, pool := held(second.IPAM); n != 1 || pool != "growth" {
+		t.Fatalf("with the override the site holds %d blocks (last from %s), want 1 from growth", n, pool)
+	}
+
+	back := fresh(t)
+	back.Topology, back.IPAM = in.Topology, second.IPAM
+	third := mustPlan(t, back)
+	if n, pool := held(third.IPAM); n != 1 || pool == "growth" {
+		t.Fatalf("after the override is removed the site holds %d blocks (last from %s), want 1 from the sites pool", n, pool)
+	}
+}

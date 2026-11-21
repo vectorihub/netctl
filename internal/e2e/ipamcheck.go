@@ -24,6 +24,11 @@ type ipamFile struct {
 }
 
 // IPAMCounts are the totals the checker works out for itself, in addresses.
+//
+// Example:
+//
+//	problems, counts := e2e.CheckIPAM(out.Files["ipam.json"])
+//	_ = counts.Allocated
 type IPAMCounts struct {
 	// Total is the size of the supernet.
 	Total uint64
@@ -134,6 +139,10 @@ func span(p netip.Prefix) (uint64, uint64) {
 
 // ExpectIPAMOK fails the test unless the checker finds the plan's ipam.json sound and its
 // counts agree with what the ipam package reports for the same file.
+//
+// Example:
+//
+//	w.ExpectIPAMOK(out) // the address plan is consistent
 func (w *W) ExpectIPAMOK(o *Out) {
 	w.T.Helper()
 	problems, counts := CheckIPAM(o.Files["ipam.json"])

@@ -32,6 +32,11 @@ type oracleNode struct {
 }
 
 // Path is one packet's journey as the oracle walks it.
+//
+// Example:
+//
+//	path := w.OraclePath(out, "builder-1", "dgx-spark")
+//	hops := path.Hops
 type Path struct {
 	// Hops are the node IDs visited, source first.
 	Hops []string
@@ -42,6 +47,11 @@ type Path struct {
 }
 
 // OraclePair is both directions between two nodes.
+//
+// Example:
+//
+//	pairs, err := out.Oracle()
+//	pair := pairs[[2]string{"builder-1", "dgx-spark"}]
 type OraclePair struct {
 	// Forward is the walk from the first node to the second's overlay address.
 	Forward Path
@@ -57,6 +67,10 @@ type OraclePair struct {
 // WireGuard would drop the packet), and checks that the receiving peer would accept the
 // source address. It fails on a missing route, a missing peer, a disallowed prefix, a
 // revisited node, or more than eight hops. The keys are [source, destination].
+//
+// Example:
+//
+//	pairs, err := out.Oracle() // every pair of nodes
 func (o *Out) Oracle() (map[[2]string]OraclePair, error) {
 	nodes, err := o.oracleNodes()
 	if err != nil {
@@ -78,6 +92,10 @@ func (o *Out) Oracle() (map[[2]string]OraclePair, error) {
 }
 
 // OracleSample is Oracle for the given pairs only, for networks too large to walk in full.
+//
+// Example:
+//
+//	pairs, err := out.OracleSample([][2]string{{"builder-1", "dgx-spark"}})
 func (o *Out) OracleSample(pairs [][2]string) (map[[2]string]OraclePair, error) {
 	nodes, err := o.oracleNodes()
 	if err != nil {
@@ -253,6 +271,10 @@ func (w *W) ExpectOracleOK(o *Out, skip ...string) {
 
 // OraclePath returns the oracle's forward path between two nodes, failing the test when the
 // configs cannot be walked.
+//
+// Example:
+//
+//	path := w.OraclePath(out, "builder-1", "dgx-spark")
 func (w *W) OraclePath(o *Out, src, dst string) Path {
 	w.T.Helper()
 	pairs, err := o.Oracle()
