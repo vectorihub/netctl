@@ -29,6 +29,11 @@ type planNode struct {
 
 // Plan is what a comparison needs of a plan: its rendered files and its address plan. The
 // caller fills it from a plan result, which keeps this package free of the planner.
+//
+// Example:
+//
+//	plan := out.ForPacketTracer(topo, obs.Mapping)
+//	problems := ptimport.CompareRoutes(obs, "", plan)
 type Plan struct {
 	// Files are the rendered files of the plan, by path ("nodes/aws-hub.json").
 	Files map[string][]byte
@@ -107,7 +112,8 @@ func CompareRoutes(obs Observation, state string, plan Plan) []string {
 }
 
 // hasRoute reports whether the node has a route to the prefix via the next hop, active or a
-// backup as asked. A backup must not be active.
+// backup as asked. A backup must be a backup route of the plan and not active: an inactive
+// route that is not a backup is only a leftover.
 func hasRoute(n planNode, prefix, via string, active bool) bool {
 	for _, r := range n.Routes {
 		if r.Prefix != prefix || r.Via != via {
@@ -116,7 +122,7 @@ func hasRoute(n planNode, prefix, via string, active bool) bool {
 		if active && r.Active {
 			return true
 		}
-		if !active && !r.Active {
+		if !active && !r.Active && r.Backup {
 			return true
 		}
 	}
@@ -128,10 +134,28 @@ func ownsPrefix(n planNode, p netip.Prefix) bool {
 	return slices.Contains(n.Advertise, p.String())
 }
 
+// destinationNode returns the node a traceroute's destination stands for: the node that owns
+// the address, the node of the site that holds it, or the node the mapping gives a host name.
+func destinationNode(obs Observation, plan Plan, to string) (string, bool) {
+	if node, ok := plan.Resolver.Node(to); ok {
+		return node, true
+	}
+	if node, ok := plan.Resolver.SiteNode(to, plan.SiteNodes); ok {
+		return node, true
+	}
+	node, ok := obs.Mapping.Hosts[to]
+	return node, ok
+}
+
 // ComparePaths checks every observed traceroute against the plan's path between the same
 // nodes. The lab's hop addresses become nodes through the resolver; the final hop, a host,
 // becomes the node of its site; consecutive repeats are merged; the starting host's node is
-// put in front. The plan's path must equal that sequence.
+// put in front. The trace must end at the node its destination address stands for, and the
+// plan's path must equal that sequence.
+//
+// Example:
+//
+//	problems := ptimport.ComparePaths(obs, "", plan)
 func ComparePaths(obs Observation, state string, plan Plan) []string {
 	var problems []string
 	for _, d := range obs.Devices {
@@ -163,7 +187,15 @@ func ComparePaths(obs Observation, state string, plan Plan) []string {
 			if bad {
 				continue
 			}
-			dst := want[len(want)-1]
+			dst, ok := destinationNode(obs, plan, t.To)
+			if !ok {
+				problems = append(problems, fmt.Sprintf("%s traceroute %s -> %s: destination %s is unmapped", d.Device, t.From, t.To, t.To))
+				continue
+			}
+			if reached := want[len(want)-1]; reached != dst {
+				problems = append(problems, fmt.Sprintf("%s traceroute %s -> %s: the trace ends at %s, not at %s", d.Device, t.From, t.To, reached, dst))
+				continue
+			}
 			got, err := plan.Path(src, dst)
 			if err != nil {
 				problems = append(problems, fmt.Sprintf("%s traceroute %s -> %s: %v", d.Device, t.From, t.To, err))

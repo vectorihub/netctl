@@ -169,3 +169,32 @@ func TestTheResolverMapsOverlayAndTransitAddresses(t *testing.T) {
 		t.Error("an address outside the plan resolved")
 	}
 }
+
+// TestAPrefixWithHostBitsMatchesTheNetwork transcribes a route whose prefix has host bits set
+// (10.42.32.1/20) and expects it to compare equal to the plan's 10.42.32.0/20.
+func TestAPrefixWithHostBitsMatchesTheNetwork(t *testing.T) {
+	w, out := plannedLab(t)
+	loose := strings.Replace(builder, "prefix: 10.42.32.0/20", "prefix: 10.42.32.1/20", 1)
+	obs, err := ptimport.Parse(map[string][]byte{"R-BUILDER.yaml": []byte(loose), "mapping.yaml": []byte(mapping)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if problems := ptimport.CompareRoutes(obs, "", out.ForPacketTracer(w.Load("lab-a2.yaml"), obs.Mapping)); len(problems) != 0 {
+		t.Errorf("problems: %v", problems)
+	}
+}
+
+// TestATraceThatStopsShortIsReported transcribes a trace aimed at the DGX Spark host that
+// stops at the hub, which is a valid path to the hub but not to its destination.
+func TestATraceThatStopsShortIsReported(t *testing.T) {
+	w, out := plannedLab(t)
+	short := strings.Replace(hub, "hops: [10.42.252.1, 10.42.252.6, 10.42.32.10]", "hops: [10.42.252.1]", 1)
+	obs, err := ptimport.Parse(map[string][]byte{"R-HUB.yaml": []byte(short), "mapping.yaml": []byte(mapping)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	problems := ptimport.ComparePaths(obs, "", out.ForPacketTracer(w.Load("lab-a2.yaml"), obs.Mapping))
+	if len(problems) != 1 || !strings.Contains(problems[0], "the trace ends at") {
+		t.Errorf("problems: %v", problems)
+	}
+}

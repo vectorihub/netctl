@@ -12,6 +12,10 @@ import (
 // a node's overlay /32, and the two hosts of a link's transit /30 (the lower address to the
 // lexically smaller node ID). Addresses the plan does not allocate come from the lab's
 // mapping.
+//
+// Example:
+//
+//	node, ok := resolver.Node("10.42.0.2")
 type Resolver struct {
 	snapshot ipam.Snapshot
 	mapping  Mapping
@@ -27,6 +31,10 @@ func NewResolver(snapshot ipam.Snapshot, mapping Mapping) Resolver {
 }
 
 // Node returns the node that owns the address.
+//
+// Example:
+//
+//	node, ok := resolver.Node("10.42.0.2") // "aws-hub", true
 func (r Resolver) Node(address string) (string, bool) {
 	if node, ok := r.mapping.Hops[address]; ok {
 		return node, true
@@ -64,6 +72,10 @@ func (r Resolver) Node(address string) (string, bool) {
 // SiteNode returns the node whose site holds the address, for a host address such as
 // 10.42.32.10. It reports the node by the site owner's ID through the mapping of site to
 // node: the first node of the site that appears in the nodes map.
+//
+// Example:
+//
+//	node, ok := resolver.SiteNode("10.42.32.10", siteNodes)
 func (r Resolver) SiteNode(address string, siteNodes map[string]string) (string, bool) {
 	addr, err := netip.ParseAddr(address)
 	if err != nil {
@@ -79,6 +91,10 @@ func (r Resolver) SiteNode(address string, siteNodes map[string]string) (string,
 }
 
 // Describe names an address for a failure message: the node that owns it, or "unmapped".
+//
+// Example:
+//
+//	label := resolver.Describe("10.42.0.2") // "aws-hub", or "unmapped"
 func (r Resolver) Describe(address string) string {
 	if node, ok := r.Node(address); ok {
 		return fmt.Sprintf("%s (%s)", address, node)

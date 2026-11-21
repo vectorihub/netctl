@@ -12,6 +12,10 @@ import (
 
 // Signals builds a stream of health observations the way the guide's tests describe them:
 // "five good probes from both ends, every five seconds, starting at T0+5s".
+//
+// Example:
+//
+//	s := (&e2e.Signals{}).Probes("aws-hub~builder-1", true, 5, 0, time.Second)
 type Signals struct{ list []health.Signal }
 
 // probeOpts are the settings an Opt changes.
@@ -21,6 +25,10 @@ type probeOpts struct {
 }
 
 // Opt changes how Probes builds its signals.
+//
+// Example:
+//
+//	s.Probes("aws-hub~builder-1", false, 3, 0, time.Second, e2e.OneWay("aws-hub"))
 type Opt func(*probeOpts)
 
 // OneWay makes only the given end of the link observe the signals, which is how the tests
@@ -72,6 +80,10 @@ func (s *Signals) Probes(link string, ok bool, n int, start, interval time.Durat
 }
 
 // Add appends the signals of other to s, for streams built in pieces.
+//
+// Example:
+//
+//	all := s.Add(other) // both lists, in order
 func (s *Signals) Add(other *Signals) *Signals {
 	s.list = append(s.list, other.list...)
 	return s
@@ -79,6 +91,10 @@ func (s *Signals) Add(other *Signals) *Signals {
 
 // List returns the signals in time order. Equal times keep the order they were added in,
 // which is the rule for a signals file.
+//
+// Example:
+//
+//	list := s.List() // the health.Signal values to give Inputs.Signals
 func (s *Signals) List() []health.Signal {
 	out := slices.Clone(s.list)
 	slices.SortStableFunc(out, func(a, b health.Signal) int { return a.At.Compare(b.At) })
@@ -86,6 +102,10 @@ func (s *Signals) List() []health.Signal {
 }
 
 // Len returns how many signals there are.
+//
+// Example:
+//
+//	n := s.Len()
 func (s *Signals) Len() int { return len(s.list) }
 
 // signalsFile is the signals file format of the contract.

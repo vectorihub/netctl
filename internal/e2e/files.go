@@ -57,6 +57,10 @@ func copyTree(src, dst string) error {
 // ModuleRoot returns the directory of the netctl module. It is worked out from the location
 // of this source file, so it does not depend on the working directory of the test, which a
 // test may change.
+//
+// Example:
+//
+//	root, err := e2e.ModuleRoot()
 func ModuleRoot() (string, error) {
 	_, file, _, ok := runtime.Caller(0)
 	if !ok {
