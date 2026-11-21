@@ -373,10 +373,12 @@ func Run(p *Plan, opts Options, rules []Rule) Result {
 	return Result{Findings: found, Suppressed: suppressed, OK: !slices.ContainsFunc(found, func(f Finding) bool { return f.Level == Error })}
 }
 
-// compareFindings orders findings by level, rule, subject and message.
+// compareFindings orders findings by level, rule, subject, message, hint and detail, so that
+// two findings that differ anywhere differ in order too, and the report never depends on the
+// order they were made in.
 func compareFindings(a, b Finding) int {
 	return cmp.Or(cmp.Compare(a.Level.rank(), b.Level.rank()), cmp.Compare(a.Rule, b.Rule), cmp.Compare(a.Subject, b.Subject),
-		cmp.Compare(a.Message, b.Message), cmp.Compare(a.Hint, b.Hint))
+		cmp.Compare(a.Message, b.Message), cmp.Compare(a.Hint, b.Hint), cmp.Compare(a.Detail, b.Detail))
 }
 
 // sortFindings puts findings in their fixed order.

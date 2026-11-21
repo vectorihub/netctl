@@ -324,7 +324,12 @@ func healthLinks(t *topology.Topology, from *health.Evaluator) (*health.Evaluato
 		id := types.LinkIDOf(l.A, l.B)
 		if from != nil {
 			if old, ok := from.Links[id]; ok {
-				links = append(links, old.Clone())
+				// The observations are carried over; whether the link must be proven is
+				// the topology's word today, not the evaluator's from before. A link
+				// changed from assumed to required must prove itself.
+				kept := old.Clone()
+				kept.Required = probed(l)
+				links = append(links, kept)
 				continue
 			}
 		}

@@ -45,7 +45,7 @@ func baselinePasses(p *Plan) []Finding {
 }
 
 // scenariosHold runs each declared scenario and reports every expectation it does not
-// meet, and every scenario that cannot run (a link or node it names that is not there).
+// meet, every flow that fails the gate in it, and every scenario that cannot run (a link or node it names that is not there).
 func scenariosHold(p *Plan) []Finding {
 	if p.Graph == nil || len(p.Scenarios) == 0 {
 		return nil
@@ -60,6 +60,16 @@ func scenariosHold(p *Plan) []Finding {
 		}
 		for _, m := range result.Mismatches {
 			out = append(out, Finding{Subject: sc.Name, Message: m.Detail, Hint: "the plan does not behave as the scenario says it should"})
+		}
+		// A flow that fails the gate in the scenario is a failure whether or not the
+		// scenario said anything about it: a route that stays active over a failed link
+		// is the plan not failing over.
+		for _, r := range result.Report.Flows {
+			if r.Verdict.FailsGate() {
+				single := sim.NewReport([]sim.FlowResult{r})
+				out = append(out, Finding{Subject: sc.Name, Message: fmt.Sprintf("in the scenario %s is %s", r.Flow.Label, r.Verdict), Hint: "the plan does not survive what the scenario fails",
+					Detail: strings.TrimRight(single.Text(sim.TextOptions{Verbose: true}), "\n")})
+			}
 		}
 	}
 	return out

@@ -159,3 +159,25 @@ func TestRule_V_CFG_006(t *testing.T) {
 		}
 	}
 }
+
+// TestRule_V_CFG_004_equivalentSpellingsAreOnePrefix checks two peers that carry the same
+// block spelled differently (10.42.32.0/20 and 10.42.32.5/20) are caught, since encoding
+// writes both as the one block, and that a route is allowed through a peer whose list
+// spells its prefix with host bits.
+func TestRule_V_CFG_004_equivalentSpellingsAreOnePrefix(t *testing.T) {
+	p := cleanPlan(t, true)
+	c := configOf(p, builder)
+	h := &c.Peers[peerIndex(c, hub)]
+	h.AllowedPrefixes = append(h.AllowedPrefixes, pfx("10.42.32.5/20")) // dgx-spark's list has 10.42.32.0/20
+	got := fires(t, p, "V-CFG-004")
+	if !strings.Contains(got[0].Message, "10.42.32.0/20 is allowed for both") {
+		t.Errorf("%+v", got)
+	}
+	p = cleanPlan(t, true)
+	c = configOf(p, builder)
+	h = &c.Peers[peerIndex(c, hub)]
+	h.AllowedPrefixes[0] = pfx("10.42.0.5/20") // the same block as the route's 10.42.0.0/20
+	if got := findings(p, "V-CFG-003"); len(got) != 0 {
+		t.Errorf("an equivalent spelling was refused: %+v", got)
+	}
+}
