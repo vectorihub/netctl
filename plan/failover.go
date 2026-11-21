@@ -21,7 +21,7 @@ func evaluate(in Inputs, t *topology.Topology, from *health.Evaluator, input rou
 		prev = *in.Failover
 		prev.Links = nil
 		for _, l := range in.Failover.Links {
-			prev.Links = append(prev.Links, l.Clone())
+			prev.Links = append(prev.Links, copyLink(l))
 		}
 	} else {
 		for _, id := range sortedLinkIDs(from) {
@@ -38,7 +38,9 @@ func evaluate(in Inputs, t *topology.Topology, from *health.Evaluator, input rou
 	// from before: a link changed from assumed to required must prove itself. The links
 	// are copies, so the caller's state is left as it was.
 	for _, l := range prev.Links {
-		l.Required = required[l.ID]
+		if wellFormed(l) {
+			l.Required = required[l.ID]
+		}
 	}
 	network := failover.Network{
 		Graph:    adapt(topology.BuildGraph(t, func(types.LinkID) bool { return true })),
@@ -67,4 +69,28 @@ func unusable(s failover.State, cfg health.Config) []types.LinkID {
 		return nil
 	}
 	return e.UnusableLinks()
+}
+
+// wellFormed reports whether a saved link can be copied and edited safely: it exists and has
+// both directions, each with a state. Anything else is left for failover.Evaluate to refuse
+// with INVALID_TOPOLOGY, which reports every problem of a saved state at once.
+func wellFormed(l *health.Link) bool {
+	if l == nil || len(l.Dirs) != 2 {
+		return false
+	}
+	for _, d := range l.Dirs {
+		if d == nil {
+			return false
+		}
+	}
+	return true
+}
+
+// copyLink returns a copy of a saved link so the planner can edit it, or the link itself when
+// it is malformed, since the guard refuses it before anything reads it.
+func copyLink(l *health.Link) *health.Link {
+	if !wellFormed(l) {
+		return l
+	}
+	return l.Clone()
 }

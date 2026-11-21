@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"github.com/vectorihub/netctl/failover"
 	"net/netip"
 	"strings"
 	"testing"
@@ -159,6 +160,22 @@ func TestALinkMadeRequiredMustProveItselfInASavedState(t *testing.T) {
 	for _, l := range saved.Links {
 		if l.ID == direct && l.Required {
 			t.Error("the caller's state was changed")
+		}
+	}
+}
+
+// TestAMalformedSavedStateIsRefusedNotACrash checks a state built by hand with a missing link
+// or a missing direction fails the plan with INVALID_TOPOLOGY instead of panicking.
+func TestAMalformedSavedStateIsRefusedNotACrash(t *testing.T) {
+	for name, links := range map[string][]*health.Link{
+		"nil link":  {nil},
+		"no sides":  {{ID: direct}},
+		"nil sides": {{ID: direct, Dirs: map[types.NodeID]*health.Direction{builder: nil, dgx: nil}}},
+	} {
+		in := fresh(t)
+		in.Failover = &failover.State{Links: links}
+		if _, err := plan.Plan(in); !types.HasCode(err, types.ErrInvalidTopology) {
+			t.Errorf("%s: want INVALID_TOPOLOGY, got %v", name, err)
 		}
 	}
 }
