@@ -38,3 +38,6 @@ go.work.sum
 /out/
 /bin/
 .apidiff-base/
+
+# End-to-end artifacts kept by -keep or by a failed test
+artifacts/
