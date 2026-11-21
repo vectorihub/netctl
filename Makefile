@@ -3,7 +3,7 @@
 
 STATICCHECK_VERSION := v0.7.0
 
-.PHONY: check fmt-check vet lint purity test race arch fuzz bench repro windows apidiff consumer
+.PHONY: check fmt-check vet lint purity test race arch fuzz bench repro windows apidiff consumer e2e-phase1 e2e-phase1-fast
 
 ## check: the everyday gate — formatting, vet, tests. A red result fails CI.
 check: fmt-check vet test
@@ -17,10 +17,11 @@ vet:
 	go vet ./...
 
 ## purity: no clock, file or environment reads in library code (D7). Test files
-## are exempt. Any match fails the build.
+## are exempt, and so is internal/e2e, the test harness, which writes workspaces. Any
+## other match fails the build.
 PURITY_PATTERN := time\.(Now|Since|Until)\(|os\.(Open|OpenFile|Create|ReadFile|WriteFile|ReadDir|Stat|Getenv|LookupEnv|Environ)\b
 purity:
-	@out="$$(grep -rnE --include='*.go' --exclude='*_test.go' --exclude-dir=.git --exclude-dir=features '$(PURITY_PATTERN)' . || true)"; \
+	@out="$$(grep -rnE --include='*.go' --exclude='*_test.go' --exclude-dir=.git --exclude-dir=features --exclude-dir=e2e '$(PURITY_PATTERN)' . || true)"; \
 	if [ -n "$$out" ]; then echo "purity: library code must not read the clock, files or environment:"; echo "$$out"; exit 1; fi
 
 ## lint: purity guard, then staticcheck over the whole module.
@@ -96,3 +97,11 @@ apidiff:
 	  ( cd .apidiff-base && apidiff -w old.out "$$pkg" >/dev/null 2>&1 ) || { echo "== $$pkg: new since $(APIBASE)"; continue; }; \
 	  echo "== $$pkg"; apidiff .apidiff-base/old.out "$$pkg"; \
 	done
+
+## e2e-phase1: the whole Phase 1 end-to-end suite (scale and chaos included).
+e2e-phase1:
+	go test ./test/e2e/phase1/... -count=1 -timeout 30m
+
+## e2e-phase1-fast: everything except the scale and chaos groups.
+e2e-phase1-fast:
+	go test ./test/e2e/phase1/... -count=1 -short
