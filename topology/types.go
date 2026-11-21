@@ -37,6 +37,10 @@ type Topology struct {
 	// Validation holds what the file says about the validator: today, the
 	// warnings it accepts. It describes how to judge the network, not the
 	// network, so it is not part of Hash.
+	//
+	// Example:
+	//
+	//	Validation{Suppress: []Suppression{{Rule: "V-TOPO-004", Subject: "builder-1~dgx-spark", Reason: "relay through the hub is acceptable"}}}.
 	Validation Validation
 }
 
