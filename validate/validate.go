@@ -93,6 +93,13 @@ type Finding struct {
 	//
 	//	"a prefix must belong to exactly one peer".
 	Hint string `json:"hint,omitempty"`
+	// Detail is the evidence, when there is more than a line of it: the journey of a
+	// packet that was lost, hop by hop.
+	//
+	// Example:
+	//
+	//	"builder-1 > aws-hub: BLACK_HOLE at aws-hub".
+	Detail string `json:"detail,omitempty"`
 }
 
 // String writes the finding on one line.
@@ -269,6 +276,13 @@ type Rule struct {
 	//
 	//	a function from a *Plan to its findings.
 	Check func(p *Plan) []Finding
+	// Slow marks a rule that is costly on a large plan, which Options.SkipSweep
+	// leaves out. Today that is the single-failure sweep.
+	//
+	// Example:
+	//
+	//	true for V-SIM-003.
+	Slow bool
 }
 
 // registry holds the rules, in the order they were registered.
@@ -277,6 +291,11 @@ var registry []Rule
 // register adds a rule to the catalogue. Each rules file calls it from init.
 func register(id string, level Level, title string, check func(p *Plan) []Finding) {
 	registry = append(registry, Rule{ID: id, Level: level, Title: title, Check: check})
+}
+
+// registerSlow adds a rule that Options.SkipSweep leaves out.
+func registerSlow(id string, level Level, title string, check func(p *Plan) []Finding) {
+	registry = append(registry, Rule{ID: id, Level: level, Title: title, Check: check, Slow: true})
 }
 
 // Rules returns the whole catalogue, sorted by ID, including the rules the
@@ -304,6 +323,14 @@ type Options struct {
 	//
 	//	a suppression a caller adds for one run.
 	Suppress []topology.Suppression
+	// SkipSweep leaves out the single-failure sweep (V-SIM-003), which recomputes the
+	// routes once for every link and every hub and is the slowest part of validation
+	// on a large network. Nothing else changes.
+	//
+	// Example:
+	//
+	//	validate.Options{SkipSweep: true} for a 500-node plan in a hurry.
+	SkipSweep bool
 }
 
 // Validate runs every rule of the catalogue on the plan, applies the suppressions
@@ -326,7 +353,7 @@ func Validate(p *Plan, opts Options) Result { return Run(p, opts, Rules()) }
 func Run(p *Plan, opts Options, rules []Rule) Result {
 	var found []Finding
 	for _, rule := range rules {
-		if rule.Check == nil {
+		if rule.Check == nil || (rule.Slow && opts.SkipSweep) {
 			continue
 		}
 		for _, f := range rule.Check(p) {
