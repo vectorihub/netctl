@@ -38,6 +38,14 @@ jobs:
         run: make arch
       - name: make consumer (netctl as a dependency)
         run: make consumer
+      - name: make e2e-phase1-fast (the Phase 1 end-to-end suite, golden labs and reproducibility)
+        run: make e2e-phase1-fast
+      - name: Golden files are unchanged by a second run (P1-GOLD-009)
+        run: |
+          go test ./test/e2e/phase1 -run 'TestE2E/P1-(GOLD|E2E)' -short -count=1 -update
+          git diff --exit-code -- testdata/golden
+      - name: make repro (the suite twice, shuffled)
+        run: make repro
       - name: API changes since the latest tag (report only)
         if: matrix.os == 'ubuntu-latest'
         run: |

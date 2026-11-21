@@ -46,7 +46,7 @@ func e2e090ManyRuns(w *e2e.W) {
 
 // e2e091Portable is P1-E2E-091: the output holds nothing that depends on the machine, no
 // carriage returns and no backslashes in a path. The CI matrix compares the hashes across
-// operating systems; here the hash is printed to the test log for that comparison.
+// operating systems; the hashes are pinned in a golden file every platform must match.
 func e2e091Portable(w *e2e.W) {
 	fresh, base := e2e.Baseline(w)
 	for _, out := range []*e2e.Out{fresh, base} {
@@ -62,7 +62,9 @@ func e2e091Portable(w *e2e.W) {
 			}
 		}
 	}
-	w.T.Logf("E2E091 hashes %s %s", fresh.SubtreeHash(""), base.SubtreeHash(""))
+	// The golden file holds the hashes. CI runs this on Linux and macOS against the same file,
+	// which is the cross-platform comparison; a Windows-only difference would show the same way.
+	w.Golden("hashes.txt", []byte(fresh.SubtreeHash("")+"\n"+base.SubtreeHash("")+"\n"))
 }
 
 // e2e092TimeZone is P1-E2E-092: the process time zone never leaks into the output, and every
