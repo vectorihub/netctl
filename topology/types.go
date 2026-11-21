@@ -123,6 +123,36 @@ type Site struct {
 	Provider string
 	// Region is the provider's region. Informational.
 	Region string
+	// Override, when set, takes the site's block from a reserved pool (the growth pool, say)
+	// instead of the sites pool. It must carry a reason, which is recorded with the
+	// allocation. Nil means the site is numbered from the sites pool as usual.
+	//
+	// Example:
+	//
+	//	&SiteOverride{Pool: "growth", Reason: "approved expansion"}.
+	Override *SiteOverride
+}
+
+// SiteOverride asks for a site's block from another pool than the sites pool, on purpose.
+// Reserved pools refuse allocation without it, so the reason is mandatory and is kept in the
+// address plan beside the block.
+//
+// Example:
+//
+//	SiteOverride{Pool: "growth", Reason: "approved expansion"}.
+type SiteOverride struct {
+	// Pool is the pool to take the block from.
+	//
+	// Example:
+	//
+	//	"growth".
+	Pool string
+	// Reason says why the site may use it.
+	//
+	// Example:
+	//
+	//	"approved expansion".
+	Reason string
 }
 
 // NATMode says whether a node can be reached from outside.

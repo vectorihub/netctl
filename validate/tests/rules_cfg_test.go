@@ -121,6 +121,27 @@ func TestRule_V_CFG_005(t *testing.T) {
 	fires(t, p, "V-CFG-005")
 }
 
+// TestRule_V_CFG_005_TheTopologyLabels plants a private key in a node's label, the one place a
+// person can type a secret into the input, and checks the rule names the label and never
+// repeats the value, and that an ordinary label passes.
+func TestRule_V_CFG_005_TheTopologyLabels(t *testing.T) {
+	quiet(t, "V-CFG-005")
+	p := cleanPlan(t, true)
+	p.Topology.Nodes[1].Labels = map[string]string{"owner": "platform-team"}
+	quiet(t, "V-CFG-005")
+	p = cleanPlan(t, true)
+	p.Topology.Nodes[1].Labels = map[string]string{"wg_private_key": "cGxhbnRlZC1zZWNyZXQtZm9yLXRlc3RzLW9ubHktMTIzNA=="}
+	got := fires(t, p, "V-CFG-005")
+	if want := "topology:nodes[" + string(p.Topology.Nodes[1].ID) + "].labels.wg_private_key"; got[0].Subject != want {
+		t.Errorf("subject %q, want %q", got[0].Subject, want)
+	}
+	for _, f := range got {
+		if strings.Contains(f.Message, "cGxh") || strings.Contains(f.Subject, "cGxh") {
+			t.Errorf("the finding repeats the secret: %+v", f)
+		}
+	}
+}
+
 // P1-VAL-033
 //
 // TestRule_V_CFG_006 takes away dgx-spark's routes back to builder-1's overlay address
