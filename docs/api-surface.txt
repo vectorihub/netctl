@@ -128,6 +128,7 @@ github.com/vectorihub/netctl/config: type ProbeTarget struct
 github.com/vectorihub/netctl/config: type Route struct
 github.com/vectorihub/netctl/config: type RouteChange struct
 github.com/vectorihub/netctl/failover: const Schema
+github.com/vectorihub/netctl/failover: embed NodeRoute route.Route
 github.com/vectorihub/netctl/failover: field Decision.Activated []NodeRoute
 github.com/vectorihub/netctl/failover: field Decision.After health.LinkHealth
 github.com/vectorihub/netctl/failover: field Decision.At time.Time
