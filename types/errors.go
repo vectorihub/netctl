@@ -31,15 +31,15 @@ const (
 	ErrNoRoute Code = "NO_ROUTE"
 	// ErrUnsupportedSchema means an input uses a format version netctl does not know.
 	ErrUnsupportedSchema Code = "UNSUPPORTED_SCHEMA"
-	// ErrInvalidValue means a value is not one of the allowed names, for example
-	// an unknown route source or verdict read from text or JSON.
-	ErrInvalidValue Code = "INVALID_VALUE"
 	// ErrInvalidScenario means a failure scenario is malformed: unreadable, a
 	// name used twice, or a node or link it names that the network does not have.
 	ErrInvalidScenario Code = "INVALID_SCENARIO"
 	// ErrInvalidConfig means a setting is out of range, for example a health
 	// threshold of zero.
 	ErrInvalidConfig Code = "INVALID_CONFIG"
+	// ErrInvalidValue means a value is not one of the allowed names, for example
+	// an unknown route source or verdict read from text or JSON.
+	ErrInvalidValue Code = "INVALID_VALUE"
 )
 
 // Error is a coded error about one subject (a prefix, node, link or file).

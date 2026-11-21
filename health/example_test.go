@@ -223,3 +223,59 @@ func ExampleParseSignalKind() {
 
 // nodeID converts text to the type the health package uses for node IDs.
 func nodeID(text string) types.NodeID { return types.NodeID(text) }
+
+// ExampleSignalKind_String shows the name of a signal kind.
+func ExampleSignalKind_String() {
+	fmt.Println(health.SignalHandshake, health.SignalUnknown)
+	// Output:
+	// handshake unknown
+}
+
+// ExampleSignalKind_MarshalText shows a kind written as its name, and the zero
+// kind refused with a coded error.
+func ExampleSignalKind_MarshalText() {
+	text, _ := health.SignalProbe.MarshalText()
+	_, err := health.SignalUnknown.MarshalText()
+	fmt.Println(string(text), types.HasCode(err, types.ErrInvalidValue))
+	// Output:
+	// probe true
+}
+
+// ExampleSignalKind_UnmarshalText shows a kind read back, and a wrong name
+// refused with the receiver left alone.
+func ExampleSignalKind_UnmarshalText() {
+	var kind health.SignalKind
+	fmt.Println(kind.UnmarshalText([]byte("interface")), kind)
+	fmt.Println(types.HasCode(kind.UnmarshalText([]byte("ping")), types.ErrInvalidValue), kind)
+	// Output:
+	// <nil> interface
+	// true interface
+}
+
+// ExampleLinkHealth_String shows the name of a state.
+func ExampleLinkHealth_String() {
+	fmt.Println(health.Recovering, health.Unknown)
+	// Output:
+	// recovering unknown
+}
+
+// ExampleLinkHealth_MarshalText shows a state written as its name, and a value
+// outside the five refused with a coded error.
+func ExampleLinkHealth_MarshalText() {
+	text, _ := health.Down.MarshalText()
+	_, err := health.LinkHealth(99).MarshalText()
+	fmt.Println(string(text), types.HasCode(err, types.ErrInvalidValue))
+	// Output:
+	// down true
+}
+
+// ExampleLinkHealth_UnmarshalText shows a state read back, and a wrong
+// capitalisation refused.
+func ExampleLinkHealth_UnmarshalText() {
+	var state health.LinkHealth
+	fmt.Println(state.UnmarshalText([]byte("healthy")), state)
+	fmt.Println(types.HasCode(state.UnmarshalText([]byte("Healthy")), types.ErrInvalidValue), state)
+	// Output:
+	// <nil> healthy
+	// true healthy
+}

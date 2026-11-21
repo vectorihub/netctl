@@ -13,6 +13,9 @@ import (
 // A link is usable for routing only when it is Healthy in both directions. If
 // builder-1 hears dgx-spark but dgx-spark does not hear builder-1, the link is
 // Down for both, so both ends fail over together and the paths stay symmetric.
+//
+// Example: NewLink("builder-1~dgx-spark", "builder-1", "dgx-spark", true) is a required
+// direct link; Dirs holds one Direction for builder-1 and one for dgx-spark.
 type Link struct {
 	// ID is the link's ID.
 	ID types.LinkID `json:"link"`
@@ -96,6 +99,9 @@ func (l *Link) ends() []types.NodeID {
 }
 
 // Decision records one change in a link's health, and why.
+//
+// Example: a link going from Healthy to Down at 45 s because three probes failed is one
+// Decision with Before Healthy, After Down and a Reason that says so.
 type Decision struct {
 	// Link is the link that changed.
 	Link types.LinkID `json:"link"`
@@ -112,6 +118,9 @@ type Decision struct {
 
 // Skipped is a signal the evaluator did not apply, with the reason. Nothing is
 // dropped silently: the caller sees what was ignored and why.
+//
+// Example: a signal for a link the evaluator does not track is returned as a Skipped with
+// Why "the link is not tracked".
 type Skipped struct {
 	// Signal is the signal as given.
 	Signal Signal `json:"signal"`
@@ -123,6 +132,9 @@ type Skipped struct {
 //
 // It holds state but not a clock: every method is told the time. Give it the same
 // links and the same signals and it gives the same answer.
+//
+// Example: NewEvaluator(DefaultConfig(), direct) tracks one link; Apply folds signals into
+// it and UnusableLinks lists the links routing must avoid.
 type Evaluator struct {
 	// Cfg is the thresholds and times in use.
 	Cfg Config
@@ -176,12 +188,24 @@ func (e *Evaluator) settle(l *Link, at time.Time, reason string, decisions []Dec
 }
 
 // expire applies the staleness rule to both directions of a link at the time
-// now, and returns the decisions it caused.
+// now, and returns the decisions it caused. When both directions have gone quiet
+// the one that went stale first is applied first, whatever the nodes are called,
+// so the decision's time and reason describe the real outage and not the order
+// of the names.
 func (e *Evaluator) expire(l *Link, now time.Time, decisions []Decision) []Decision {
+	type quiet struct {
+		node types.NodeID
+		at   time.Time
+	}
+	var stale []quiet
 	for _, node := range l.ends() {
-		if wentStale, stale := l.Dirs[node].CheckStale(now, e.Cfg); stale {
-			decisions = e.settle(l, wentStale, "stale: no probe or handshake from "+string(node)+" for more than "+e.Cfg.StaleAfter.String(), decisions)
+		if wentStale, isStale := l.Dirs[node].CheckStale(now, e.Cfg); isStale {
+			stale = append(stale, quiet{node, wentStale})
 		}
+	}
+	slices.SortStableFunc(stale, func(a, b quiet) int { return a.at.Compare(b.at) })
+	for _, q := range stale {
+		decisions = e.settle(l, q.at, "stale: no probe or handshake from "+string(q.node)+" for more than "+e.Cfg.StaleAfter.String(), decisions)
 	}
 	return decisions
 }
@@ -204,7 +228,10 @@ func (e *Evaluator) expire(l *Link, now time.Time, decisions []Decision) []Decis
 //   - Admin signals are skipped, since operator drain is not supported yet.
 //
 // A signal is skipped, not applied, when its link is not tracked, its From is not
-// one of the link's ends, or its kind is unknown or not yet supported.
+// one of the link's ends, its kind is unknown or not yet supported, or it is
+// older than the newest signal already applied to the same direction, in this
+// batch or an earlier one: a success that arrives late must not erase a failure
+// that came after it.
 //
 // Example: five good probes from each end of a new direct link make it Healthy;
 // three failed ones from each then make it Down.
@@ -224,7 +251,12 @@ func (e *Evaluator) Apply(signals []Signal, now time.Time) ([]Decision, []Skippe
 			skipped = append(skipped, Skipped{s, string(s.From) + " is not an end of the link"})
 			continue
 		}
+		if s.At.Before(d.LastSignal) {
+			skipped = append(skipped, Skipped{s, "outdated: older than the newest signal already applied to this direction"})
+			continue
+		}
 		decisions = e.expire(l, s.At, decisions)
+		d.LastSignal = s.At
 		var reason string
 		switch s.Kind {
 		case SignalProbe, SignalHandshake:

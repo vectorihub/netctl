@@ -9,6 +9,9 @@ import "time"
 // last evidence) as a time, never as a running clock, so it can be written out
 // and read back without losing its place. It never reads the time itself: each
 // method is told when the evidence arrived.
+//
+// Example: a new Direction is Unknown; Succeed five times makes it Healthy, and Fail three
+// times after that makes it Down with a hold-down of 60 seconds.
 type Direction struct {
 	// State is where the machine is.
 	State LinkHealth `json:"state"`
@@ -22,6 +25,11 @@ type Direction struct {
 	// LastEvidence is when the last probe or handshake, good or bad, arrived. A
 	// trusted direction that goes quiet is judged against it.
 	LastEvidence time.Time `json:"last_evidence,omitzero"`
+	// LastSignal is the time of the newest signal of any kind applied to the
+	// direction, interface signals included. The evaluator skips a signal older
+	// than this, so a late-arriving success cannot erase a failure that came
+	// after it.
+	LastSignal time.Time `json:"last_signal,omitzero"`
 }
 
 // trusted reports whether the direction has been proven and so can be judged
