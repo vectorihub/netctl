@@ -162,6 +162,8 @@ surface is recorded in [`docs/api-surface.txt`](docs/api-surface.txt).
 
 ## Documentation
 
+A short walkthrough of planning, re-planning with state and reading a refusal is in [docs/quickstart.md](docs/quickstart.md).
+
 The full API reference, with runnable examples, is on [pkg.go.dev](https://pkg.go.dev/github.com/vectorihub/netctl).
 
 | Package | Purpose |
