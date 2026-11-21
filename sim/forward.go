@@ -2,6 +2,9 @@ package sim
 
 import (
 	"net/netip"
+	"runtime"
+	"sync"
+	"sync/atomic"
 
 	"github.com/vectorihub/netctl/cidr"
 	"github.com/vectorihub/netctl/route"
@@ -116,10 +119,7 @@ func NewNet(graph route.Graph, tables route.Tables, owned, local route.Owned) Ne
 			}
 		}
 	}
-	index := make(map[types.NodeID]*route.Index, len(tables))
-	for node, table := range tables {
-		index[node] = table.Index()
-	}
+	index := indexTables(tables)
 	return Net{
 		Tables: tables,
 		index:  index,
@@ -143,6 +143,37 @@ func NewNet(graph route.Graph, tables route.Tables, owned, local route.Owned) Ne
 			return longest
 		},
 	}
+}
+
+// indexTables builds the longest-prefix index of every table. The tables are
+// independent and indexing only reads them, so the work is shared out over the
+// available processors; each index goes into the slot of its own node, so the
+// result is the same whatever order the workers finish in.
+func indexTables(tables route.Tables) map[types.NodeID]*route.Index {
+	nodes := tables.Nodes()
+	built := make([]*route.Index, len(nodes))
+	workers := min(runtime.GOMAXPROCS(0), len(nodes))
+	var next atomic.Int64
+	var wg sync.WaitGroup
+	for w := 0; w < workers; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for {
+				i := int(next.Add(1)) - 1
+				if i >= len(nodes) {
+					return
+				}
+				built[i] = tables[nodes[i]].Index()
+			}
+		}()
+	}
+	wg.Wait()
+	index := make(map[types.NodeID]*route.Index, len(nodes))
+	for i, node := range nodes {
+		index[node] = built[i]
+	}
+	return index
 }
 
 // adjacency identifies one directed edge.

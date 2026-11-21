@@ -96,8 +96,28 @@ func keyed(routes []Route) map[routeKey]Route {
 	return out
 }
 
+// sameRoutes reports whether two route lists are the same list, route for route
+// and in the same order, with prefixes masked as everywhere else. It is a quick
+// look that allocates nothing, so that a table that did not change costs one
+// pass and no sort: a false answer only means "look closer", never "different",
+// because the same routes in another order are still the same table.
+func sameRoutes(first, second []Route) bool {
+	if len(first) != len(second) {
+		return false
+	}
+	for i := range first {
+		if Compare(canonical(first[i]), canonical(second[i])) != 0 {
+			return false
+		}
+	}
+	return true
+}
+
 // diffTables compares two tables of one node.
 func diffTables(node types.NodeID, oldRoutes, newRoutes []Route) TableDiff {
+	if sameRoutes(oldRoutes, newRoutes) {
+		return TableDiff{Node: node}
+	}
 	before, after := keyed(oldRoutes), keyed(newRoutes)
 	diff := TableDiff{Node: node}
 	for key, was := range before {

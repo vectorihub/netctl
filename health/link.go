@@ -33,6 +33,36 @@ type Link struct {
 	// Dirs holds the state machine of each end, keyed by the node that observes:
 	// Dirs["builder-1"] is what builder-1 sees of dgx-spark.
 	Dirs map[types.NodeID]*Direction `json:"directions"`
+	// Drained says an operator took the link out of service. A drained link is
+	// Down whatever the evidence says, until an operator undrains it.
+	Drained bool `json:"drained,omitempty"`
+	// Pinned says the link flapped too often and is held Down until PinnedUntil
+	// or until an operator clears it.
+	Pinned bool `json:"pinned,omitempty"`
+	// PinnedUntil is when a flap pin ends by itself. It is zero for a link that
+	// is not pinned.
+	PinnedUntil time.Time `json:"pinned_until,omitzero"`
+	// Flaps holds the times the link went Down within the flap window, oldest
+	// first. More than the flap limit of them pins the link.
+	Flaps []time.Time `json:"flaps,omitempty"`
+}
+
+// Clone returns a copy of the link that shares nothing with it, so a caller can
+// change the copy, folding signals into it for instance, and leave the original
+// as it was.
+//
+// Example:
+//
+//	copy := link.Clone(); changing copy.Dirs["builder-1"] does not change link.
+func (l *Link) Clone() *Link {
+	out := *l
+	out.Dirs = make(map[types.NodeID]*Direction, len(l.Dirs))
+	for node, d := range l.Dirs {
+		dir := *d
+		out.Dirs[node] = &dir
+	}
+	out.Flaps = slices.Clone(l.Flaps)
+	return &out
 }
 
 // NewLink returns a link between two nodes, Unknown in both directions. It
@@ -63,20 +93,16 @@ func NewLink(id types.LinkID, a, b types.NodeID, required bool) (*Link, error) {
 // Example:
 //
 //	a new direct link is not usable and a new hub-spoke link is.
-func (l *Link) Usable() bool {
-	switch l.State {
-	case Healthy, Degraded:
-		return true
-	case Unknown:
-		return !l.Required
-	}
-	return false
-}
+func (l *Link) Usable() bool { return l.State.Usable(l.Required) }
 
 // combine works out the health of the link as a whole from its two directions:
-// as bad as the worse of them. Down beats everything, then Recovering, then
+// Down while an operator's drain or a flap pin holds it, otherwise as bad as the
+// worse of them. Down beats everything, then Recovering, then
 // Unknown, then Degraded; Healthy only when both are.
 func (l *Link) combine() LinkHealth {
+	if l.held() {
+		return Down
+	}
 	seen := map[LinkHealth]bool{}
 	for _, d := range l.Dirs {
 		seen[d.State] = true
@@ -192,22 +218,34 @@ func (e *Evaluator) linkIDs() []types.LinkID {
 }
 
 // settle recomputes a link's health after one of its directions changed and, if
-// the link as a whole is now different, appends a Decision.
+// the link as a whole is now different, appends a Decision. A change to Down is
+// counted as a flap and may pin the link.
 func (e *Evaluator) settle(l *Link, at time.Time, reason string, decisions []Decision) []Decision {
+	return e.move(l, at, reason, true, decisions)
+}
+
+// move is settle with the choice of whether a change to Down counts as a flap:
+// an operator's drain does not.
+func (e *Evaluator) move(l *Link, at time.Time, reason string, countFlap bool, decisions []Decision) []Decision {
 	before, after := l.State, l.combine()
 	if before == after {
 		return decisions
 	}
 	l.State = after
+	if after == Down && countFlap {
+		reason = l.recordFlap(at, e.Cfg, reason)
+	}
 	return append(decisions, Decision{Link: l.ID, Before: before, After: after, Reason: reason, At: at})
 }
 
-// expire applies the staleness rule to both directions of a link at the time
+// expire first lifts a flap pin that has run its course, then applies the
+// staleness rule to both directions of a link at the time
 // now, and returns the decisions it caused. When both directions have gone quiet
 // the one that went stale first is applied first, whatever the nodes are called,
 // so the decision's time and reason describe the real outage and not the order
 // of the names.
 func (e *Evaluator) expire(l *Link, now time.Time, decisions []Decision) []Decision {
+	e.release(l, now)
 	type quiet struct {
 		node types.NodeID
 		at   time.Time
@@ -240,10 +278,19 @@ func (e *Evaluator) expire(l *Link, now time.Time, decisions []Decision) []Decis
 //   - Interface down takes that direction Down at once. Interface up is valid and
 //     does nothing: it is never evidence of health, and a link that has only ever
 //     had interface-up signals stays Unknown for as long as you like.
-//   - Admin signals are skipped, since operator drain is not supported yet.
+//   - An admin signal that is not OK drains the link: Down at once, and Down
+//     until released. An admin signal that is OK releases it, lifting a drain
+//     and a flap pin; the link then restarts its hold-down and must prove itself
+//     again, through Recovering. An admin signal belongs to the link, not to one
+//     end, so its From is not looked at.
+//   - A link that goes Down more than flap_limit times within flap_window is
+//     pinned Down for pin_for or until an operator releases it. While it is
+//     drained or pinned evidence is still recorded but cannot make it usable.
 //
 // A signal is skipped, not applied, when its link is not tracked, its From is not
-// one of the link's ends, its kind is unknown or not yet supported, or it is
+// one of the link's ends, its kind is unknown, an admin signal asks for nothing
+// that can be done (draining a drained link, releasing a link that is neither
+// drained nor pinned), or it is
 // older than the newest signal already applied to the same direction, in this
 // batch or an earlier one: a success that arrives late must not erase a failure
 // that came after it.
@@ -263,6 +310,14 @@ func (e *Evaluator) Apply(signals []Signal, now time.Time) ([]Decision, []Skippe
 			skipped = append(skipped, Skipped{s, "the link is not tracked"})
 			continue
 		}
+		if s.Kind == SignalAdmin {
+			var why string
+			decisions = e.expire(l, s.At, decisions)
+			if decisions, why = e.admin(l, s, decisions); why != "" {
+				skipped = append(skipped, Skipped{s, why})
+			}
+			continue
+		}
 		d := l.Dirs[s.From]
 		if d == nil {
 			skipped = append(skipped, Skipped{s, string(s.From) + " is not an end of the link"})
@@ -272,9 +327,6 @@ func (e *Evaluator) Apply(signals []Signal, now time.Time) ([]Decision, []Skippe
 		// neither advance LastSignal (which would make a real, slightly older
 		// signal look outdated) nor trigger an expiry check.
 		switch s.Kind {
-		case SignalAdmin:
-			skipped = append(skipped, Skipped{s, "admin signals are not supported yet"})
-			continue
 		case SignalProbe, SignalHandshake, SignalInterface:
 		default:
 			skipped = append(skipped, Skipped{s, "the signal has no known kind"})

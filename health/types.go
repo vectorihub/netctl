@@ -215,6 +215,25 @@ func (state LinkHealth) String() string {
 	return "invalid"
 }
 
+// Usable reports whether routing may use a link in this state. required says
+// the link must be proven first: a required link is not usable while Unknown, an
+// assumed one is. Healthy and Degraded are usable, Down and Recovering are not.
+// Link.Usable is this applied to the link's own state.
+//
+// Example:
+//
+//	Degraded.Usable(true) is true; Unknown.Usable(true) is false and
+//	Unknown.Usable(false) is true.
+func (state LinkHealth) Usable(required bool) bool {
+	switch state {
+	case Healthy, Degraded:
+		return true
+	case Unknown:
+		return !required
+	}
+	return false
+}
+
 // ParseLinkHealth converts the text String returns back into a LinkHealth. Any
 // other text returns Unknown and false.
 //

@@ -308,3 +308,80 @@ func ExampleNewEvaluator() {
 	// 1 <nil>
 	// true
 }
+
+// ExampleEvaluator_Apply_drain shows an operator taking a healthy link out of
+// service. The drain is Down at once and good probes cannot undo it. The undrain
+// does not bring the link back either: it restarts the hold-down, and the link
+// must prove itself again, through Recovering.
+func ExampleEvaluator_Apply_drain() {
+	direct, _ := health.NewLink("builder-1~dgx-spark", "builder-1", "dgx-spark", true)
+	e, _ := health.NewEvaluator(health.DefaultConfig(), direct)
+	e.Apply(probes(true, 5, 5), at(30))
+
+	drain := health.Signal{Link: "builder-1~dgx-spark", Kind: health.SignalAdmin, OK: false, At: at(40)}
+	decisions, _ := e.Apply([]health.Signal{drain}, at(40))
+	fmt.Println(decisions[0].After, "-", decisions[0].Reason)
+
+	e.Apply(probes(true, 10, 45), at(95)) // good probes while drained change nothing
+	fmt.Println(direct.State, direct.Usable())
+
+	undrain := health.Signal{Link: "builder-1~dgx-spark", Kind: health.SignalAdmin, OK: true, At: at(100)}
+	e.Apply([]health.Signal{undrain}, at(100))
+	fmt.Println(direct.State) // down until the hold-down, 60 s, has passed
+	decisions, _ = e.Apply(probes(true, 5, 165), at(186))
+	for _, d := range decisions {
+		fmt.Println(d.Before, "to", d.After)
+	}
+	// Output:
+	// down - admin drain: an operator took the link out of service
+	// down false
+	// down
+	// down to recovering
+	// recovering to healthy
+}
+
+// ExampleEvaluator_Apply_flapLimit shows a link that keeps failing and recovering
+// being pinned Down. The fifth time it goes Down within ten minutes is more than
+// the limit of four, and from then on good evidence is not enough.
+func ExampleEvaluator_Apply_flapLimit() {
+	direct, _ := health.NewLink("builder-1~dgx-spark", "builder-1", "dgx-spark", true)
+	e, _ := health.NewEvaluator(health.DefaultConfig(), direct)
+	e.Apply(probes(true, 5, 5), at(30))
+	for _, from := range []int{35, 135, 235, 335, 435} {
+		e.Apply(probes(false, 3, from), at(from+15))
+		if from != 435 {
+			e.Apply(probes(true, 5, from+75), at(from+96)) // back to Healthy
+		}
+	}
+	fmt.Println(direct.State, "pinned:", direct.Pinned, "flaps:", len(direct.Flaps))
+	fmt.Println("pinned until", direct.PinnedUntil.Sub(start))
+	e.Apply(probes(true, 10, 500), at(560)) // perfect probes do not lift a pin
+	fmt.Println(direct.State)
+	// Output:
+	// down pinned: true flaps: 5
+	// pinned until 37m25s
+	// down
+}
+
+// ExampleLink_Clone shows a copy being changed without touching the original.
+func ExampleLink_Clone() {
+	direct, _ := health.NewLink("builder-1~dgx-spark", "builder-1", "dgx-spark", true)
+	copy := direct.Clone()
+	copy.Drained = true
+	copy.Dirs["builder-1"].State = health.Down
+	fmt.Println(direct.Drained, direct.Dirs["builder-1"].State)
+	// Output:
+	// false unknown
+}
+
+// ExampleLinkHealth_Usable shows which states routing may use: a required link
+// must be proven, so Unknown is only usable for a link that is assumed.
+func ExampleLinkHealth_Usable() {
+	fmt.Println(health.Healthy.Usable(true), health.Degraded.Usable(true))
+	fmt.Println(health.Down.Usable(false), health.Recovering.Usable(false))
+	fmt.Println(health.Unknown.Usable(true), health.Unknown.Usable(false))
+	// Output:
+	// true true
+	// false false
+	// false true
+}
