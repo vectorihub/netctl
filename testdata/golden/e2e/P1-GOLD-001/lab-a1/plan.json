@@ -1,0 +1,54 @@
+{
+  "plan_id": "<masked>",
+  "ok": true,
+  "nodes": [
+    "aws-hub",
+    "builder-1",
+    "dgx-spark"
+  ],
+  "unusable": [],
+  "unreachable": [],
+  "changes": [
+    {
+      "kind": "allocated",
+      "subject": "site:aws",
+      "prefix": "10.42.0.0/20"
+    },
+    {
+      "kind": "allocated",
+      "subject": "site:builder",
+      "prefix": "10.42.16.0/20"
+    },
+    {
+      "kind": "allocated",
+      "subject": "site:dgx",
+      "prefix": "10.42.32.0/20"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:aws-hub",
+      "prefix": "10.42.240.1/32"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:builder-1",
+      "prefix": "10.42.240.2/32"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:dgx-spark",
+      "prefix": "10.42.240.3/32"
+    }
+  ],
+  "decisions": [],
+  "files": [
+    "ipam.json",
+    "nodes/aws-hub.json",
+    "nodes/builder-1.json",
+    "nodes/dgx-spark.json",
+    "plan.json",
+    "routes.txt",
+    "simulation.json",
+    "validation.json"
+  ]
+}

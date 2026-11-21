@@ -1,6 +1,10 @@
 package phase1
 
-import "github.com/vectorihub/netctl/internal/e2e"
+import (
+	"strings"
+
+	"github.com/vectorihub/netctl/internal/e2e"
+)
 
 // init registers the harness smoke test.
 func init() {
@@ -11,3 +15,6 @@ func init() {
 		w.ExpectIPAMOK(base)
 	})
 }
+
+// contains reports whether text holds the substring, for failure checks on error text.
+func contains(text, sub string) bool { return strings.Contains(text, sub) }
