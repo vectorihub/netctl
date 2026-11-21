@@ -9,6 +9,55 @@ changes, and each one is listed under **Breaking Changes** for that release.
 
 ## [Unreleased]
 
+# Release (unreleased) (v0.9.0)
+
+## Announcements
+Release R9 makes netctl a package other programs can depend on. The root package is now the one obvious entry point:
+`netctl.Plan` takes the network and its state and returns the plan, and `Result.Render` gives the bytes of every
+output file without doing any I/O, so every consumer writes the same bytes. The surface is a **public API
+candidate**: it is recorded in `docs/api-surface.txt`, and it may still change before `v1.0.0`.
+
+## Package Highlights
+
+#### `netctl` (root)
+* `Plan`, `Diff` and the types `Inputs`, `Result`, `Change`, `Decision` and `ConfigDiff` (aliases of the `plan` and
+  `config` types), with runnable examples. `go doc github.com/vectorihub/netctl` reads as a manual.
+
+#### `plan`
+* `Result.Render` returns `plan.json`, `ipam.json`, `nodes/<node>.json`, `routes.txt`, `validation.json` and
+  `simulation.json`, byte for byte the same however the file was ordered. `Result.Explain`, `ExplainText`,
+  `ExplainJSON`, `SimulationText`, `SimulationJSON`, `RoutesText`, `plan.Diff` and `plan.DiffJSON` are the pure
+  renderers a command line prints.
+* The failover guard runs inside the planner: pass `Inputs.Signals` and/or `Inputs.Failover` (the state of the last
+  plan) and the routes are computed by `failover.Evaluate`. A failover that would break a flow that worked is refused,
+  the routes in force stay and a `FailoverRejected` decision says why. `Result.Failover` holds the state to save.
+* A machine that leaves while another joins in the same plan is two machines: the old address stays quarantined, the
+  new name gets its own, and an `AddressNotCarried` decision says so.
+
+## Documentation
+* `docs/api-surface.txt` records every exported name, field and method, and `arch/tests` fails when it is out of date
+  (`go test ./arch/tests -update-surface` rewrites it; review the diff on every tag).
+* `testdata/consumer` is a separate Go module that builds a network in code against the working tree and calls
+  `netctl.Plan` (`make consumer`, also run in CI). It also checks that depending on netctl pulls in no forbidden package.
+* `make apidiff` reports the API change since the latest tag, and CI prints it.
+
+## Breaking Changes
+None. Everything in this release is new API or additive.
+
+## Schema Versions
+| Schema | Status |
+|---|---|
+| `beaver.netctl/v1alpha1` | Unchanged |
+| `beaver.topology/v1alpha1` | Unchanged |
+| `beaver.ipam/v1` | Unchanged |
+| `beaver.failover/v1` | Unchanged |
+
+## Upgrading
+```
+go get github.com/vectorihub/netctl@v0.9.0
+go mod tidy
+```
+
 # Release 2026-11-21 (v0.8.0)
 
 ## Announcements
