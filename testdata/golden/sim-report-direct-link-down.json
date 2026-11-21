@@ -1,0 +1,1214 @@
+{
+  "name": "direct-link-down",
+  "report": {
+    "flows": [
+      {
+        "flow": {
+          "label": "aws-hub→192.168.1.1 (negative)",
+          "family": "negative",
+          "src": "10.42.240.1",
+          "dst": "192.168.1.1",
+          "from": "aws-hub",
+          "note": "outside the supernet: must not be delivered anywhere"
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.240.1",
+            "dst": "192.168.1.1",
+            "ttl": 16,
+            "flow": "aws-hub→192.168.1.1 (negative)"
+          },
+          "hops": [
+            {
+              "node": "aws-hub",
+              "result": "BLACK_HOLE"
+            }
+          ],
+          "final": "BLACK_HOLE"
+        },
+        "symmetric": false,
+        "verdict": "UNREACHABLE_EXPECTED"
+      },
+      {
+        "flow": {
+          "label": "aws-hub→builder-1 (overlay)",
+          "family": "overlay",
+          "src": "10.42.240.1",
+          "dst": "10.42.240.2",
+          "from": "aws-hub",
+          "to": "builder-1"
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.240.1",
+            "dst": "10.42.240.2",
+            "ttl": 16,
+            "flow": "aws-hub→builder-1 (overlay)"
+          },
+          "hops": [
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.240.2/32",
+                "next_hop": "builder-1",
+                "via": "aws-hub~builder-1",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "builder-1"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "builder-1",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "return": {
+          "packet": {
+            "src": "10.42.240.2",
+            "dst": "10.42.240.1",
+            "ttl": 16,
+            "flow": "aws-hub→builder-1 (overlay) (return)"
+          },
+          "hops": [
+            {
+              "node": "builder-1",
+              "route": {
+                "prefix": "10.42.240.1/32",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~builder-1",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "builder-1",
+                  "aws-hub"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "symmetric": true,
+        "verdict": "OK"
+      },
+      {
+        "flow": {
+          "label": "aws-hub→dgx-spark (overlay)",
+          "family": "overlay",
+          "src": "10.42.240.1",
+          "dst": "10.42.240.3",
+          "from": "aws-hub",
+          "to": "dgx-spark"
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.240.1",
+            "dst": "10.42.240.3",
+            "ttl": 16,
+            "flow": "aws-hub→dgx-spark (overlay)"
+          },
+          "hops": [
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.240.3/32",
+                "next_hop": "dgx-spark",
+                "via": "aws-hub~dgx-spark",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "dgx-spark"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "dgx-spark",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "return": {
+          "packet": {
+            "src": "10.42.240.3",
+            "dst": "10.42.240.1",
+            "ttl": 16,
+            "flow": "aws-hub→dgx-spark (overlay) (return)"
+          },
+          "hops": [
+            {
+              "node": "dgx-spark",
+              "route": {
+                "prefix": "10.42.240.1/32",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~dgx-spark",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "dgx-spark",
+                  "aws-hub"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "symmetric": true,
+        "verdict": "OK"
+      },
+      {
+        "flow": {
+          "label": "aws→builder (site)",
+          "family": "site",
+          "src": "10.42.0.1",
+          "dst": "10.42.16.1",
+          "from": "aws-hub",
+          "to": "builder-1"
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.0.1",
+            "dst": "10.42.16.1",
+            "ttl": 16,
+            "flow": "aws→builder (site)"
+          },
+          "hops": [
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.16.0/20",
+                "next_hop": "builder-1",
+                "via": "aws-hub~builder-1",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "builder-1"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "builder-1",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "return": {
+          "packet": {
+            "src": "10.42.16.1",
+            "dst": "10.42.0.1",
+            "ttl": 16,
+            "flow": "aws→builder (site) (return)"
+          },
+          "hops": [
+            {
+              "node": "builder-1",
+              "route": {
+                "prefix": "10.42.0.0/20",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~builder-1",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "builder-1",
+                  "aws-hub"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "symmetric": true,
+        "verdict": "OK"
+      },
+      {
+        "flow": {
+          "label": "aws→dgx (site)",
+          "family": "site",
+          "src": "10.42.0.1",
+          "dst": "10.42.32.1",
+          "from": "aws-hub",
+          "to": "dgx-spark"
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.0.1",
+            "dst": "10.42.32.1",
+            "ttl": 16,
+            "flow": "aws→dgx (site)"
+          },
+          "hops": [
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.32.0/20",
+                "next_hop": "dgx-spark",
+                "via": "aws-hub~dgx-spark",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "dgx-spark"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "dgx-spark",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "return": {
+          "packet": {
+            "src": "10.42.32.1",
+            "dst": "10.42.0.1",
+            "ttl": 16,
+            "flow": "aws→dgx (site) (return)"
+          },
+          "hops": [
+            {
+              "node": "dgx-spark",
+              "route": {
+                "prefix": "10.42.0.0/20",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~dgx-spark",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "dgx-spark",
+                  "aws-hub"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "symmetric": true,
+        "verdict": "OK"
+      },
+      {
+        "flow": {
+          "label": "builder-1→192.168.1.1 (negative)",
+          "family": "negative",
+          "src": "10.42.240.2",
+          "dst": "192.168.1.1",
+          "from": "builder-1",
+          "note": "outside the supernet: must not be delivered anywhere"
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.240.2",
+            "dst": "192.168.1.1",
+            "ttl": 16,
+            "flow": "builder-1→192.168.1.1 (negative)"
+          },
+          "hops": [
+            {
+              "node": "builder-1",
+              "result": "BLACK_HOLE"
+            }
+          ],
+          "final": "BLACK_HOLE"
+        },
+        "symmetric": false,
+        "verdict": "UNREACHABLE_EXPECTED"
+      },
+      {
+        "flow": {
+          "label": "builder-1→aws-hub (deny #1: site:builder→site:aws ports 5432)",
+          "family": "deny",
+          "src": "10.42.240.2",
+          "dst": "10.42.240.1",
+          "from": "builder-1",
+          "to": "aws-hub",
+          "ports": [
+            5432
+          ],
+          "note": "reachable: policy is not enforced yet, so a firewall must block this in Phase 3"
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.240.2",
+            "dst": "10.42.240.1",
+            "ttl": 16,
+            "flow": "builder-1→aws-hub (deny #1: site:builder→site:aws ports 5432)"
+          },
+          "hops": [
+            {
+              "node": "builder-1",
+              "route": {
+                "prefix": "10.42.240.1/32",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~builder-1",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "builder-1",
+                  "aws-hub"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "return": {
+          "packet": {
+            "src": "10.42.240.1",
+            "dst": "10.42.240.2",
+            "ttl": 16,
+            "flow": "builder-1→aws-hub (deny #1: site:builder→site:aws ports 5432) (return)"
+          },
+          "hops": [
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.240.2/32",
+                "next_hop": "builder-1",
+                "via": "aws-hub~builder-1",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "builder-1"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "builder-1",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "symmetric": true,
+        "verdict": "OK"
+      },
+      {
+        "flow": {
+          "label": "builder-1→aws-hub (overlay)",
+          "family": "overlay",
+          "src": "10.42.240.2",
+          "dst": "10.42.240.1",
+          "from": "builder-1",
+          "to": "aws-hub",
+          "intent": true
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.240.2",
+            "dst": "10.42.240.1",
+            "ttl": 16,
+            "flow": "builder-1→aws-hub (overlay)"
+          },
+          "hops": [
+            {
+              "node": "builder-1",
+              "route": {
+                "prefix": "10.42.240.1/32",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~builder-1",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "builder-1",
+                  "aws-hub"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "return": {
+          "packet": {
+            "src": "10.42.240.1",
+            "dst": "10.42.240.2",
+            "ttl": 16,
+            "flow": "builder-1→aws-hub (overlay) (return)"
+          },
+          "hops": [
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.240.2/32",
+                "next_hop": "builder-1",
+                "via": "aws-hub~builder-1",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "builder-1"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "builder-1",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "symmetric": true,
+        "verdict": "OK"
+      },
+      {
+        "flow": {
+          "label": "builder-1→dgx-spark (overlay)",
+          "family": "overlay",
+          "src": "10.42.240.2",
+          "dst": "10.42.240.3",
+          "from": "builder-1",
+          "to": "dgx-spark",
+          "intent": true
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.240.2",
+            "dst": "10.42.240.3",
+            "ttl": 16,
+            "flow": "builder-1→dgx-spark (overlay)"
+          },
+          "hops": [
+            {
+              "node": "builder-1",
+              "route": {
+                "prefix": "10.42.240.3/32",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~builder-1",
+                "metric": 40,
+                "source": "computed",
+                "path": [
+                  "builder-1",
+                  "aws-hub",
+                  "dgx-spark"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.240.3/32",
+                "next_hop": "dgx-spark",
+                "via": "aws-hub~dgx-spark",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "dgx-spark"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "dgx-spark",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "return": {
+          "packet": {
+            "src": "10.42.240.3",
+            "dst": "10.42.240.2",
+            "ttl": 16,
+            "flow": "builder-1→dgx-spark (overlay) (return)"
+          },
+          "hops": [
+            {
+              "node": "dgx-spark",
+              "route": {
+                "prefix": "10.42.240.2/32",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~dgx-spark",
+                "metric": 40,
+                "source": "computed",
+                "path": [
+                  "dgx-spark",
+                  "aws-hub",
+                  "builder-1"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.240.2/32",
+                "next_hop": "builder-1",
+                "via": "aws-hub~builder-1",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "builder-1"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "builder-1",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "symmetric": true,
+        "verdict": "OK"
+      },
+      {
+        "flow": {
+          "label": "builder→aws (site)",
+          "family": "site",
+          "src": "10.42.16.1",
+          "dst": "10.42.0.1",
+          "from": "builder-1",
+          "to": "aws-hub"
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.16.1",
+            "dst": "10.42.0.1",
+            "ttl": 16,
+            "flow": "builder→aws (site)"
+          },
+          "hops": [
+            {
+              "node": "builder-1",
+              "route": {
+                "prefix": "10.42.0.0/20",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~builder-1",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "builder-1",
+                  "aws-hub"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "return": {
+          "packet": {
+            "src": "10.42.0.1",
+            "dst": "10.42.16.1",
+            "ttl": 16,
+            "flow": "builder→aws (site) (return)"
+          },
+          "hops": [
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.16.0/20",
+                "next_hop": "builder-1",
+                "via": "aws-hub~builder-1",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "builder-1"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "builder-1",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "symmetric": true,
+        "verdict": "OK"
+      },
+      {
+        "flow": {
+          "label": "builder→dgx (site)",
+          "family": "site",
+          "src": "10.42.16.1",
+          "dst": "10.42.32.1",
+          "from": "builder-1",
+          "to": "dgx-spark"
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.16.1",
+            "dst": "10.42.32.1",
+            "ttl": 16,
+            "flow": "builder→dgx (site)"
+          },
+          "hops": [
+            {
+              "node": "builder-1",
+              "route": {
+                "prefix": "10.42.32.0/20",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~builder-1",
+                "metric": 40,
+                "source": "computed",
+                "path": [
+                  "builder-1",
+                  "aws-hub",
+                  "dgx-spark"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.32.0/20",
+                "next_hop": "dgx-spark",
+                "via": "aws-hub~dgx-spark",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "dgx-spark"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "dgx-spark",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "return": {
+          "packet": {
+            "src": "10.42.32.1",
+            "dst": "10.42.16.1",
+            "ttl": 16,
+            "flow": "builder→dgx (site) (return)"
+          },
+          "hops": [
+            {
+              "node": "dgx-spark",
+              "route": {
+                "prefix": "10.42.16.0/20",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~dgx-spark",
+                "metric": 40,
+                "source": "computed",
+                "path": [
+                  "dgx-spark",
+                  "aws-hub",
+                  "builder-1"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.16.0/20",
+                "next_hop": "builder-1",
+                "via": "aws-hub~builder-1",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "builder-1"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "builder-1",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "symmetric": true,
+        "verdict": "OK"
+      },
+      {
+        "flow": {
+          "label": "dgx-spark→192.168.1.1 (negative)",
+          "family": "negative",
+          "src": "10.42.240.3",
+          "dst": "192.168.1.1",
+          "from": "dgx-spark",
+          "note": "outside the supernet: must not be delivered anywhere"
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.240.3",
+            "dst": "192.168.1.1",
+            "ttl": 16,
+            "flow": "dgx-spark→192.168.1.1 (negative)"
+          },
+          "hops": [
+            {
+              "node": "dgx-spark",
+              "result": "BLACK_HOLE"
+            }
+          ],
+          "final": "BLACK_HOLE"
+        },
+        "symmetric": false,
+        "verdict": "UNREACHABLE_EXPECTED"
+      },
+      {
+        "flow": {
+          "label": "dgx-spark→aws-hub (overlay)",
+          "family": "overlay",
+          "src": "10.42.240.3",
+          "dst": "10.42.240.1",
+          "from": "dgx-spark",
+          "to": "aws-hub",
+          "intent": true
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.240.3",
+            "dst": "10.42.240.1",
+            "ttl": 16,
+            "flow": "dgx-spark→aws-hub (overlay)"
+          },
+          "hops": [
+            {
+              "node": "dgx-spark",
+              "route": {
+                "prefix": "10.42.240.1/32",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~dgx-spark",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "dgx-spark",
+                  "aws-hub"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "return": {
+          "packet": {
+            "src": "10.42.240.1",
+            "dst": "10.42.240.3",
+            "ttl": 16,
+            "flow": "dgx-spark→aws-hub (overlay) (return)"
+          },
+          "hops": [
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.240.3/32",
+                "next_hop": "dgx-spark",
+                "via": "aws-hub~dgx-spark",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "dgx-spark"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "dgx-spark",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "symmetric": true,
+        "verdict": "OK"
+      },
+      {
+        "flow": {
+          "label": "dgx-spark→builder-1 (overlay)",
+          "family": "overlay",
+          "src": "10.42.240.3",
+          "dst": "10.42.240.2",
+          "from": "dgx-spark",
+          "to": "builder-1",
+          "intent": true
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.240.3",
+            "dst": "10.42.240.2",
+            "ttl": 16,
+            "flow": "dgx-spark→builder-1 (overlay)"
+          },
+          "hops": [
+            {
+              "node": "dgx-spark",
+              "route": {
+                "prefix": "10.42.240.2/32",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~dgx-spark",
+                "metric": 40,
+                "source": "computed",
+                "path": [
+                  "dgx-spark",
+                  "aws-hub",
+                  "builder-1"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.240.2/32",
+                "next_hop": "builder-1",
+                "via": "aws-hub~builder-1",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "builder-1"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "builder-1",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "return": {
+          "packet": {
+            "src": "10.42.240.2",
+            "dst": "10.42.240.3",
+            "ttl": 16,
+            "flow": "dgx-spark→builder-1 (overlay) (return)"
+          },
+          "hops": [
+            {
+              "node": "builder-1",
+              "route": {
+                "prefix": "10.42.240.3/32",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~builder-1",
+                "metric": 40,
+                "source": "computed",
+                "path": [
+                  "builder-1",
+                  "aws-hub",
+                  "dgx-spark"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.240.3/32",
+                "next_hop": "dgx-spark",
+                "via": "aws-hub~dgx-spark",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "dgx-spark"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "dgx-spark",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "symmetric": true,
+        "verdict": "OK"
+      },
+      {
+        "flow": {
+          "label": "dgx→aws (site)",
+          "family": "site",
+          "src": "10.42.32.1",
+          "dst": "10.42.0.1",
+          "from": "dgx-spark",
+          "to": "aws-hub"
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.32.1",
+            "dst": "10.42.0.1",
+            "ttl": 16,
+            "flow": "dgx→aws (site)"
+          },
+          "hops": [
+            {
+              "node": "dgx-spark",
+              "route": {
+                "prefix": "10.42.0.0/20",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~dgx-spark",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "dgx-spark",
+                  "aws-hub"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "return": {
+          "packet": {
+            "src": "10.42.0.1",
+            "dst": "10.42.32.1",
+            "ttl": 16,
+            "flow": "dgx→aws (site) (return)"
+          },
+          "hops": [
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.32.0/20",
+                "next_hop": "dgx-spark",
+                "via": "aws-hub~dgx-spark",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "dgx-spark"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "dgx-spark",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "symmetric": true,
+        "verdict": "OK"
+      },
+      {
+        "flow": {
+          "label": "dgx→builder (site)",
+          "family": "site",
+          "src": "10.42.32.1",
+          "dst": "10.42.16.1",
+          "from": "dgx-spark",
+          "to": "builder-1"
+        },
+        "forward": {
+          "packet": {
+            "src": "10.42.32.1",
+            "dst": "10.42.16.1",
+            "ttl": 16,
+            "flow": "dgx→builder (site)"
+          },
+          "hops": [
+            {
+              "node": "dgx-spark",
+              "route": {
+                "prefix": "10.42.16.0/20",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~dgx-spark",
+                "metric": 40,
+                "source": "computed",
+                "path": [
+                  "dgx-spark",
+                  "aws-hub",
+                  "builder-1"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.16.0/20",
+                "next_hop": "builder-1",
+                "via": "aws-hub~builder-1",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "builder-1"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "builder-1",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "return": {
+          "packet": {
+            "src": "10.42.16.1",
+            "dst": "10.42.32.1",
+            "ttl": 16,
+            "flow": "dgx→builder (site) (return)"
+          },
+          "hops": [
+            {
+              "node": "builder-1",
+              "route": {
+                "prefix": "10.42.32.0/20",
+                "next_hop": "aws-hub",
+                "via": "aws-hub~builder-1",
+                "metric": 40,
+                "source": "computed",
+                "path": [
+                  "builder-1",
+                  "aws-hub",
+                  "dgx-spark"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "aws-hub",
+              "route": {
+                "prefix": "10.42.32.0/20",
+                "next_hop": "dgx-spark",
+                "via": "aws-hub~dgx-spark",
+                "metric": 20,
+                "source": "computed",
+                "path": [
+                  "aws-hub",
+                  "dgx-spark"
+                ],
+                "active": true
+              },
+              "result": "FORWARDED"
+            },
+            {
+              "node": "dgx-spark",
+              "result": "DELIVERED"
+            }
+          ],
+          "final": "DELIVERED"
+        },
+        "symmetric": true,
+        "verdict": "OK"
+      }
+    ],
+    "summary": {
+      "total": 16,
+      "failed": 0,
+      "warnings": 0,
+      "verdicts": [
+        {
+          "verdict": "OK",
+          "count": 13
+        },
+        {
+          "verdict": "UNREACHABLE_EXPECTED",
+          "count": 3
+        }
+      ],
+      "problems": []
+    },
+    "passed": true
+  },
+  "unreachable": [],
+  "mismatches": [],
+  "passed": true
+}

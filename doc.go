@@ -50,6 +50,14 @@
 //     hub-and-spoke, one backup per route, and unreachable pairs reported as
 //     data. Answers longest-prefix lookups, explains why a route is used, and
 //     diffs two sets of tables.
+//   - [github.com/vectorihub/netctl/sim]: a virtual test bench. Pushes
+//     simulated packets through the tables, judges every flow (black holes,
+//     loops, missing returns, asymmetric paths), runs failure scenarios
+//     through the real routing engine, and writes stable text and JSON reports.
+//   - [github.com/vectorihub/netctl/health]: link health. Turns evidence
+//     (probes, handshakes, interface state) into which links may carry
+//     traffic, with hold-down, staleness, and a link counting as usable only
+//     when it is healthy in both directions.
 //
 // # A typical flow
 //

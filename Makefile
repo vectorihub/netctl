@@ -49,7 +49,7 @@ windows:
 ## 60s for FuzzCanonical (P1-CIDR-009): make fuzz FUZZTIME=60s
 ## Go keeps any failing input under testdata/fuzz, where `make test` replays it.
 FUZZTIME ?= 10s
-FUZZ_TARGETS := cidr/tests:FuzzCanonical cidr/tests:FuzzChildren ipam/tests:FuzzSnapshot topology/tests:FuzzDecode topology/tests:FuzzLoad
+FUZZ_TARGETS := cidr/tests:FuzzCanonical cidr/tests:FuzzChildren ipam/tests:FuzzSnapshot topology/tests:FuzzDecode topology/tests:FuzzLoad sim/tests:FuzzParseScenarios
 fuzz:
 	@for target in $(FUZZ_TARGETS); do \
 	  pkg=$${target%%:*}; name=$${target##*:}; \
@@ -60,9 +60,12 @@ fuzz:
 ## bench: IPAM and topology performance budgets (P1-TOPO-041: loading 500 nodes and 1,500 links
 ## under 300 ms; P1-IPAM-PERF-001: 2,000 overlay allocations under
 ## 200 ms; PERF-002: accounting at 5,000 allocations under 50 ms). A benchmark fails
-## when its best run is over budget.
+## when its best run is over budget. The simulator's P1-SIM-PERF-001 (all-pairs overlay
+## flows of 500 nodes, about 250,000, under 10 s) is BenchmarkAllPairs500; it takes a couple
+## of seconds a run, so it runs fewer times.
 bench:
 	go test ./ipam/tests ./topology/tests -run='^$$' -bench=. -benchtime=10x
+	go test ./sim/tests -run='^$$' -bench=. -benchtime=3x
 
 ## repro: repeatability smoke test — the suite passes twice in shuffled order.
 ## The byte-for-byte determinism proof is V61.

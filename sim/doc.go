@@ -52,10 +52,38 @@
 // one negative flow per node to an address outside the supernet. The order is
 // fixed.
 //
+// # Failure scenarios
+//
+// A [Scenario] is a what-if: the same flows with some links or nodes failed.
+// [RunScenario] applies the failures to the graph, recomputes every route with
+// the real route.Compute (exactly one call, never a second implementation of
+// routing), simulates every flow over the new tables, and checks the scenario's
+// [Expectation]s, which turn it into an assertion. A flow that starts or ends at
+// a failed node is expected to be undeliverable; a flow between live nodes that
+// the engine reports cut off is NO_HEALTHY_PATH, which passes the gate and is
+// listed. [ParseScenarios] reads scenarios from YAML.
+//
+// # Planting faults
+//
+// A detector that has never seen a fault has not shown it can. [CorruptTable]
+// returns a copy of the tables with one node's routes for one prefix deleted,
+// retargeted or planted, to make a black hole, a loop or a wrong neighbour on
+// purpose.
+//
 // # Reports
 //
 // [NewReport] gathers the results of a set of flows, sorted by label, with a
 // [Summary] that counts verdicts and problems, and says whether the run passed.
+// [Report.Text] and [ScenarioResult.Text] write it for people, with each flow's
+// journey link by link; [Report.JSON] and [ScenarioResult.JSON] write it as
+// JSON whose keys and order never change, so the same run gives the same bytes.
+//
+// # Speed
+//
+// [NewNet] indexes every table once, so a lookup is a few hash probes instead of
+// a scan: the all-pairs overlay flows of 500 nodes (about 250,000, each sent and
+// answered) take about two seconds. The index is a snapshot; build a new [Net]
+// after changing the tables.
 //
 // # Scope
 //
