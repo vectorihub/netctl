@@ -12,6 +12,11 @@ import (
 
 // Announcer says what one node announces to the overlay. The planner builds
 // one from each node of the topology.
+//
+// Example:
+//
+//	a := route.Announcer{Node: "dgx-spark", Site: "dgx", AdvertiseSite: true}
+//	owned, local, err := route.Collect(registry, []route.Announcer{a}, links)
 type Announcer struct {
 	// Node is the machine.
 	Node types.NodeID
@@ -51,11 +56,13 @@ type Announcer struct {
 // link ID is not two node IDs joined by '~' (INVALID_TOPOLOGY). Every problem
 // is reported at once.
 //
-// Example: with site aws holding 10.42.0.0/20, node aws-hub holding
-// 10.42.240.1/32, and a direct link builder-1~dgx-spark holding 10.42.252.0/30,
-// Collect gives aws-hub the owned prefixes 10.42.0.0/20 and 10.42.240.1/32 (if
-// it advertises its site), and gives both builder-1 and dgx-spark the local
-// prefix 10.42.252.0/30.
+// Example:
+//
+//	with site aws holding 10.42.0.0/20, node aws-hub holding
+//	10.42.240.1/32, and a direct link builder-1~dgx-spark holding 10.42.252.0/30,
+//	Collect gives aws-hub the owned prefixes 10.42.0.0/20 and 10.42.240.1/32 (if
+//	it advertises its site), and gives both builder-1 and dgx-spark the local
+//	prefix 10.42.252.0/30.
 func Collect(registry *ipam.IPAM, announcers []Announcer, links []types.LinkID) (owned, local Owned, err error) {
 	if registry == nil {
 		return nil, nil, types.Errf(types.ErrInvalidValue, "Collect", "it needs an IPAM registry, got nil")

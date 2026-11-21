@@ -23,7 +23,8 @@ func ipNumber(addr netip.Addr) uint32 {
 	return binary.BigEndian.Uint32(bytes[:])
 }
 
-// oracle is an independent answer to "which route does dst take?". It does not
+// oracle is an independent answer to "which route does dst take?", returning
+// the route with its prefix masked as Lookup does. It does not
 // share code with Lookup: it tests containment with integer masks instead of
 // netip's Contains, and it picks the winner by sorting every candidate by
 // prefix length (longest first), then metric, then Compare, and taking the
@@ -41,6 +42,11 @@ func oracle(routes []route.Route, dst netip.Addr) (route.Route, bool) {
 			mask = ^uint32(0) << (32 - bits)
 		}
 		if ipNumber(r.Prefix.Addr())&mask == target&mask {
+			// Lookup answers with the canonical block, so the oracle masks the
+			// prefix too, with its own arithmetic.
+			var block [4]byte
+			binary.BigEndian.PutUint32(block[:], ipNumber(r.Prefix.Addr())&mask)
+			r.Prefix = netip.PrefixFrom(netip.AddrFrom4(block), bits)
 			candidates = append(candidates, r)
 		}
 	}

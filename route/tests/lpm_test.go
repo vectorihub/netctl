@@ -216,11 +216,12 @@ func TestLookupTieIsSettledByCompare(t *testing.T) {
 }
 
 // TestLookupSpellingsOfOnePrefix checks that a prefix written with host bits
-// set (10.42.16.5/20) is matched like its canonical form, and that two spellings
-// of one block tie on length and metric, then fall to Compare's order.
+// set (10.42.16.5/20) is masked where it enters Lookup: it matches, and is
+// returned, as its canonical block 10.42.16.0/20, and two spellings of one block
+// tie on length and metric, then fall to Compare's order of the masked routes.
 func TestLookupSpellingsOfOnePrefix(t *testing.T) {
 	table := &route.Table{Node: "x", Routes: []route.Route{computed("10.42.16.5/20", "n", "x~n", 5)}}
-	lookupWants(t, "host bits set", table, "10.42.31.200", "10.42.16.5/20", "n")
+	lookupWants(t, "host bits set", table, "10.42.31.200", "10.42.16.0/20", "n")
 	lookupWants(t, "outside", table, "10.42.32.1", "", "")
 
 	routes := []route.Route{
@@ -230,7 +231,7 @@ func TestLookupSpellingsOfOnePrefix(t *testing.T) {
 	inEveryOrder(t, routes, func(table *route.Table) {
 		got, ok := table.Lookup(addrOf("10.42.20.1"))
 		if !ok || got.NextHop != "first" {
-			t.Errorf("Lookup = %v, %v, want the canonical spelling (next hop first)", got, ok)
+			t.Errorf("Lookup = %v, %v, want next hop first, which sorts first once both are masked", got, ok)
 		}
 	})
 }

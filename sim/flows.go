@@ -12,6 +12,12 @@ import (
 )
 
 // Options tune flow derivation.
+//
+// Example:
+//
+//	flows, err := sim.Flows(topo, registry, sim.Options{
+//		AllowAsymmetric: [][2]types.NodeID{{"builder-1", "dgx-spark"}},
+//	})
 type Options struct {
 	// AllowAsymmetric lists pairs of nodes whose flows may take different paths
 	// there and back without failing the gate. A pair applies in both directions.
@@ -69,8 +75,10 @@ func held(registry *ipam.IPAM, owner ipam.Owner, bits int) (netip.Prefix, bool) 
 // no node (INVALID_TOPOLOGY), or a supernet so large that no candidate address
 // lies outside it for the negative flows (INVALID_VALUE). Every problem is reported at once.
 //
-// Example: for a topology with nodes a, b and c, each advertising its site, and
-// one deny intent, Flows returns 6 overlay, 6 site, 1 deny and 3 negative flows.
+// Example:
+//
+//	for a topology with nodes a, b and c, each advertising its site, and
+//	one deny intent, Flows returns 6 overlay, 6 site, 1 deny and 3 negative flows.
 func Flows(t *topology.Topology, registry *ipam.IPAM, opts Options) ([]Flow, error) {
 	if t == nil || registry == nil {
 		return nil, types.Errf(types.ErrInvalidValue, "Flows", "it needs a topology and an address plan, got nil")

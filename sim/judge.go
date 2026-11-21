@@ -15,9 +15,11 @@ import (
 // Matching nodes alone is not enough. Two links between the same pair of nodes
 // are different paths to WireGuard and to a stateful firewall.
 //
-// Example: forward builder-1, aws-hub, dgx-spark over aws-hub~builder-1 and
-// aws-hub~dgx-spark is symmetric with a return of dgx-spark, aws-hub, builder-1
-// over aws-hub~dgx-spark and aws-hub~builder-1.
+// Example:
+//
+//	forward builder-1, aws-hub, dgx-spark over aws-hub~builder-1 and
+//	aws-hub~dgx-spark is symmetric with a return of dgx-spark, aws-hub, builder-1
+//	over aws-hub~dgx-spark and aws-hub~builder-1.
 func Symmetric(forward, ret Trace) bool {
 	if !forward.Delivered() || !ret.Delivered() {
 		return false
@@ -29,6 +31,10 @@ func Symmetric(forward, ret Trace) bool {
 }
 
 // Case is what Judge needs to know about a flow besides its two traces.
+//
+// Example:
+//
+//	verdict := sim.Judge(forward, reply, sim.Case{AllowAsymmetric: true})
 type Case struct {
 	// Negative says the flow must not be delivered anywhere.
 	Negative bool
@@ -60,8 +66,10 @@ type Case struct {
 //     case allows it, and ASYMMETRIC if not.
 //  8. Otherwise OK.
 //
-// Example: forward delivered, return dropped at the hub for want of a route, is
-// NO_RETURN.
+// Example:
+//
+//	forward delivered, return dropped at the hub for want of a route, is
+//	NO_RETURN.
 func Judge(forward, ret Trace, c Case) Verdict {
 	switch {
 	case c.Negative && forward.Delivered():
@@ -149,8 +157,10 @@ func pathOf(trace Trace) string {
 // problem, and neither is a trace that failed only because the pair is
 // partitioned.
 //
-// Example: a forward trace that ended in a black hole at aws-hub gives one problem, of kind
-// black_hole, direction forward, node aws-hub.
+// Example:
+//
+//	a forward trace that ended in a black hole at aws-hub gives one problem, of kind
+//	black_hole, direction forward, node aws-hub.
 func ProblemsOf(forward Trace, ret *Trace, verdict Verdict) []Problem {
 	if !verdict.FailsGate() && verdict != VerdictOKAsymmetricAllowed {
 		return nil
@@ -198,8 +208,10 @@ func ProblemsOf(forward Trace, ret *Trace, verdict Verdict) []Problem {
 // nodes (see Case). The flow's own Negative and AllowAsymmetric settings are
 // used as they are.
 //
-// Example: the overlay flow builder-1 to dgx-spark with the direct link up goes
-// builder-1, dgx-spark and comes back dgx-spark, builder-1: verdict OK.
+// Example:
+//
+//	the overlay flow builder-1 to dgx-spark with the direct link up goes
+//	builder-1, dgx-spark and comes back dgx-spark, builder-1: verdict OK.
 func (n Net) Run(flow Flow, partitioned bool) FlowResult {
 	result := FlowResult{Flow: flow}
 	result.Forward = n.Send(Packet{Src: flow.Src, Dst: flow.Dst, Flow: flow.Label}, flow.From)
