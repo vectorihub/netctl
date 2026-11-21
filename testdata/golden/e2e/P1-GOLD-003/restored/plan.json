@@ -1,0 +1,23 @@
+{
+  "plan_id": "<masked>",
+  "ok": true,
+  "nodes": [
+    "aws-hub",
+    "builder-1",
+    "dgx-spark"
+  ],
+  "unusable": [],
+  "unreachable": [],
+  "changes": [],
+  "decisions": [],
+  "files": [
+    "ipam.json",
+    "nodes/aws-hub.json",
+    "nodes/builder-1.json",
+    "nodes/dgx-spark.json",
+    "plan.json",
+    "routes.txt",
+    "simulation.json",
+    "validation.json"
+  ]
+}
