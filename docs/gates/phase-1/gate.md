@@ -58,8 +58,8 @@ evidence was gathered from, not a release.
 6. The fresh-plan typo is on line 17, not 15, in `testdata/e2e/three-site-typo.yaml`.
 7. Timing limits of E2E 100-102 are enforced when `E2E_STRICT_TIMING` is set; on a loaded laptop they are logged.
    A 100-node fresh plan took 4.4 s with the tests running in parallel, against the guide's 2 s.
-8. The chaos run takes about 3 s a case on four cores, so 2,000 cases per push and 20,000 nightly are set by
-   `E2E_CHAOS_CASES`; the default is 300.
+8. The chaos run takes about 4 s a case on four cores, so 2,000 cases per push and 20,000 nightly are set by
+   `E2E_CHAOS_CASES`; the default is 100.
 
 ## Missing evidence files
 
