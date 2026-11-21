@@ -1,0 +1,168 @@
+{
+  "schema": "beaver.ipam/v1",
+  "supernet": "10.42.0.0/16",
+  "pools": [
+    {
+      "name": "sites",
+      "prefix": "10.42.0.0/17",
+      "child_bits": 20
+    },
+    {
+      "name": "growth",
+      "prefix": "10.42.128.0/18",
+      "child_bits": 20,
+      "reserved": true
+    },
+    {
+      "name": "overlay",
+      "prefix": "10.42.240.0/21",
+      "child_bits": 32,
+      "skip_first": 1
+    },
+    {
+      "name": "infra",
+      "prefix": "10.42.248.0/22",
+      "reserved": true
+    },
+    {
+      "name": "transit",
+      "prefix": "10.42.252.0/22",
+      "child_bits": 30
+    }
+  ],
+  "allocations": [
+    {
+      "prefix": "10.42.0.0/20",
+      "pool": "sites",
+      "owner": "site:aws",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.16.0/20",
+      "pool": "sites",
+      "owner": "site:s1",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.32.0/20",
+      "pool": "sites",
+      "owner": "site:s2",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.48.0/20",
+      "pool": "sites",
+      "owner": "site:s3",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.64.0/20",
+      "pool": "sites",
+      "owner": "site:s4",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.80.0/20",
+      "pool": "sites",
+      "owner": "site:s5",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.96.0/20",
+      "pool": "sites",
+      "owner": "site:s6",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.112.0/20",
+      "pool": "sites",
+      "owner": "site:s7",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.240.1/32",
+      "pool": "overlay",
+      "owner": "node:aws-hub",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.240.2/32",
+      "pool": "overlay",
+      "owner": "node:spoke-01",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.240.3/32",
+      "pool": "overlay",
+      "owner": "node:spoke-02",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.240.4/32",
+      "pool": "overlay",
+      "owner": "node:spoke-03",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.240.5/32",
+      "pool": "overlay",
+      "owner": "node:spoke-04",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.240.6/32",
+      "pool": "overlay",
+      "owner": "node:spoke-05",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.240.7/32",
+      "pool": "overlay",
+      "owner": "node:spoke-06",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.240.8/32",
+      "pool": "overlay",
+      "owner": "node:spoke-07",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.240.9/32",
+      "pool": "overlay",
+      "owner": "node:spoke-08",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.240.10/32",
+      "pool": "overlay",
+      "owner": "node:spoke-09",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    },
+    {
+      "prefix": "10.42.240.11/32",
+      "pool": "overlay",
+      "owner": "node:spoke-10",
+      "state": "allocated",
+      "created_at": "2026-11-20T10:00:00Z"
+    }
+  ]
+}

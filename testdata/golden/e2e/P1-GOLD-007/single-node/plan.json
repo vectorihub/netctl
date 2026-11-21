@@ -1,0 +1,30 @@
+{
+  "plan_id": "<masked>",
+  "ok": true,
+  "nodes": [
+    "aws-hub"
+  ],
+  "unusable": [],
+  "unreachable": [],
+  "changes": [
+    {
+      "kind": "allocated",
+      "subject": "site:aws",
+      "prefix": "10.42.0.0/20"
+    },
+    {
+      "kind": "allocated",
+      "subject": "node:aws-hub",
+      "prefix": "10.42.240.1/32"
+    }
+  ],
+  "decisions": [],
+  "files": [
+    "ipam.json",
+    "nodes/aws-hub.json",
+    "plan.json",
+    "routes.txt",
+    "simulation.json",
+    "validation.json"
+  ]
+}
