@@ -1,0 +1,90 @@
+SIMULATION three-site · scenario direct-link-down · 16 flows
+  OK                         13
+  UNREACHABLE_EXPECTED        3
+  ASYMMETRIC                  0
+  NO_RETURN                   0
+  BLACK_HOLE                  0
+  LOOP                        0
+  LINK_DOWN                   0
+PASS
+
+aws-hub→192.168.1.1 (negative) (10.42.240.1 → 192.168.1.1) UNREACHABLE_EXPECTED
+  fwd: aws-hub  BLACK_HOLE (0 hops)
+  ret: not sent: a negative flow has no reply
+  note: outside the supernet: must not be delivered anywhere
+
+aws-hub→builder-1 (overlay) (10.42.240.1 → 10.42.240.2) OK
+  fwd: aws-hub ─[aws-hub~builder-1]→ builder-1  DELIVERED (1 hop)
+  ret: builder-1 ─[aws-hub~builder-1]→ aws-hub  DELIVERED (1 hop)
+  symmetric: yes
+
+aws-hub→dgx-spark (overlay) (10.42.240.1 → 10.42.240.3) OK
+  fwd: aws-hub ─[aws-hub~dgx-spark]→ dgx-spark  DELIVERED (1 hop)
+  ret: dgx-spark ─[aws-hub~dgx-spark]→ aws-hub  DELIVERED (1 hop)
+  symmetric: yes
+
+aws→builder (site) (10.42.0.1 → 10.42.16.1) OK
+  fwd: aws-hub ─[aws-hub~builder-1]→ builder-1  DELIVERED (1 hop)
+  ret: builder-1 ─[aws-hub~builder-1]→ aws-hub  DELIVERED (1 hop)
+  symmetric: yes
+
+aws→dgx (site) (10.42.0.1 → 10.42.32.1) OK
+  fwd: aws-hub ─[aws-hub~dgx-spark]→ dgx-spark  DELIVERED (1 hop)
+  ret: dgx-spark ─[aws-hub~dgx-spark]→ aws-hub  DELIVERED (1 hop)
+  symmetric: yes
+
+builder-1→192.168.1.1 (negative) (10.42.240.2 → 192.168.1.1) UNREACHABLE_EXPECTED
+  fwd: builder-1  BLACK_HOLE (0 hops)
+  ret: not sent: a negative flow has no reply
+  note: outside the supernet: must not be delivered anywhere
+
+builder-1→aws-hub (deny #1: site:builder→site:aws ports 5432) (10.42.240.2 → 10.42.240.1) OK
+  fwd: builder-1 ─[aws-hub~builder-1]→ aws-hub  DELIVERED (1 hop)
+  ret: aws-hub ─[aws-hub~builder-1]→ builder-1  DELIVERED (1 hop)
+  symmetric: yes
+  note: reachable: policy is not enforced yet, so a firewall must block this in Phase 3
+
+builder-1→aws-hub (overlay) (10.42.240.2 → 10.42.240.1) OK
+  fwd: builder-1 ─[aws-hub~builder-1]→ aws-hub  DELIVERED (1 hop)
+  ret: aws-hub ─[aws-hub~builder-1]→ builder-1  DELIVERED (1 hop)
+  symmetric: yes
+
+builder-1→dgx-spark (overlay) (10.42.240.2 → 10.42.240.3) OK
+  fwd: builder-1 ─[aws-hub~builder-1]→ aws-hub ─[aws-hub~dgx-spark]→ dgx-spark  DELIVERED (2 hops)
+  ret: dgx-spark ─[aws-hub~dgx-spark]→ aws-hub ─[aws-hub~builder-1]→ builder-1  DELIVERED (2 hops)
+  symmetric: yes
+
+builder→aws (site) (10.42.16.1 → 10.42.0.1) OK
+  fwd: builder-1 ─[aws-hub~builder-1]→ aws-hub  DELIVERED (1 hop)
+  ret: aws-hub ─[aws-hub~builder-1]→ builder-1  DELIVERED (1 hop)
+  symmetric: yes
+
+builder→dgx (site) (10.42.16.1 → 10.42.32.1) OK
+  fwd: builder-1 ─[aws-hub~builder-1]→ aws-hub ─[aws-hub~dgx-spark]→ dgx-spark  DELIVERED (2 hops)
+  ret: dgx-spark ─[aws-hub~dgx-spark]→ aws-hub ─[aws-hub~builder-1]→ builder-1  DELIVERED (2 hops)
+  symmetric: yes
+
+dgx-spark→192.168.1.1 (negative) (10.42.240.3 → 192.168.1.1) UNREACHABLE_EXPECTED
+  fwd: dgx-spark  BLACK_HOLE (0 hops)
+  ret: not sent: a negative flow has no reply
+  note: outside the supernet: must not be delivered anywhere
+
+dgx-spark→aws-hub (overlay) (10.42.240.3 → 10.42.240.1) OK
+  fwd: dgx-spark ─[aws-hub~dgx-spark]→ aws-hub  DELIVERED (1 hop)
+  ret: aws-hub ─[aws-hub~dgx-spark]→ dgx-spark  DELIVERED (1 hop)
+  symmetric: yes
+
+dgx-spark→builder-1 (overlay) (10.42.240.3 → 10.42.240.2) OK
+  fwd: dgx-spark ─[aws-hub~dgx-spark]→ aws-hub ─[aws-hub~builder-1]→ builder-1  DELIVERED (2 hops)
+  ret: builder-1 ─[aws-hub~builder-1]→ aws-hub ─[aws-hub~dgx-spark]→ dgx-spark  DELIVERED (2 hops)
+  symmetric: yes
+
+dgx→aws (site) (10.42.32.1 → 10.42.0.1) OK
+  fwd: dgx-spark ─[aws-hub~dgx-spark]→ aws-hub  DELIVERED (1 hop)
+  ret: aws-hub ─[aws-hub~dgx-spark]→ dgx-spark  DELIVERED (1 hop)
+  symmetric: yes
+
+dgx→builder (site) (10.42.32.1 → 10.42.16.1) OK
+  fwd: dgx-spark ─[aws-hub~dgx-spark]→ aws-hub ─[aws-hub~builder-1]→ builder-1  DELIVERED (2 hops)
+  ret: builder-1 ─[aws-hub~builder-1]→ aws-hub ─[aws-hub~dgx-spark]→ dgx-spark  DELIVERED (2 hops)
+  symmetric: yes

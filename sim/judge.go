@@ -213,9 +213,18 @@ func ProblemsOf(forward Trace, ret *Trace, verdict Verdict) []Problem {
 //	the overlay flow builder-1 to dgx-spark with the direct link up goes
 //	builder-1, dgx-spark and comes back dgx-spark, builder-1: verdict OK.
 func (n Net) Run(flow Flow, partitioned bool) FlowResult {
+	return n.runCase(flow, Case{
+		Negative: flow.Negative(), Partitioned: partitioned, AllowAsymmetric: flow.AllowAsymmetric,
+	})
+}
+
+// runCase is Run with the judging case given by the caller, so a scenario can
+// treat a flow to a failed node as one that must not be delivered without
+// changing the flow itself.
+func (n Net) runCase(flow Flow, c Case) FlowResult {
 	result := FlowResult{Flow: flow}
 	result.Forward = n.Send(Packet{Src: flow.Src, Dst: flow.Dst, Flow: flow.Label}, flow.From)
-	if result.Forward.Delivered() && !flow.Negative() {
+	if result.Forward.Delivered() && !c.Negative {
 		reply := n.Send(Packet{Src: flow.Dst, Dst: flow.Src, Flow: flow.Label + " (return)"}, flow.To)
 		result.Return = &reply
 		result.Symmetric = Symmetric(result.Forward, reply)
@@ -224,9 +233,7 @@ func (n Net) Run(flow Flow, partitioned bool) FlowResult {
 	if result.Return != nil {
 		ret = *result.Return
 	}
-	result.Verdict = Judge(result.Forward, ret, Case{
-		Negative: flow.Negative(), Partitioned: partitioned, AllowAsymmetric: flow.AllowAsymmetric,
-	})
+	result.Verdict = Judge(result.Forward, ret, c)
 	result.Problems = ProblemsOf(result.Forward, result.Return, result.Verdict)
 	return result
 }

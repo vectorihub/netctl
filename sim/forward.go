@@ -20,6 +20,12 @@ import (
 type Net struct {
 	// Tables holds each node's routing table. A node with no table drops
 	// everything it is given.
+	//
+	// A Net made by NewNet reads the tables once, to build a fast index of
+	// them. Changing Tables afterwards is not seen; build a new Net, which is
+	// how CorruptTable is meant to be used. A Net built directly from a struct
+	// literal has no index and reads Tables on every lookup, so it always sees
+	// the current tables.
 	Tables route.Tables
 	// Local says whether addr is one of node's own addresses, so a packet for it
 	// is delivered. A nil Local means no address is local to any node.
@@ -39,6 +45,21 @@ type Net struct {
 	// node holds, such as a static override for one address of its own block,
 	// is followed instead of the packet being delivered.
 	held func(node types.NodeID, addr netip.Addr) int
+
+	// index holds a longest-prefix index of each node's table, built by NewNet.
+	// It answers the same lookups as the tables, a few hundred times faster,
+	// which is what makes 250,000 flows over 500 nodes finish in seconds. A Net
+	// with no index falls back to the tables.
+	index map[types.NodeID]*route.Index
+}
+
+// lookup finds the route a packet for dst follows at node, through the index if
+// the Net has one and the node's table otherwise. Both give the same answer.
+func (n Net) lookup(node types.NodeID, dst netip.Addr) (route.Route, bool) {
+	if index, ok := n.index[node]; ok {
+		return index.Lookup(dst)
+	}
+	return n.Tables[node].Lookup(dst)
 }
 
 // overridden reports whether a packet for dst that Local says is node's own
@@ -49,7 +70,7 @@ func (n Net) overridden(node types.NodeID, dst netip.Addr) bool {
 	if n.held == nil {
 		return false
 	}
-	found, ok := n.Tables[node].Lookup(dst)
+	found, ok := n.lookup(node, dst)
 	return ok && found.NextHop != "" && found.Prefix.Bits() > n.held(node, dst)
 }
 
@@ -57,6 +78,9 @@ func (n Net) overridden(node types.NodeID, dst netip.Addr) bool {
 // to any address inside a prefix the node holds (owned or local); adjacency is
 // every edge of the graph, up or down; a link is up if its edges are not marked
 // down.
+//
+// NewNet reads the tables once, and indexes them for fast lookup. Changing the
+// tables afterwards does not change the Net; build another.
 //
 // Example:
 //
@@ -80,8 +104,13 @@ func NewNet(graph route.Graph, tables route.Tables, owned, local route.Owned) Ne
 			}
 		}
 	}
+	index := make(map[types.NodeID]*route.Index, len(tables))
+	for node, table := range tables {
+		index[node] = table.Index()
+	}
 	return Net{
 		Tables: tables,
+		index:  index,
 		Local: func(node types.NodeID, addr netip.Addr) bool {
 			for _, prefix := range held[node] {
 				if prefix.Contains(addr) {
@@ -166,7 +195,7 @@ func (n Net) Send(packet Packet, start types.NodeID) Trace {
 			return finish(current, nil, LoopDetected)
 		}
 		seen[current] = true
-		found, ok := n.Tables[current].Lookup(packet.Dst)
+		found, ok := n.lookup(current, packet.Dst)
 		if !ok {
 			return finish(current, nil, BlackHole)
 		}

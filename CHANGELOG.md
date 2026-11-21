@@ -78,7 +78,55 @@ changes, and each one is listed under **Breaking Changes** for that release.
 * `NewReport` orders results that share a label by everything else in them, so the order never depends on the
   input's.
 * `NewNet` builds the network under test from a `route.Graph` and the prefixes each node holds.
-* Scenarios, fault-injection helpers and the text and JSON reports arrive in the rest of the release.
+* `RunScenario` and `RunScenarios` run a failure scenario (`links_down`, `nodes_down`, `expect`): the failures
+  are laid over the graph, every route is recomputed with the real `route.Compute` (one call per scenario, and
+  a test fails the build if `sim` ever calls it anywhere else or computes routes itself), and every flow is
+  simulated over the new tables. A flow that starts or ends at a failed node is expected to be undeliverable
+  (`UNREACHABLE_EXPECTED`); live nodes that the failures cut off from each other get `NO_HEALTHY_PATH`, which
+  passes the gate and is listed. `Expect` turns a scenario into an assertion: a wrong verdict, or an expectation
+  that matches no flow, fails the scenario and names it. A scenario that names a link or node the network does
+  not have is refused (`INVALID_SCENARIO`) instead of quietly testing the healthy network.
+* `ParseScenarios` reads scenarios from YAML, strictly: unknown keys, verdicts or families, a missing name or
+  verdict, a repeated name and a second document are refused. It has a fuzz target (`make fuzz`).
+* `CorruptTable` returns a copy of the tables with one node's routes for one prefix deleted, retargeted or
+  planted, for tests that plant a black hole, a loop, a one-sided link or a wrong neighbour and check the
+  simulator catches it. The input is not changed.
+* `Report.Text` and `ScenarioResult.Text` write the report for people: a header, the verdict counts (the zeros
+  that matter always shown), PASS or FAIL, and each failing flow's forward and return journey link by link.
+  `Report.JSON` and `ScenarioResult.JSON` write JSON with a fixed key order and sorted flows, byte-identical for
+  the same run (golden files in `testdata/golden`).
+* `NewNet` indexes each table once, so the all-pairs overlay flows of 500 nodes (249,500 flows, each sent and
+  answered) take about two seconds against a budget of ten. The index is a snapshot: change the tables, build
+  a new `Net`.
+
+#### `route`
+* `Table.Index` returns a read-only snapshot of a table's active routes for fast longest-prefix lookup, and
+  `Index.Lookup` answers exactly what `Table.Lookup` does (a property test checks it over 10,000 random tables,
+  including IPv6, unmasked prefixes, ties and awkward addresses) a hundred times faster on a 2,000-route table.
+
+#### `health` (new, not yet complete)
+* `Signal` is one piece of evidence about one direction of one link: a probe, a WireGuard handshake, the state of
+  the interface, or an operator instruction. `Config` holds the thresholds and times (three failures to go
+  down, five good signals to recover, silence for 15 seconds is a failure, a 60 second hold-down) and refuses
+  settings that make no sense, including a stale time that is not longer than the probe interval.
+* `Direction` is the state machine of one end of a link: Unknown, Healthy, Degraded, Down, Recovering. A single
+  failure only degrades, so routes do not move for a lost probe. Successes during the hold-down are ignored and
+  do not add up to a recovery the moment it ends. A failure while recovering restarts the hold-down.
+* `Link` and `Evaluator` combine the two directions: a link is usable only when healthy in both, so both ends
+  fail over together and paths stay symmetric. A required (direct) link is unused until proven; an assumed
+  (hub-spoke) link is used until it fails. An interface signal can take a direction down at once but can never
+  raise health: ten minutes of interface-up signals leave a new link Unknown.
+* Silence counts as failure after `stale_after`, judged from the moment the link went quiet, not from when
+  someone looked, and judged between the signals of a batch as well as at its end. Nothing reads the clock:
+  every method is told the time.
+* `Evaluator.Apply` returns every change as a `Decision` with a reason, and every signal it could not use as a
+  `Skipped` with a reason. `UnusableLinks` is the list to mark down in the routing graph or hand to a
+  simulation scenario.
+* Not yet built: flap pinning and operator drain (admin signals are skipped with a reason), saving state, and
+  recomputing routes on a change.
+
+#### `types`
+* New error codes `INVALID_SCENARIO` and `INVALID_CONFIG`.
 
 # Release 2026-11-19 (v0.3.1)
 

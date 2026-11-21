@@ -44,8 +44,8 @@ process. Everything it needs is passed in as values, and everything it decides c
 - **Easy to test.** Plans are computed in memory, in milliseconds, with no infrastructure.
 - **Safe to embed.** It can run inside a control plane, a CLI, a CI check or a web service.
 
-Today `netctl` provides address management (`ipam`), the network model (`topology`) and routing (`route`), with
-the supporting `types` and `cidr` packages.
+Today `netctl` provides address management (`ipam`), the network model (`topology`), routing (`route`), a packet
+simulator (`sim`) and link health (`health`), with the supporting `types` and `cidr` packages.
 
 ## Status and version support
 
@@ -147,6 +147,8 @@ The full API reference, with runnable examples, is on [pkg.go.dev](https://pkg.g
 | [`ipam`](https://pkg.go.dev/github.com/vectorihub/netctl/ipam) | Address allocation, ownership lookup, accounting, and snapshots. |
 | [`topology`](https://pkg.go.dev/github.com/vectorihub/netctl/topology) | Network model, YAML loading, validation, and hashing. |
 | [`route`](https://pkg.go.dev/github.com/vectorihub/netctl/route) | Routing tables for every node: shortest paths, backups, longest-prefix lookup, explanations and diffs. |
+| [`sim`](https://pkg.go.dev/github.com/vectorihub/netctl/sim) | A virtual test bench: pushes packets through the tables, judges every flow, runs failure scenarios, and writes text and JSON reports. |
+| [`health`](https://pkg.go.dev/github.com/vectorihub/netctl/health) | Which links may carry traffic: per-direction state machines, hold-down, staleness, and the rule that a link is only as good as its worse direction. |
 
 ## Getting help
 
