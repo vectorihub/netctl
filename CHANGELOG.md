@@ -9,45 +9,91 @@ changes, and each one is listed under **Breaking Changes** for that release.
 
 ## [Unreleased]
 
-### Added
-* **`validate` (new package)**
-  * The last gate before a configuration can leave the controller. `Validate` runs a catalogue of 32 rules with stable
-    IDs over the whole plan and returns findings sorted by level, rule, subject and message: addressing (`V-ADDR-001`
-    to `008`: overlap, the accounting invariant, one overlay address per node, a transit /30 whose hosts are the link's
-    ends, no allocation in a reserved pool without an override reason, pools over 80% used, forbidden ranges, a supernet
-    that collides with common defaults), topology (`V-TOPO-001`, `002`, `003`, `004`, `020`), links (`V-LINK-001` to
-    `004`), routes (`V-ROUTE-001` to `006`), configs (`V-CFG-001` to `006`: schema and hash, next hop has a peer, prefix
-    in the peer's allowed list, no prefix in two lists, no secrets, the return-path rule) and simulation (`V-SIM-001`
-    to `003`).
-  * The single-failure sweep recomputes the routes once for every link and every hub and warns where one failure leaves
-    a node with no way to any other. `Options.SkipSweep` leaves it out for a large plan.
-  * Warnings can be suppressed in the topology file (`validation.suppress`, not part of the hash) with a mandatory
-    reason. An error can never be suppressed; the attempt, a missing reason, an unknown rule and a suppression that
-    matched nothing each give a finding of their own (`V-SUP-001` to `004`). What was accepted stays on the record.
-  * `Result.Text`, `Result.JSON` (stable bytes) and `CatalogueText`. `Result.Err` returns `VALIDATION_FAILED` when there
-    is any error. A test fails for any rule without a test that plants its fault.
-  * On the clean three-site plan there are no errors and one warning, `V-TOPO-004`; before the direct link is proven the
-    two hub links also get `V-SIM-003`.
-* **`plan` (new package)**
-  * `Plan` is one pure function from a network description and its state to a plan, in a fixed order: load the address
-    plan, release what is gone (nodes and links before sites), allocate sites, overlay addresses and transit /30s in
-    sorted order, carry the health of each link over by ID, compute the routes on the usable links, generate the
-    configs, validate, and guard. Shuffling the file changes nothing (fifty shuffled plans are byte-identical), and a
-    second plan from the first one's address plan changes nothing.
-  * A failure while allocating reports every problem at once and fails the plan before any config exists. A plan the
-    validator refuses has no configs and returns `VALIDATION_FAILED`; if the plan in force passed, it stays in force and
-    the result says `FailoverRejected`.
-  * With the direct link proven or failed, the planner's configs are byte-identical to the reviewed golden files.
-* **`sim`**: `Degrade` (a graph with links and nodes failed) and `Simulate` (flows over given tables, so a fault planted
-  in them is seen); `RunScenario` and `failover` now use them.
-* **`config`**: the determinism proof is finished (every config survives a write and a read byte for byte; configs from
-  `failover.Evaluate`'s tables equal those from tables computed directly) and ADR 0005 records the contract and the
-  schema versioning policy.
-* `topology`: a `validation.suppress` section; `Topology.Validation`.
-* `types`: the error code `VALIDATION_FAILED`.
+# Release 2026-11-21 (v0.8.0)
 
-### Changed
-* The JSON Schema validator the `config` tests used is now `internal/jsonschema`, shared with the validator.
+## Announcements
+Release R8 adds `validate`, the last gate before a configuration can leave the controller, and the first version of
+`plan`, the one function that runs the whole pipeline. `validate` checks the whole plan, from the address plan and the
+topology to the routes and the generated configs, with a catalogue of 32 rules that each have a stable ID, and refuses
+anything that would not work. `plan` takes a network description and its state and returns the addresses, the routes, a
+config for every node and the validator's verdict, in a fixed order and the same bytes however the input is ordered. The
+shape of `plan` is a candidate and may change before the public API is declared (R9).
+
+## Package Highlights
+
+#### `validate` (new)
+* `Validate` runs the catalogue over a plan and returns findings sorted by level, rule, subject, message, hint and
+  detail, so the same plan always gives the same report. The rules:
+  * addressing (`V-ADDR-001` to `008`): no overlap, the accounting invariant (the snapshot must load, pools included),
+    one overlay address per node, a transit /30 whose hosts are the link's two ends, nothing in a reserved pool without
+    an override reason, pools over 80% used, forbidden ranges (0/8, 127/8, 169.254/16, 224/4), and a supernet that
+    collides with well-known cloud or home defaults;
+  * topology and links (`V-TOPO-001`, `002`, `003`, `004`, `020`, `V-LINK-001` to `004`): the loader's own rules again,
+    the healthy links connect every node to a hub (without passing through a spoke), a spoke with one link, a direct link
+    between two nodes behind NAT, more than one hub, no one-sided peers, both ends agree on kind and transit addresses, a
+    required-health link is probed at both ends, a direct link dearer than the hub path;
+  * routes (`V-ROUTE-001` to `006`): one active route per prefix, a next hop that is a neighbour over a healthy link, no
+    path through a node twice, no spoke forwarding between two others, static overrides always shown, a more specific
+    route shadowing another;
+  * configs (`V-CFG-001` to `006`): every config has its hash and validates against the JSON Schema, every active route's
+    next hop is a peer and its prefix is in that peer's allowed prefixes (compared as the block each stands for), no
+    prefix in two peers' lists, no secret material, and the return-path rule;
+  * simulation (`V-SIM-001` to `003`): every flow is delivered over the tables as they are (with the packet's journey
+    attached to a failure), every declared scenario's expectations hold and none of its flows fails the gate, and the
+    single-failure sweep, which recomputes the routes once for every link and every hub and warns where one failure
+    leaves a node with no way to any other. `Options.SkipSweep` leaves it out on a large plan.
+* A warning can be suppressed in the topology file (`validation.suppress`) with a mandatory reason. An error can never be
+  suppressed; the attempt, a missing reason, an unknown rule and a suppression that matched nothing each give a finding
+  of their own (`V-SUP-001` to `004`), and what was accepted stays on the record.
+* `Result.Text` and `Result.JSON` (stable bytes), `CatalogueText`, and `Result.Err`, which returns the new error code
+  `VALIDATION_FAILED` when there is any error. A test fails for any rule that has no test planting its fault.
+* On the clean three-site plan there are no errors and one warning, `V-TOPO-004`; before the direct link is proven the
+  two hub links also get `V-SIM-003`.
+
+#### `plan` (new)
+* `Plan` runs the pipeline in a fixed order: load the address plan, release what is gone (nodes and links before sites),
+  allocate sites, overlay addresses and transit /30s in sorted order, carry each link's health over by ID (taking whether
+  it must be proven from the topology), compute the routes on the usable links, generate the configs, validate, and
+  guard. Fifty shuffled plans are byte-identical, a second plan from the first one's address plan changes nothing, and
+  with the direct link proven or failed the configs equal the reviewed golden files.
+* A failure while allocating reports every problem at once and fails the plan before any config exists. A plan the
+  validator refuses has no configs and returns `VALIDATION_FAILED`. If a plan was in force it stays in force, address
+  plan included, and the result says `FailoverRejected`, however many times in a row. `Plan` changes none of its inputs.
+* Not in yet: pins for addresses, and calling `failover.Evaluate` (the guard is a plain "fails validation while the plan
+  in force passed").
+
+#### `sim`, `topology`, `types`
+* `sim.Degrade` (a graph with links and nodes failed) and `sim.Simulate` (flows over given tables, so a fault planted in
+  them is seen); `RunScenario` and `failover` now share them.
+* `topology` reads an optional `validation.suppress` section; it is not part of the hash.
+* `types.ErrValidationFailed`.
+
+#### `config`
+* The determinism proof is finished: every config survives a write and a read byte for byte, and the configs from the
+  tables `failover.Evaluate` installs equal those from tables computed directly. ADR 0005 records the NodeConfig contract
+  and the schema versioning policy.
+
+## Documentation
+* Every exported identifier in `validate` and `plan` has a doc comment with an `Example:` block, and every exported
+  function has a runnable example on pkg.go.dev.
+* `README.md` lists `validate` and `plan`. `docs/adr/0005-nodeconfig-contract.md` is new.
+
+## Breaking Changes
+None. Everything in this release is new API or additive.
+
+## Schema Versions
+| Schema | Status |
+|---|---|
+| `beaver.netctl/v1alpha1` | Unchanged |
+| `beaver.topology/v1alpha1` | Unchanged; gains an optional `validation` section |
+| `beaver.ipam/v1` | Unchanged |
+| `beaver.failover/v1` | Unchanged |
+
+## Upgrading
+```
+go get github.com/vectorihub/netctl@v0.8.0
+go mod tidy
+```
 
 # Release 2026-11-21 (v0.7.0)
 
