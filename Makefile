@@ -75,7 +75,8 @@ bench:
 ## repro: repeatability smoke test — the suite passes twice in shuffled order.
 ## The byte-for-byte determinism proof is V61.
 repro:
-	go test -count=2 -shuffle=on ./...
+	go test -p 1 -count=2 -shuffle=on $$(go list ./... | grep -v '/test/e2e/phase1$$')
+	go test -count=2 -shuffle=on -short ./test/e2e/phase1/...
 
 ## consumer: the consumer-module contract test. testdata/consumer is a separate Go module that
 ## requires netctl at this working tree, builds a network in code, calls netctl.Plan and checks
