@@ -17,11 +17,11 @@ vet:
 	go vet ./...
 
 ## purity: no clock, file or environment reads in library code (D7). Test files
-## are exempt, and so is internal/e2e, the test harness, which writes workspaces. Any
+## are exempt, and so are internal/e2e and internal/ptimport, the test-support packages, which write and read workspaces. Any
 ## other match fails the build.
 PURITY_PATTERN := time\.(Now|Since|Until)\(|os\.(Open|OpenFile|Create|ReadFile|WriteFile|ReadDir|Stat|Getenv|LookupEnv|Environ)\b
 purity:
-	@out="$$(grep -rnE --include='*.go' --exclude='*_test.go' --exclude-dir=.git --exclude-dir=features --exclude-dir=e2e '$(PURITY_PATTERN)' . || true)"; \
+	@out="$$(grep -rnE --include='*.go' --exclude='*_test.go' --exclude-dir=.git --exclude-dir=features --exclude-dir=e2e --exclude-dir=ptimport '$(PURITY_PATTERN)' . || true)"; \
 	if [ -n "$$out" ]; then echo "purity: library code must not read the clock, files or environment:"; echo "$$out"; exit 1; fi
 
 ## lint: purity guard, then staticcheck over the whole module.
