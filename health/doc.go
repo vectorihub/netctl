@@ -50,6 +50,22 @@
 // check runs before each signal in a batch as well as at the end, so a gap in
 // the middle counts.
 //
+// # Flapping, drains and pins
+//
+// A link that keeps failing and recovering does more harm than one that stays
+// down, so a link that goes Down more than [Config.FlapLimit] times within
+// [Config.FlapWindow] is pinned Down for [Config.PinFor], whatever the evidence
+// says. The decision that pins it says "flap limit". A pin ends by itself at the
+// moment it was due to, or sooner when an operator releases it.
+//
+// An operator can also drain a link: an admin [Signal] that is not OK takes it
+// Down at once and keeps it there until an admin signal that is OK. A drain is
+// not a flap. A release, of a drain or a pin, does not hand the link its trust
+// back: the hold-down starts again from that moment, and the link must show good
+// signals after it and pass through Recovering, however well it behaved while it
+// was held. Evidence is still recorded while a link is held, so the record stays
+// true, but only a release can make the link usable.
+//
 // # Using it
 //
 // Build an [Evaluator] from a [Config] (start with [DefaultConfig]) and the

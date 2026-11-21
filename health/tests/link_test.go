@@ -232,13 +232,13 @@ func TestSkippedSignals(t *testing.T) {
 		{Link: "nowhere~else", From: b1, Kind: health.SignalProbe, OK: true, At: at(sec(6))},
 		{Link: direct, From: "aws-hub", Kind: health.SignalProbe, OK: true, At: at(sec(7))},
 		{Link: direct, From: b1, OK: true, At: at(sec(8))},
-		{Link: direct, From: b1, Kind: health.SignalAdmin, OK: false, At: at(sec(9))},
+		{Link: direct, From: b1, Kind: health.SignalAdmin, OK: true, At: at(sec(9))},
 	})
 	decisions, skipped := e.Apply(signals, at(sec(30)))
 	if len(decisions) != 1 || e.Links[direct].State != health.Healthy {
 		t.Errorf("the good probes were not applied: %+v, %s", decisions, e.Links[direct].State)
 	}
-	wantWhy := []string{"is not tracked", "not an end of the link", "no known kind", "admin signals are not supported"}
+	wantWhy := []string{"is not tracked", "not an end of the link", "no known kind", "nothing to release"}
 	if len(skipped) != len(wantWhy) {
 		t.Fatalf("skipped %+v, want %d", skipped, len(wantWhy))
 	}

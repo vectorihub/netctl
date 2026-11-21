@@ -1,0 +1,47 @@
+evaluation at 2026-11-21T10:00:30Z
+  2026-11-21T10:00:25Z builder-1~dgx-spark unknown -> healthy installed=true: probe from dgx-spark: enough consecutive good signals: 4 active route(s) withdrawn, 4 activated
+    withdrawn builder-1 10.42.32.0/20 via aws-hub~builder-1
+    withdrawn builder-1 10.42.240.3/32 via aws-hub~builder-1
+    withdrawn dgx-spark 10.42.16.0/20 via aws-hub~dgx-spark
+    withdrawn dgx-spark 10.42.240.2/32 via aws-hub~dgx-spark
+    activated builder-1 10.42.32.0/20 via builder-1~dgx-spark
+    activated builder-1 10.42.240.3/32 via builder-1~dgx-spark
+    activated dgx-spark 10.42.16.0/20 via builder-1~dgx-spark
+    activated dgx-spark 10.42.240.2/32 via builder-1~dgx-spark
+evaluation at 2026-11-21T10:00:50Z
+  2026-11-21T10:00:35Z builder-1~dgx-spark healthy -> degraded installed=true: probe from builder-1: failure
+  2026-11-21T10:00:45Z builder-1~dgx-spark degraded -> down installed=true: probe from builder-1: consecutive failures reached the threshold: 4 active route(s) withdrawn, 4 activated
+    withdrawn builder-1 10.42.32.0/20 via builder-1~dgx-spark
+    withdrawn builder-1 10.42.240.3/32 via builder-1~dgx-spark
+    withdrawn dgx-spark 10.42.16.0/20 via builder-1~dgx-spark
+    withdrawn dgx-spark 10.42.240.2/32 via builder-1~dgx-spark
+    activated builder-1 10.42.32.0/20 via aws-hub~builder-1
+    activated builder-1 10.42.240.3/32 via aws-hub~builder-1
+    activated dgx-spark 10.42.16.0/20 via aws-hub~dgx-spark
+    activated dgx-spark 10.42.240.2/32 via aws-hub~dgx-spark
+evaluation at 2026-11-21T10:02:11Z
+  2026-11-21T10:01:50Z builder-1~dgx-spark down -> recovering installed=true: probe from dgx-spark: recovering: good signal after hold-down
+  2026-11-21T10:02:10Z builder-1~dgx-spark recovering -> healthy installed=true: probe from dgx-spark: enough consecutive good signals after hold-down: 4 active route(s) withdrawn, 4 activated
+    withdrawn builder-1 10.42.32.0/20 via aws-hub~builder-1
+    withdrawn builder-1 10.42.240.3/32 via aws-hub~builder-1
+    withdrawn dgx-spark 10.42.16.0/20 via aws-hub~dgx-spark
+    withdrawn dgx-spark 10.42.240.2/32 via aws-hub~dgx-spark
+    activated builder-1 10.42.32.0/20 via builder-1~dgx-spark
+    activated builder-1 10.42.240.3/32 via builder-1~dgx-spark
+    activated dgx-spark 10.42.16.0/20 via builder-1~dgx-spark
+    activated dgx-spark 10.42.240.2/32 via builder-1~dgx-spark
+evaluation at 2026-11-21T10:03:20Z
+  2026-11-21T10:03:20Z aws-hub~builder-1 unknown -> down installed=true: admin drain: an operator took the link out of service: 4 active route(s) withdrawn, 0 activated
+    withdrawn aws-hub 10.42.16.0/20 via aws-hub~builder-1
+    withdrawn aws-hub 10.42.240.2/32 via aws-hub~builder-1
+    withdrawn builder-1 10.42.0.0/20 via aws-hub~builder-1
+    withdrawn builder-1 10.42.240.1/32 via aws-hub~builder-1
+evaluation at 2026-11-21T10:04:40Z
+  no decisions
+evaluation at 2026-11-21T10:06:00Z
+  2026-11-21T10:05:25Z aws-hub~builder-1 down -> recovering installed=true: probe from builder-1: recovering: good signal after hold-down
+  2026-11-21T10:05:45Z aws-hub~builder-1 recovering -> healthy installed=true: probe from builder-1: enough consecutive good signals after hold-down: 0 active route(s) withdrawn, 4 activated
+    activated aws-hub 10.42.16.0/20 via aws-hub~builder-1
+    activated aws-hub 10.42.240.2/32 via aws-hub~builder-1
+    activated builder-1 10.42.0.0/20 via aws-hub~builder-1
+    activated builder-1 10.42.240.1/32 via aws-hub~builder-1

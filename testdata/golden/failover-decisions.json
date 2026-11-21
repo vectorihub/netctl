@@ -1,0 +1,551 @@
+[
+  {
+    "at": "2026-11-21T10:00:30Z",
+    "decisions": [
+      {
+        "link": "builder-1~dgx-spark",
+        "before": "unknown",
+        "after": "healthy",
+        "activated": [
+          {
+            "node": "builder-1",
+            "prefix": "10.42.32.0/20",
+            "next_hop": "dgx-spark",
+            "via": "builder-1~dgx-spark",
+            "metric": 10,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "dgx-spark"
+            ],
+            "active": true
+          },
+          {
+            "node": "builder-1",
+            "prefix": "10.42.240.3/32",
+            "next_hop": "dgx-spark",
+            "via": "builder-1~dgx-spark",
+            "metric": 10,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "dgx-spark"
+            ],
+            "active": true
+          },
+          {
+            "node": "dgx-spark",
+            "prefix": "10.42.16.0/20",
+            "next_hop": "builder-1",
+            "via": "builder-1~dgx-spark",
+            "metric": 10,
+            "source": "computed",
+            "path": [
+              "dgx-spark",
+              "builder-1"
+            ],
+            "active": true
+          },
+          {
+            "node": "dgx-spark",
+            "prefix": "10.42.240.2/32",
+            "next_hop": "builder-1",
+            "via": "builder-1~dgx-spark",
+            "metric": 10,
+            "source": "computed",
+            "path": [
+              "dgx-spark",
+              "builder-1"
+            ],
+            "active": true
+          }
+        ],
+        "withdrawn": [
+          {
+            "node": "builder-1",
+            "prefix": "10.42.32.0/20",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~builder-1",
+            "metric": 40,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "aws-hub",
+              "dgx-spark"
+            ],
+            "active": true
+          },
+          {
+            "node": "builder-1",
+            "prefix": "10.42.240.3/32",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~builder-1",
+            "metric": 40,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "aws-hub",
+              "dgx-spark"
+            ],
+            "active": true
+          },
+          {
+            "node": "dgx-spark",
+            "prefix": "10.42.16.0/20",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~dgx-spark",
+            "metric": 40,
+            "source": "computed",
+            "path": [
+              "dgx-spark",
+              "aws-hub",
+              "builder-1"
+            ],
+            "active": true
+          },
+          {
+            "node": "dgx-spark",
+            "prefix": "10.42.240.2/32",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~dgx-spark",
+            "metric": 40,
+            "source": "computed",
+            "path": [
+              "dgx-spark",
+              "aws-hub",
+              "builder-1"
+            ],
+            "active": true
+          }
+        ],
+        "installed": true,
+        "reason": "probe from dgx-spark: enough consecutive good signals: 4 active route(s) withdrawn, 4 activated",
+        "at": "2026-11-21T10:00:25Z"
+      }
+    ],
+    "skipped": null,
+    "rejected": null
+  },
+  {
+    "at": "2026-11-21T10:00:50Z",
+    "decisions": [
+      {
+        "link": "builder-1~dgx-spark",
+        "before": "healthy",
+        "after": "degraded",
+        "installed": true,
+        "reason": "probe from builder-1: failure",
+        "at": "2026-11-21T10:00:35Z"
+      },
+      {
+        "link": "builder-1~dgx-spark",
+        "before": "degraded",
+        "after": "down",
+        "activated": [
+          {
+            "node": "builder-1",
+            "prefix": "10.42.32.0/20",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~builder-1",
+            "metric": 40,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "aws-hub",
+              "dgx-spark"
+            ],
+            "active": true
+          },
+          {
+            "node": "builder-1",
+            "prefix": "10.42.240.3/32",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~builder-1",
+            "metric": 40,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "aws-hub",
+              "dgx-spark"
+            ],
+            "active": true
+          },
+          {
+            "node": "dgx-spark",
+            "prefix": "10.42.16.0/20",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~dgx-spark",
+            "metric": 40,
+            "source": "computed",
+            "path": [
+              "dgx-spark",
+              "aws-hub",
+              "builder-1"
+            ],
+            "active": true
+          },
+          {
+            "node": "dgx-spark",
+            "prefix": "10.42.240.2/32",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~dgx-spark",
+            "metric": 40,
+            "source": "computed",
+            "path": [
+              "dgx-spark",
+              "aws-hub",
+              "builder-1"
+            ],
+            "active": true
+          }
+        ],
+        "withdrawn": [
+          {
+            "node": "builder-1",
+            "prefix": "10.42.32.0/20",
+            "next_hop": "dgx-spark",
+            "via": "builder-1~dgx-spark",
+            "metric": 10,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "dgx-spark"
+            ],
+            "active": true
+          },
+          {
+            "node": "builder-1",
+            "prefix": "10.42.240.3/32",
+            "next_hop": "dgx-spark",
+            "via": "builder-1~dgx-spark",
+            "metric": 10,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "dgx-spark"
+            ],
+            "active": true
+          },
+          {
+            "node": "dgx-spark",
+            "prefix": "10.42.16.0/20",
+            "next_hop": "builder-1",
+            "via": "builder-1~dgx-spark",
+            "metric": 10,
+            "source": "computed",
+            "path": [
+              "dgx-spark",
+              "builder-1"
+            ],
+            "active": true
+          },
+          {
+            "node": "dgx-spark",
+            "prefix": "10.42.240.2/32",
+            "next_hop": "builder-1",
+            "via": "builder-1~dgx-spark",
+            "metric": 10,
+            "source": "computed",
+            "path": [
+              "dgx-spark",
+              "builder-1"
+            ],
+            "active": true
+          }
+        ],
+        "installed": true,
+        "reason": "probe from builder-1: consecutive failures reached the threshold: 4 active route(s) withdrawn, 4 activated",
+        "at": "2026-11-21T10:00:45Z"
+      }
+    ],
+    "skipped": null,
+    "rejected": null
+  },
+  {
+    "at": "2026-11-21T10:02:11Z",
+    "decisions": [
+      {
+        "link": "builder-1~dgx-spark",
+        "before": "down",
+        "after": "recovering",
+        "installed": true,
+        "reason": "probe from dgx-spark: recovering: good signal after hold-down",
+        "at": "2026-11-21T10:01:50Z"
+      },
+      {
+        "link": "builder-1~dgx-spark",
+        "before": "recovering",
+        "after": "healthy",
+        "activated": [
+          {
+            "node": "builder-1",
+            "prefix": "10.42.32.0/20",
+            "next_hop": "dgx-spark",
+            "via": "builder-1~dgx-spark",
+            "metric": 10,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "dgx-spark"
+            ],
+            "active": true
+          },
+          {
+            "node": "builder-1",
+            "prefix": "10.42.240.3/32",
+            "next_hop": "dgx-spark",
+            "via": "builder-1~dgx-spark",
+            "metric": 10,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "dgx-spark"
+            ],
+            "active": true
+          },
+          {
+            "node": "dgx-spark",
+            "prefix": "10.42.16.0/20",
+            "next_hop": "builder-1",
+            "via": "builder-1~dgx-spark",
+            "metric": 10,
+            "source": "computed",
+            "path": [
+              "dgx-spark",
+              "builder-1"
+            ],
+            "active": true
+          },
+          {
+            "node": "dgx-spark",
+            "prefix": "10.42.240.2/32",
+            "next_hop": "builder-1",
+            "via": "builder-1~dgx-spark",
+            "metric": 10,
+            "source": "computed",
+            "path": [
+              "dgx-spark",
+              "builder-1"
+            ],
+            "active": true
+          }
+        ],
+        "withdrawn": [
+          {
+            "node": "builder-1",
+            "prefix": "10.42.32.0/20",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~builder-1",
+            "metric": 40,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "aws-hub",
+              "dgx-spark"
+            ],
+            "active": true
+          },
+          {
+            "node": "builder-1",
+            "prefix": "10.42.240.3/32",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~builder-1",
+            "metric": 40,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "aws-hub",
+              "dgx-spark"
+            ],
+            "active": true
+          },
+          {
+            "node": "dgx-spark",
+            "prefix": "10.42.16.0/20",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~dgx-spark",
+            "metric": 40,
+            "source": "computed",
+            "path": [
+              "dgx-spark",
+              "aws-hub",
+              "builder-1"
+            ],
+            "active": true
+          },
+          {
+            "node": "dgx-spark",
+            "prefix": "10.42.240.2/32",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~dgx-spark",
+            "metric": 40,
+            "source": "computed",
+            "path": [
+              "dgx-spark",
+              "aws-hub",
+              "builder-1"
+            ],
+            "active": true
+          }
+        ],
+        "installed": true,
+        "reason": "probe from dgx-spark: enough consecutive good signals after hold-down: 4 active route(s) withdrawn, 4 activated",
+        "at": "2026-11-21T10:02:10Z"
+      }
+    ],
+    "skipped": null,
+    "rejected": null
+  },
+  {
+    "at": "2026-11-21T10:03:20Z",
+    "decisions": [
+      {
+        "link": "aws-hub~builder-1",
+        "before": "unknown",
+        "after": "down",
+        "withdrawn": [
+          {
+            "node": "aws-hub",
+            "prefix": "10.42.16.0/20",
+            "next_hop": "builder-1",
+            "via": "aws-hub~builder-1",
+            "metric": 20,
+            "source": "computed",
+            "path": [
+              "aws-hub",
+              "builder-1"
+            ],
+            "active": true
+          },
+          {
+            "node": "aws-hub",
+            "prefix": "10.42.240.2/32",
+            "next_hop": "builder-1",
+            "via": "aws-hub~builder-1",
+            "metric": 20,
+            "source": "computed",
+            "path": [
+              "aws-hub",
+              "builder-1"
+            ],
+            "active": true
+          },
+          {
+            "node": "builder-1",
+            "prefix": "10.42.0.0/20",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~builder-1",
+            "metric": 20,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "aws-hub"
+            ],
+            "active": true
+          },
+          {
+            "node": "builder-1",
+            "prefix": "10.42.240.1/32",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~builder-1",
+            "metric": 20,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "aws-hub"
+            ],
+            "active": true
+          }
+        ],
+        "installed": true,
+        "reason": "admin drain: an operator took the link out of service: 4 active route(s) withdrawn, 0 activated",
+        "at": "2026-11-21T10:03:20Z"
+      }
+    ],
+    "skipped": null,
+    "rejected": null
+  },
+  {
+    "at": "2026-11-21T10:04:40Z",
+    "decisions": [],
+    "skipped": null,
+    "rejected": null
+  },
+  {
+    "at": "2026-11-21T10:06:00Z",
+    "decisions": [
+      {
+        "link": "aws-hub~builder-1",
+        "before": "down",
+        "after": "recovering",
+        "installed": true,
+        "reason": "probe from builder-1: recovering: good signal after hold-down",
+        "at": "2026-11-21T10:05:25Z"
+      },
+      {
+        "link": "aws-hub~builder-1",
+        "before": "recovering",
+        "after": "healthy",
+        "activated": [
+          {
+            "node": "aws-hub",
+            "prefix": "10.42.16.0/20",
+            "next_hop": "builder-1",
+            "via": "aws-hub~builder-1",
+            "metric": 20,
+            "source": "computed",
+            "path": [
+              "aws-hub",
+              "builder-1"
+            ],
+            "active": true
+          },
+          {
+            "node": "aws-hub",
+            "prefix": "10.42.240.2/32",
+            "next_hop": "builder-1",
+            "via": "aws-hub~builder-1",
+            "metric": 20,
+            "source": "computed",
+            "path": [
+              "aws-hub",
+              "builder-1"
+            ],
+            "active": true
+          },
+          {
+            "node": "builder-1",
+            "prefix": "10.42.0.0/20",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~builder-1",
+            "metric": 20,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "aws-hub"
+            ],
+            "active": true
+          },
+          {
+            "node": "builder-1",
+            "prefix": "10.42.240.1/32",
+            "next_hop": "aws-hub",
+            "via": "aws-hub~builder-1",
+            "metric": 20,
+            "source": "computed",
+            "path": [
+              "builder-1",
+              "aws-hub"
+            ],
+            "active": true
+          }
+        ],
+        "installed": true,
+        "reason": "probe from builder-1: enough consecutive good signals after hold-down: 0 active route(s) withdrawn, 4 activated",
+        "at": "2026-11-21T10:05:45Z"
+      }
+    ],
+    "skipped": null,
+    "rejected": null
+  }
+]

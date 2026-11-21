@@ -223,9 +223,9 @@ func compareBool(first, second bool) int {
 //	r, ok := table.Lookup(netip.MustParseAddr("10.42.33.7"))
 type Table struct {
 	// Node is the node this table belongs to.
-	Node types.NodeID
+	Node types.NodeID `json:"node"`
 	// Routes is every route, active or not.
-	Routes []Route
+	Routes []Route `json:"routes"`
 }
 
 // Sort masks every route's prefix to its canonical block (cidr.Canonical), so a

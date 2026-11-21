@@ -58,13 +58,13 @@ func TestOutdatedAppliesToInterfaceSignalsAndToTheSameBatch(t *testing.T) {
 	}
 }
 
-// TestUnsupportedSignalsDoNotMoveTheClock sends an admin signal and one of no
-// known kind, both stamped 50 s, then a real failure at 45 s. The unsupported
-// signals are skipped without touching the direction, so the failure is not
+// TestUnsupportedSignalsDoNotMoveTheClock sends an admin release that has nothing
+// to release and a signal of no known kind, both stamped 50 s, then a real
+// failure at 45 s. The skipped signals leave the direction alone, so the failure is not
 // mistaken for an outdated one and is applied.
 func TestUnsupportedSignalsDoNotMoveTheClock(t *testing.T) {
 	e := baseline(t)
-	admin := health.Signal{Link: direct, From: b1, Kind: health.SignalAdmin, At: at(sec(50))}
+	admin := health.Signal{Link: direct, From: b1, Kind: health.SignalAdmin, OK: true, At: at(sec(50))}
 	odd := health.Signal{Link: direct, From: b1, Kind: health.SignalKind(99), At: at(sec(50))}
 	before := *e.Links[direct].Dirs[b1]
 	if _, skipped := e.Apply([]health.Signal{admin, odd}, at(sec(50))); len(skipped) != 2 {

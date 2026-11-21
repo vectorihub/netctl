@@ -9,6 +9,35 @@ changes, and each one is listed under **Breaking Changes** for that release.
 
 ## [Unreleased]
 
+### Added
+* **`failover` (new package)**
+  * `Evaluate` folds health signals into every link's state machine, marks the links that are not usable as down,
+    recomputes every node's table with the real `route.Compute` (once per evaluation), compares with the tables from
+    before, and returns a `Decision` per link with the routes it activated and withdrew on each node and why.
+    When a direct link between two spokes fails, one decision lists the backups promoted on both ends; when it recovers,
+    the primaries return on both ends together.
+  * The simulation guard: the new tables are simulated over the network as health now has it, and a failover that
+    breaks a flow that worked before (a loop made by a bad static route, say) is not installed. `Result.Rejected`
+    names the flows, the old tables stay, and the health change is still recorded. A node cut off because all its
+    links failed is not a reason to reject.
+  * `State` is everything a restart must not forget: link states, hold-down, pin and flap timers, and the installed
+    tables, in the stable JSON schema `beaver.failover/v1` (`State.JSON`, `ParseState`). A run that stops and resumes
+    between every batch ends byte-identical to one that never stopped (a 300-run property test).
+  * `RequiredLinks` reads which links must be proven from a topology.
+* **`health`**
+  * Flap pinning: a link that goes Down more than `flap_limit` times within `flap_window` is pinned Down for `pin_for`,
+    whatever the evidence says. The decision says "flap limit".
+  * Operator drain: an admin signal that is not OK drains a link (Down at once, until released); one that is OK
+    releases a drain and a pin. A release restarts the hold-down, so the link must prove itself again through Recovering.
+  * `Link.Clone` and `LinkHealth.Usable`. `Link` gains `Drained`, `Pinned`, `PinnedUntil` and `Flaps`.
+
+### Changed
+* `Evaluator.Apply` no longer skips admin signals; one that cannot be applied (draining a drained link, releasing a
+  link that is neither drained nor pinned) is still returned in `Skipped` with the reason.
+* `route.Table` has JSON tags (`node`, `routes`); it previously wrote `Node` and `Routes`.
+* `route.Diff` is much faster on tables that did not change (500 nodes: 1.3 s to 0.05 s); its output is unchanged.
+* `sim.NewNet` indexes the tables across the available processors; its output is unchanged.
+
 # Release 2026-11-21 (v0.5.0)
 
 ## Announcements
