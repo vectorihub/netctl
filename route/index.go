@@ -16,8 +16,10 @@ import (
 // before, so build a new one. An Index is safe for concurrent use, because
 // nothing in it changes.
 //
-// Example: table.Index() returns an Index; Index.Lookup(10.42.33.7) answers as table.Lookup
-// would, without scanning the table.
+// Example:
+//
+//	table.Index() returns an Index; Index.Lookup(10.42.33.7) answers as table.Lookup
+//	would, without scanning the table.
 type Index struct {
 	// v4 and v6 index the IPv4 and IPv6 routes. Keeping them apart means an
 	// IPv4-mapped IPv6 address, which is an IPv6 address, never matches an IPv4
@@ -43,8 +45,10 @@ type family struct {
 // written 10.1.2.3/24 is stored, compared and returned as 10.1.2.0/24 and both
 // lookups give the same route. A nil table gives an Index that finds nothing.
 //
-// Example: an index of a table with routes for 10.42.0.0/16 and 10.42.32.0/20
-// answers 10.42.33.7 with the /20 route, as Table.Lookup does.
+// Example:
+//
+//	an index of a table with routes for 10.42.0.0/16 and 10.42.32.0/20
+//	answers 10.42.33.7 with the /20 route, as Table.Lookup does.
 func (table *Table) Index() *Index {
 	index := &Index{}
 	if table == nil {
@@ -101,8 +105,10 @@ func (fam *family) finish() {
 // or an address with an IPv6 zone. The returned Route shares its Path with the
 // table; do not change it.
 //
-// Example: Lookup(10.42.33.7) on the index above returns the /20 route and
-// Lookup(192.168.1.1) returns false.
+// Example:
+//
+//	Lookup(10.42.33.7) on the index above returns the /20 route and
+//	Lookup(192.168.1.1) returns false.
 func (index *Index) Lookup(dst netip.Addr) (Route, bool) {
 	if index == nil || !dst.IsValid() || dst.Zone() != "" {
 		return Route{}, false

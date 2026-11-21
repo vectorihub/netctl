@@ -11,26 +11,48 @@ import (
 // The zero value is SignalUnknown, so a signal whose kind was never set is
 // refused instead of being counted as evidence.
 //
-// Example: SignalProbe is the kind of an answered or unanswered test packet, and
-// ParseSignalKind("probe") returns it.
+// Example:
+//
+//	SignalProbe is the kind of an answered or unanswered test packet, and
+//	ParseSignalKind("probe") returns it.
 type SignalKind int
 
 const (
 	// SignalUnknown is the zero value: no kind was set.
+	//
+	// Example:
+	//
+	//	health.SignalUnknown.String() // "unknown"
 	SignalUnknown SignalKind = iota
 	// SignalProbe is the result of a test packet sent across the link to the
 	// other end and answered, or not. It is evidence that traffic really flows.
+	//
+	// Example:
+	//
+	//	health.SignalProbe.String() // "probe"
 	SignalProbe
 	// SignalHandshake is the state of the WireGuard handshake with the other end:
 	// a recent one is evidence that the two ends can talk, an old one is not.
+	//
+	// Example:
+	//
+	//	health.SignalHandshake.String() // "handshake"
 	SignalHandshake
 	// SignalInterface is what the operating system says about the network
 	// interface. It can show a link is down, because an interface that is gone
 	// certainly carries nothing, but it can never show a link is healthy, because
 	// an interface can be up on a path that is broken. Only probes and handshakes
 	// make a link Healthy.
+	//
+	// Example:
+	//
+	//	health.SignalInterface.String() // "interface"
 	SignalInterface
 	// SignalAdmin is an operator's instruction about the link, such as draining it.
+	//
+	// Example:
+	//
+	//	health.SignalAdmin.String() // "admin"
 	SignalAdmin
 )
 
@@ -41,7 +63,9 @@ var signalNames = map[SignalKind]string{
 
 // String returns "probe", "handshake", "interface", "admin" or "unknown".
 //
-// Example: SignalHandshake.String() returns "handshake".
+// Example:
+//
+//	SignalHandshake.String() returns "handshake".
 func (kind SignalKind) String() string {
 	if name, ok := signalNames[kind]; ok {
 		return name
@@ -53,7 +77,9 @@ func (kind SignalKind) String() string {
 // other text, including different capitalisation, returns SignalUnknown and
 // false.
 //
-// Example: ParseSignalKind("probe") returns SignalProbe, true.
+// Example:
+//
+//	ParseSignalKind("probe") returns SignalProbe, true.
 func ParseSignalKind(text string) (SignalKind, bool) {
 	for kind, name := range signalNames {
 		if name == text {
@@ -66,7 +92,9 @@ func ParseSignalKind(text string) (SignalKind, bool) {
 // MarshalText writes the kind as its name. An unknown kind returns an
 // INVALID_VALUE error, so a signal with no kind cannot be written out.
 //
-// Example: SignalProbe.MarshalText() returns "probe"; the zero kind returns an error.
+// Example:
+//
+//	SignalProbe.MarshalText() returns "probe"; the zero kind returns an error.
 func (kind SignalKind) MarshalText() ([]byte, error) {
 	if _, ok := signalNames[kind]; !ok {
 		return nil, types.Errf(types.ErrInvalidValue, "signal kind", "cannot write unknown signal kind %d", int(kind))
@@ -77,8 +105,10 @@ func (kind SignalKind) MarshalText() ([]byte, error) {
 // UnmarshalText reads a name written by MarshalText. An unknown name is an error
 // and leaves the receiver unchanged.
 //
-// Example: UnmarshalText("interface") sets the receiver to SignalInterface; "ping" returns an
-// error and leaves it unchanged.
+// Example:
+//
+//	UnmarshalText("interface") sets the receiver to SignalInterface; "ping" returns an
+//	error and leaves it unchanged.
 func (kind *SignalKind) UnmarshalText(text []byte) error {
 	parsed, ok := ParseSignalKind(string(text))
 	if !ok {
@@ -94,8 +124,10 @@ func (kind *SignalKind) UnmarshalText(text []byte) error {
 // A signal can be made up by a test or come from a real probe or WireGuard
 // handshake; the evaluator cannot tell the difference, and does not need to.
 //
-// Example: Signal{Link: "builder-1~dgx-spark", From: "builder-1", Kind: SignalProbe, OK: true, At: t}
-// is a good probe that builder-1 saw on the direct link at time t.
+// Example:
+//
+//	Signal{Link: "builder-1~dgx-spark", From: "builder-1", Kind: SignalProbe, OK: true, At: t}
+//	is a good probe that builder-1 saw on the direct link at time t.
 type Signal struct {
 	// Link is the link the evidence is about.
 	Link types.LinkID `json:"link"`
@@ -121,25 +153,47 @@ type Signal struct {
 //
 // The zero value is Unknown, which is the safe default: nothing has been proven.
 //
-// Example: a new link is Unknown; five good probes in a row make it Healthy; three failures
-// in a row make it Down.
+// Example:
+//
+//	a new link is Unknown; five good probes in a row make it Healthy; three failures
+//	in a row make it Down.
 type LinkHealth int
 
 const (
 	// Unknown means no evidence yet, or not enough. A required link in this state
 	// is not used.
+	//
+	// Example:
+	//
+	//	health.Unknown.String() // "unknown"
 	Unknown LinkHealth = iota
 	// Healthy means enough consecutive good evidence has come in and nothing bad
 	// since.
+	//
+	// Example:
+	//
+	//	health.Healthy.String() // "healthy"
 	Healthy
 	// Degraded means one failure has come in after Healthy. Routes do not change
 	// yet, so a single lost probe does not make traffic move.
+	//
+	// Example:
+	//
+	//	health.Degraded.String() // "degraded"
 	Degraded
 	// Down means the link failed, or an operator drained it, or it went silent.
 	// It stays down for at least the hold-down time.
+	//
+	// Example:
+	//
+	//	health.Down.String() // "down"
 	Down
 	// Recovering means a success has come in after the hold-down. The link has
 	// not yet shown it is stable, so it is still not used.
+	//
+	// Example:
+	//
+	//	health.Recovering.String() // "recovering"
 	Recovering
 )
 
@@ -151,7 +205,9 @@ var healthNames = map[LinkHealth]string{
 // String returns "unknown", "healthy", "degraded", "down" or "recovering".
 // A value outside the five returns "invalid".
 //
-// Example: Recovering.String() returns "recovering".
+// Example:
+//
+//	Recovering.String() returns "recovering".
 func (state LinkHealth) String() string {
 	if name, ok := healthNames[state]; ok {
 		return name
@@ -162,7 +218,9 @@ func (state LinkHealth) String() string {
 // ParseLinkHealth converts the text String returns back into a LinkHealth. Any
 // other text returns Unknown and false.
 //
-// Example: ParseLinkHealth("down") returns Down, true.
+// Example:
+//
+//	ParseLinkHealth("down") returns Down, true.
 func ParseLinkHealth(text string) (LinkHealth, bool) {
 	for state, name := range healthNames {
 		if name == text {
@@ -175,7 +233,9 @@ func ParseLinkHealth(text string) (LinkHealth, bool) {
 // MarshalText writes the state as its name. A value outside the five states
 // returns an error.
 //
-// Example: Down.MarshalText() returns "down"; a value outside the five returns an error.
+// Example:
+//
+//	Down.MarshalText() returns "down"; a value outside the five returns an error.
 func (state LinkHealth) MarshalText() ([]byte, error) {
 	if _, ok := healthNames[state]; !ok {
 		return nil, types.Errf(types.ErrInvalidValue, "link health", "cannot write invalid link health %d", int(state))
@@ -186,7 +246,9 @@ func (state LinkHealth) MarshalText() ([]byte, error) {
 // UnmarshalText reads a name written by MarshalText. An unknown name is an error
 // and leaves the receiver unchanged.
 //
-// Example: UnmarshalText("healthy") sets the receiver to Healthy; "Healthy" returns an error.
+// Example:
+//
+//	UnmarshalText("healthy") sets the receiver to Healthy; "Healthy" returns an error.
 func (state *LinkHealth) UnmarshalText(text []byte) error {
 	parsed, ok := ParseLinkHealth(string(text))
 	if !ok {
@@ -199,8 +261,10 @@ func (state *LinkHealth) UnmarshalText(text []byte) error {
 // Config holds the thresholds and times of the state machine. Use DefaultConfig
 // for the standard values and change only what you mean to.
 //
-// Example: DefaultConfig() returns the standard Config; set FailThreshold to 2 on a copy to
-// take a direction Down after two failures instead of three.
+// Example:
+//
+//	DefaultConfig() returns the standard Config; set FailThreshold to 2 on a copy to
+//	take a direction Down after two failures instead of three.
 type Config struct {
 	// FailThreshold is how many failures in a row take a Healthy direction to
 	// Down. The first of them already makes it Degraded.
@@ -237,7 +301,9 @@ type Config struct {
 // hold-down, a handshake older than 180 seconds is a failure, more than four
 // downs in ten minutes pins a link for 30 minutes, and a probe every 5 seconds.
 //
-// Example: DefaultConfig().StaleAfter is 15 seconds.
+// Example:
+//
+//	DefaultConfig().StaleAfter is 15 seconds.
 func DefaultConfig() Config {
 	return Config{
 		FailThreshold:    3,
@@ -256,8 +322,10 @@ func DefaultConfig() Config {
 // that are not: a count below one, a time of zero or less, or a StaleAfter that
 // is not longer than ProbeInterval.
 //
-// Example: a Config with RecoverThreshold 0 is refused, since no evidence would
-// ever be needed.
+// Example:
+//
+//	a Config with RecoverThreshold 0 is refused, since no evidence would
+//	ever be needed.
 func (cfg Config) Validate() error {
 	var problems types.List
 	count := func(name string, value int) {

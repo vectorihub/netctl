@@ -58,6 +58,30 @@ func TestOutdatedAppliesToInterfaceSignalsAndToTheSameBatch(t *testing.T) {
 	}
 }
 
+// TestUnsupportedSignalsDoNotMoveTheClock sends an admin signal and one of no
+// known kind, both stamped 50 s, then a real failure at 45 s. The unsupported
+// signals are skipped without touching the direction, so the failure is not
+// mistaken for an outdated one and is applied.
+func TestUnsupportedSignalsDoNotMoveTheClock(t *testing.T) {
+	e := baseline(t)
+	admin := health.Signal{Link: direct, From: b1, Kind: health.SignalAdmin, At: at(sec(50))}
+	odd := health.Signal{Link: direct, From: b1, Kind: health.SignalKind(99), At: at(sec(50))}
+	before := *e.Links[direct].Dirs[b1]
+	if _, skipped := e.Apply([]health.Signal{admin, odd}, at(sec(50))); len(skipped) != 2 {
+		t.Fatalf("skipped %+v, want both unsupported signals", skipped)
+	}
+	if got := e.Links[direct].Dirs[b1].LastSignal; got != before.LastSignal {
+		t.Fatalf("an unsupported signal moved LastSignal from %v to %v", before.LastSignal, got)
+	}
+	failure := health.Signal{Link: direct, From: b1, Kind: health.SignalProbe, OK: false, At: at(sec(45))}
+	if _, skipped := e.Apply([]health.Signal{failure}, at(sec(51))); len(skipped) != 0 {
+		t.Errorf("a real failure after unsupported signals was skipped: %+v", skipped)
+	}
+	if got := e.Links[direct].Dirs[b1].FailRun; got != 1 {
+		t.Errorf("FailRun = %d, want 1: the failure was not applied", got)
+	}
+}
+
 // TestStaleOutageFollowsTimeNotNames checks that when both directions of a link go
 // quiet, the decision records the end that went stale first, not the end whose
 // name sorts first: a last heard at 25 s goes stale at 40 s, b last heard at 20 s

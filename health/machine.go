@@ -10,8 +10,10 @@ import "time"
 // and read back without losing its place. It never reads the time itself: each
 // method is told when the evidence arrived.
 //
-// Example: a new Direction is Unknown; Succeed five times makes it Healthy, and Fail three
-// times after that makes it Down with a hold-down of 60 seconds.
+// Example:
+//
+//	a new Direction is Unknown; Succeed five times makes it Healthy, and Fail three
+//	times after that makes it Down with a hold-down of 60 seconds.
 type Direction struct {
 	// State is where the machine is.
 	State LinkHealth `json:"state"`
@@ -62,8 +64,10 @@ func (d *Direction) goDown(at time.Time, cfg Config) {
 //   - Recovering: counts toward RecoverThreshold, and at the threshold the
 //     direction is Healthy.
 //
-// Example: with the default settings, a direction that is Unknown becomes Healthy
-// on its fifth good signal in a row, and not before.
+// Example:
+//
+//	with the default settings, a direction that is Unknown becomes Healthy
+//	on its fifth good signal in a row, and not before.
 func (d *Direction) Succeed(at time.Time, cfg Config) (LinkHealth, string) {
 	d.LastEvidence = at
 	d.FailRun = 0
@@ -107,8 +111,10 @@ func (d *Direction) Succeed(at time.Time, cfg Config) (LinkHealth, string) {
 //   - Recovering: Down, and the hold-down starts again from this moment.
 //   - Down: nothing changes, and the hold-down is not extended.
 //
-// Example: with the default settings, a Healthy direction is Degraded after one
-// failure and Down after the third in a row.
+// Example:
+//
+//	with the default settings, a Healthy direction is Degraded after one
+//	failure and Down after the third in a row.
 func (d *Direction) Fail(at time.Time, cfg Config) (LinkHealth, string) {
 	d.LastEvidence = at
 	d.OKRun = 0
@@ -140,7 +146,9 @@ func (d *Direction) Fail(at time.Time, cfg Config) (LinkHealth, string) {
 // There is no counterpart for an interface that is up. Interface state can lower
 // health and can never raise it; see SignalInterface.
 //
-// Example: a Healthy direction becomes Down on the first interface-down signal.
+// Example:
+//
+//	a Healthy direction becomes Down on the first interface-down signal.
 func (d *Direction) InterfaceDown(at time.Time, cfg Config) (LinkHealth, string) {
 	d.OKRun = 0
 	d.FailRun++
@@ -161,8 +169,10 @@ func (d *Direction) InterfaceDown(at time.Time, cfg Config) (LinkHealth, string)
 // A direction that is Unknown or already Down is never stale: it is not trusted,
 // so there is nothing to withdraw. Silence of exactly StaleAfter is not yet stale.
 //
-// Example: with the default settings, a Healthy direction last heard from at 25 s
-// is still Healthy when checked at 40 s, and Down, since 40 s, when checked at 41 s.
+// Example:
+//
+//	with the default settings, a Healthy direction last heard from at 25 s
+//	is still Healthy when checked at 40 s, and Down, since 40 s, when checked at 41 s.
 func (d *Direction) CheckStale(now time.Time, cfg Config) (time.Time, bool) {
 	if !d.trusted() || now.Sub(d.LastEvidence) <= cfg.StaleAfter {
 		return time.Time{}, false

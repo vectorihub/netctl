@@ -35,8 +35,10 @@ import (
 // returned table is sorted. It returns NOT_FOUND if the node has no table and
 // INVALID_PREFIX if prefix is not valid.
 //
-// Example: CorruptTable(tables, "aws-hub", 10.42.32.0/20, "") returns tables in
-// which the hub no longer has any route for dgx-spark's site block.
+// Example:
+//
+//	CorruptTable(tables, "aws-hub", 10.42.32.0/20, "") returns tables in
+//	which the hub no longer has any route for dgx-spark's site block.
 func CorruptTable(tables route.Tables, node types.NodeID, prefix netip.Prefix, nextHop types.NodeID) (route.Tables, error) {
 	table, ok := tables[node]
 	if !ok || table == nil {

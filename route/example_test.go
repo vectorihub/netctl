@@ -270,3 +270,23 @@ func ExampleSource_UnmarshalText() {
 	// <nil> static
 	// true static
 }
+
+// ExampleIndex_Lookup builds an index once and asks it many times. It answers
+// exactly as Table.Lookup does: the longest matching prefix wins, a route
+// written with host bits set comes back as its masked block, and an address
+// nothing covers has no route.
+func ExampleIndex_Lookup() {
+	table := &route.Table{Node: "builder-1", Routes: []route.Route{
+		{Prefix: netip.MustParsePrefix("10.42.0.0/16"), NextHop: "aws-hub", Via: "aws-hub~builder-1", Metric: 20, Source: route.SourceComputed, Active: true},
+		{Prefix: netip.MustParsePrefix("10.42.32.7/20"), NextHop: "dgx-spark", Via: "builder-1~dgx-spark", Metric: 10, Source: route.SourceComputed, Active: true},
+	}}
+	index := table.Index()
+	for _, dst := range []string{"10.42.33.7", "10.42.1.1", "192.168.1.1"} {
+		r, ok := index.Lookup(netip.MustParseAddr(dst))
+		fmt.Println(dst, r.Prefix, r.NextHop, ok)
+	}
+	// Output:
+	// 10.42.33.7 10.42.32.0/20 dgx-spark true
+	// 10.42.1.1 10.42.0.0/16 aws-hub true
+	// 192.168.1.1 invalid Prefix  false
+}
