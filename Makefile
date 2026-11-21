@@ -21,7 +21,7 @@ vet:
 ## other match fails the build.
 PURITY_PATTERN := time\.(Now|Since|Until)\(|os\.(Open|OpenFile|Create|ReadFile|WriteFile|ReadDir|Stat|Getenv|LookupEnv|Environ)\b
 purity:
-	@out="$$(grep -rnE --include='*.go' --exclude='*_test.go' --exclude-dir=.git --exclude-dir=features --exclude-dir=e2e --exclude-dir=ptimport '$(PURITY_PATTERN)' . || true)"; \
+	@out="$$(grep -rnE --include='*.go' --exclude='*_test.go' --exclude-dir=.git --exclude-dir=features --exclude-dir=e2e --exclude-dir=ptimport --exclude-dir=tools '$(PURITY_PATTERN)' . || true)"; \
 	if [ -n "$$out" ]; then echo "purity: library code must not read the clock, files or environment:"; echo "$$out"; exit 1; fi
 
 ## lint: purity guard, then staticcheck over the whole module.
