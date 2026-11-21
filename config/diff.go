@@ -221,7 +221,7 @@ func peerFields(a, b Peer) []string {
 // Diff says what changed between the old and new config of a node. Both are
 // compared in canonical form and neither is changed. Peers are matched by node,
 // routes by prefix and next hop. A prefix that left one peer's allowed list and
-// joined another's is one Move and not two unrelated changes, which is how a
+// joined another's is one Move, even when one of the peers was added or removed, and not two unrelated changes, which is how a
 // failover reads: the far node's prefixes moved from the direct peer to the hub.
 //
 // Diff of configs for different nodes compares them as they are; callers match
@@ -244,28 +244,35 @@ func Diff(old, updated *NodeConfig) NodeDiff {
 	for _, p := range b.Peers {
 		newPeers[p.Node] = p
 	}
-	type gone struct {
+	type owned struct {
 		peer   types.NodeID
 		prefix netip.Prefix
 	}
-	var lost, gained []gone
-	changed := map[types.NodeID]*PeerChange{}
+	// Ownership is collected from every peer of both configs, so a prefix that
+	// moves to or from a peer that was added or removed is still a move.
+	oldOwn, newOwn := map[types.NodeID]map[netip.Prefix]bool{}, map[types.NodeID]map[netip.Prefix]bool{}
 	for _, p := range a.Peers {
-		now, still := newPeers[p.Node]
-		if !still {
-			d.PeersRemoved = append(d.PeersRemoved, p)
-			continue
-		}
-		change := &PeerChange{Node: p.Node, Fields: peerFields(p, now)}
-		for _, prefix := range minus(p.AllowedPrefixes, prefixSet(now.AllowedPrefixes)) {
-			lost = append(lost, gone{p.Node, prefix})
-		}
-		for _, prefix := range minus(now.AllowedPrefixes, prefixSet(p.AllowedPrefixes)) {
-			gained = append(gained, gone{p.Node, prefix})
-		}
-		changed[p.Node] = change
+		oldOwn[p.Node] = prefixSet(p.AllowedPrefixes)
 	}
 	for _, p := range b.Peers {
+		newOwn[p.Node] = prefixSet(p.AllowedPrefixes)
+	}
+	var lost, gained []owned
+	changed := map[types.NodeID]*PeerChange{}
+	for _, p := range a.Peers {
+		for _, prefix := range minus(p.AllowedPrefixes, newOwn[p.Node]) {
+			lost = append(lost, owned{p.Node, prefix})
+		}
+		if now, still := newPeers[p.Node]; still {
+			changed[p.Node] = &PeerChange{Node: p.Node, Fields: peerFields(p, now)}
+		} else {
+			d.PeersRemoved = append(d.PeersRemoved, p)
+		}
+	}
+	for _, p := range b.Peers {
+		for _, prefix := range minus(p.AllowedPrefixes, oldOwn[p.Node]) {
+			gained = append(gained, owned{p.Node, prefix})
+		}
 		if _, had := oldPeers[p.Node]; !had {
 			d.PeersAdded = append(d.PeersAdded, p)
 		}
@@ -280,13 +287,14 @@ func Diff(old, updated *NodeConfig) NodeDiff {
 				break
 			}
 		}
-		if !moved {
-			changed[l.peer].Removed = append(changed[l.peer].Removed, l.prefix)
+		// A prefix lost by a peer that is gone is in its Peer record, not here.
+		if change, kept := changed[l.peer]; !moved && kept {
+			change.Removed = append(change.Removed, l.prefix)
 		}
 	}
 	for i, g := range gained {
-		if !used[i] {
-			changed[g.peer].Added = append(changed[g.peer].Added, g.prefix)
+		if change, kept := changed[g.peer]; !used[i] && kept {
+			change.Added = append(change.Added, g.prefix)
 		}
 	}
 	for _, p := range b.Peers {

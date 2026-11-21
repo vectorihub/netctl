@@ -76,7 +76,7 @@ func (c *NodeConfig) Clone() *NodeConfig {
 // of prefixes and endpoints. A list that is nil becomes an empty one, because the
 // JSON of both must be the same: [] and never null. The probe's local address is
 // the node's own address on the link, host bits and all, and is left as it is.
-// Policy entries keep their order, which matters. It changes the config in place,
+// Policy entries keep their order, which matters; the ports of each are sorted and made unique, since they are a set. It changes the config in place,
 // and does not touch Hash.
 //
 // Example:
@@ -101,7 +101,16 @@ func (c *NodeConfig) Canonicalise() {
 		slices.SortFunc(p.Endpoints, func(a, b netip.AddrPort) int { return a.Compare(b) })
 		p.Endpoints = slices.Compact(p.Endpoints)
 	}
-	slices.SortFunc(c.Peers, func(a, b Peer) int { return cmp.Compare(a.Node, b.Node) })
+	// Peers are ordered by node, and when two share a node by everything else,
+	// so the order is total and never depends on the order they came in.
+	slices.SortFunc(c.Peers, func(a, b Peer) int {
+		return cmp.Or(cmp.Compare(a.Node, b.Node), cmp.Compare(a.Link, b.Link), cmp.Compare(a.Role, b.Role),
+			cmp.Compare(a.PublicKeyRef, b.PublicKeyRef), cmp.Compare(a.Keepalive, b.Keepalive),
+			compareBool(a.NeedsTraversal, b.NeedsTraversal),
+			slices.CompareFunc(a.Endpoints, b.Endpoints, func(x, y netip.AddrPort) int { return x.Compare(y) }),
+			slices.CompareFunc(a.AllowedPrefixes, b.AllowedPrefixes, cidr.Compare),
+			comparePtr(a.Probe, b.Probe))
+	})
 	if c.Routes == nil {
 		c.Routes = []Route{}
 	}
@@ -121,6 +130,25 @@ func (c *NodeConfig) Canonicalise() {
 	if c.Policy == nil {
 		c.Policy = []PolicyEntry{}
 	}
+	// A rule's ports are a set: [80, 443] and [443, 80] mean the same, so they are
+	// written the same. The entries themselves keep their order.
+	for i := range c.Policy {
+		slices.Sort(c.Policy[i].Ports)
+		c.Policy[i].Ports = slices.Compact(c.Policy[i].Ports)
+	}
+}
+
+// comparePtr orders probes, with none before any.
+func comparePtr(a, b *Probe) int {
+	switch {
+	case a == nil && b == nil:
+		return 0
+	case a == nil:
+		return -1
+	case b == nil:
+		return 1
+	}
+	return cmp.Or(cidr.Compare(a.Local, b.Local), a.Remote.Compare(b.Remote))
 }
 
 // compareBool orders false before true.

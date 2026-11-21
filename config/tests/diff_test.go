@@ -154,3 +154,30 @@ func TestDiffPlans(t *testing.T) {
 		t.Error("a plan differs from itself")
 	}
 }
+
+// TestDiffFindsMovesToAndFromAddedAndRemovedPeers checks a prefix is a move even when
+// the peer that carried it is removed, or the peer that carries it now is new.
+func TestDiffFindsMovesToAndFromAddedAndRemovedPeers(t *testing.T) {
+	// The direct link is taken out: its peer goes, and the hub now carries its prefix.
+	old := sample()
+	updated := sample()
+	updated.Peers = updated.Peers[1:] // dgx-spark removed, aws-hub stays
+	updated.Peers[0].AllowedPrefixes = append(updated.Peers[0].AllowedPrefixes, netip.MustParsePrefix("10.42.32.0/20"))
+	d := config.Diff(old, updated)
+	if len(d.Moves) != 1 || d.Moves[0] != (config.PrefixMove{Prefix: netip.MustParsePrefix("10.42.32.0/20"), From: "dgx-spark", To: "aws-hub"}) {
+		t.Errorf("moves %+v, want 10.42.32.0/20 from the removed peer to the hub", d.Moves)
+	}
+	for _, c := range d.PeersChanged {
+		if len(c.Added) != 0 {
+			t.Errorf("the moved prefix was also reported as added: %+v", c)
+		}
+	}
+	if len(d.PeersRemoved) != 1 {
+		t.Errorf("peers removed %+v", d.PeersRemoved)
+	}
+	// The reverse: a new peer takes a prefix the hub carried.
+	back := config.Diff(updated, old)
+	if len(back.Moves) != 1 || back.Moves[0].From != "aws-hub" || back.Moves[0].To != "dgx-spark" {
+		t.Errorf("reverse moves %+v, want the prefix from the hub to the new peer", back.Moves)
+	}
+}
