@@ -38,8 +38,10 @@ type family struct {
 // Index returns an Index over the table's active routes. Inactive routes are not
 // in it, as they are not in a lookup. Where several active routes have the same
 // prefix the one Table.Lookup would choose is kept: the lower metric, then
-// whichever sorts first under Compare. A nil table gives an Index that finds
-// nothing.
+// whichever sorts first under Compare. Every route is masked to its canonical
+// block (cidr.Canonical) as it enters, exactly as in Table.Lookup, so a route
+// written 10.1.2.3/24 is stored, compared and returned as 10.1.2.0/24 and both
+// lookups give the same route. A nil table gives an Index that finds nothing.
 //
 // Example: an index of a table with routes for 10.42.0.0/16 and 10.42.32.0/20
 // answers 10.42.33.7 with the /20 route, as Table.Lookup does.
@@ -48,7 +50,8 @@ func (table *Table) Index() *Index {
 	if table == nil {
 		return index
 	}
-	for _, candidate := range table.Routes {
+	for _, given := range table.Routes {
+		candidate := canonical(given)
 		if !candidate.Active || !candidate.Prefix.IsValid() {
 			continue
 		}
@@ -63,13 +66,13 @@ func (table *Table) Index() *Index {
 	return index
 }
 
-// add records a candidate route, replacing the route already held for the same
-// masked prefix only if the candidate is better.
+// add records a candidate route, whose prefix is already masked, replacing the
+// route already held for the same prefix only if the candidate is better.
 func (fam *family) add(candidate Route) {
 	if fam.byPrefix == nil {
 		fam.byPrefix = map[netip.Prefix]int32{}
 	}
-	key := candidate.Prefix.Masked()
+	key := candidate.Prefix
 	if at, held := fam.byPrefix[key]; held {
 		if better(candidate, fam.routes[at]) {
 			fam.routes[at] = candidate

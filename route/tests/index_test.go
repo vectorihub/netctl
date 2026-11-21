@@ -147,3 +147,19 @@ func spokeTable() (*route.Table, []netip.Addr) {
 	}
 	return table, addrs
 }
+
+// TestIndexMasksLikeLookup checks the case from review: a table holding
+// 10.1.2.3/24, host bits set, is answered by the index exactly as Table.Lookup
+// answers it, with the masked block 10.1.2.0/24, so the two never disagree.
+func TestIndexMasksLikeLookup(t *testing.T) {
+	table := &route.Table{Node: "n", Routes: []route.Route{
+		{Prefix: netip.MustParsePrefix("10.1.2.3/24"), NextHop: "a", Via: "a~n", Metric: 1, Source: route.SourceComputed, Active: true},
+	}}
+	dst := netip.MustParseAddr("10.1.2.200")
+	scanned, scanOK := table.Lookup(dst)
+	indexed, indexOK := table.Index().Lookup(dst)
+	want := netip.MustParsePrefix("10.1.2.0/24")
+	if !scanOK || !indexOK || scanned.Prefix != want || indexed.Prefix != want {
+		t.Errorf("scan gave %v %v, index gave %v %v; want both %v", scanned.Prefix, scanOK, indexed.Prefix, indexOK, want)
+	}
+}
