@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/vectorihub/netctl/config"
+	"github.com/vectorihub/netctl/failover"
 	"github.com/vectorihub/netctl/health"
 	"github.com/vectorihub/netctl/ipam"
 	"github.com/vectorihub/netctl/route"
@@ -75,6 +76,21 @@ type Inputs struct {
 	//
 	//	&types.FixedClock{T: t0}.
 	Clock types.Clock
+	// Failover is the failover state of the last plan: the health of every link and the
+	// routes in force. When it is set, or there are Signals, the planner runs the
+	// failover guard (failover.Evaluate) instead of reading Health, and Health is
+	// ignored. Nil with no signals means the plan is made from Health alone.
+	//
+	// Example:
+	//
+	//	*result.Failover state of the last plan, after failover.ParseState.
+	Failover *failover.State
+	// Signals are the health observations to fold in, and the reason to run the guard.
+	//
+	// Example:
+	//
+	//	[]health.Signal{{Link: "builder-1~dgx-spark", Node: "builder-1", OK: false, At: t0}}.
+	Signals []health.Signal
 	// Quarantine is how long a released address stays unusable. Zero means
 	// ipam.DefaultQuarantine.
 	//
@@ -217,6 +233,13 @@ type Result struct {
 	//
 	//	result.Simulation.Passed.
 	Simulation sim.Report `json:"simulation"`
+	// Failover is what the failover guard decided, with the state to save for next
+	// time. Nil when the plan was made without it (no Failover state and no Signals).
+	//
+	// Example:
+	//
+	//	result.Failover.State.JSON().
+	Failover *failover.Result `json:"-"`
 	// Changes are the changes made to the address plan, sorted by prefix.
 	//
 	// Example:
@@ -359,13 +382,6 @@ func Plan(in Inputs) (Result, error) {
 	if err != nil {
 		return failed(in, result, err)
 	}
-	result.Unusable = evaluator.UnusableLinks()
-	down := map[types.LinkID]bool{}
-	for _, id := range result.Unusable {
-		down[id] = true
-	}
-	graph := adapt(topology.BuildGraph(t, func(id types.LinkID) bool { return !down[id] })) // 7
-
 	announcers := make([]route.Announcer, 0, len(t.Nodes))
 	for _, n := range t.Nodes {
 		a := route.Announcer{Node: n.ID, Site: n.Site}
@@ -389,11 +405,46 @@ func Plan(in Inputs) (Result, error) {
 		return failed(in, result, err)
 	}
 	input := route.Input{Owned: owned, Local: local, Overrides: in.Overrides}
-	computed, err := route.Compute(graph, input) // 8
+	flows, err := sim.Flows(t, registry, sim.Options{})
 	if err != nil {
 		return failed(in, result, err)
 	}
-	result.Tables, result.Unreachable = computed.Tables, computed.Unreachable
+
+	var tables route.Tables
+	var unreachable []route.Pair
+	var down []types.LinkID // the links the routes below were computed without
+	if in.Failover != nil || len(in.Signals) > 0 {
+		// 7 and 8 under the failover guard: the signals are folded into the state, the new
+		// routes are simulated before they are installed, and a failover that would break a
+		// flow that worked is refused, which keeps the routes (and so the configs) in force.
+		evaluated, err := evaluate(in, t, evaluator, input, flows)
+		if err != nil {
+			return failed(in, result, err)
+		}
+		result.Failover = &evaluated
+		tables, unreachable, down = evaluated.Tables, evaluated.Unreachable, evaluated.State.TablesDown
+		result.Unusable = unusable(evaluated.State, evaluator.Cfg)
+		if evaluated.Rejected != nil {
+			result.Decisions = append(result.Decisions, Decision{Kind: "FailoverRejected", Reason: evaluated.Rejected.Reason})
+		}
+	} else {
+		result.Unusable = evaluator.UnusableLinks()
+		down = result.Unusable
+	}
+	downSet := map[types.LinkID]bool{}
+	for _, id := range down {
+		downSet[id] = true
+	}
+	graph := adapt(topology.BuildGraph(t, func(id types.LinkID) bool { return !downSet[id] })) // 7
+	if result.Failover == nil {
+		computed, err := route.Compute(graph, input) // 8
+		if err != nil {
+			return failed(in, result, err)
+		}
+		tables, unreachable = computed.Tables, computed.Unreachable
+	}
+	result.Tables, result.Unreachable = tables, unreachable
+	computed := route.Result{Tables: tables, Unreachable: unreachable}
 
 	generate, err := config.FromPlan(t, registry, computed.Tables) // 9
 	if err != nil {
@@ -401,10 +452,6 @@ func Plan(in Inputs) (Result, error) {
 	}
 	generate.Health = evaluator.Cfg
 	configs, err := config.Generate(generate)
-	if err != nil {
-		return failed(in, result, err)
-	}
-	flows, err := sim.Flows(t, registry, sim.Options{})
 	if err != nil {
 		return failed(in, result, err)
 	}
