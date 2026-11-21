@@ -279,3 +279,32 @@ func ExampleLinkHealth_UnmarshalText() {
 	// <nil> healthy
 	// true healthy
 }
+
+// ExampleLink_Usable shows the two kinds of link before any evidence: a required
+// direct link must be proven by probes before routing may use it, while an
+// assumed hub-spoke link is usable until a failure arrives.
+func ExampleLink_Usable() {
+	direct, _ := health.NewLink("builder-1~dgx-spark", "builder-1", "dgx-spark", true)
+	hub, _ := health.NewLink("aws-hub~builder-1", "aws-hub", "builder-1", false)
+	fmt.Println(direct.Usable(), hub.Usable())
+	e, _ := health.NewEvaluator(health.DefaultConfig(), direct)
+	e.Apply(probes(true, 5, 5), at(30))
+	fmt.Println(direct.Usable())
+	// Output:
+	// false true
+	// true
+}
+
+// ExampleNewEvaluator builds an evaluator for one link, and shows that two links
+// with the same ID are refused with INVALID_TOPOLOGY.
+func ExampleNewEvaluator() {
+	direct, _ := health.NewLink("builder-1~dgx-spark", "builder-1", "dgx-spark", true)
+	e, err := health.NewEvaluator(health.DefaultConfig(), direct)
+	fmt.Println(len(e.Links), err)
+	twin, _ := health.NewLink("builder-1~dgx-spark", "builder-1", "dgx-spark", true)
+	_, err = health.NewEvaluator(health.DefaultConfig(), direct, twin)
+	fmt.Println(types.HasCode(err, types.ErrInvalidTopology))
+	// Output:
+	// 1 <nil>
+	// true
+}

@@ -15,8 +15,10 @@ import (
 // builder-1 hears dgx-spark but dgx-spark does not hear builder-1, the link is
 // Down for both, so both ends fail over together and the paths stay symmetric.
 //
-// Example: NewLink("builder-1~dgx-spark", "builder-1", "dgx-spark", true) is a required
-// direct link; Dirs holds one Direction for builder-1 and one for dgx-spark.
+// Example:
+//
+//	NewLink("builder-1~dgx-spark", "builder-1", "dgx-spark", true) is a required
+//	direct link; Dirs holds one Direction for builder-1 and one for dgx-spark.
 type Link struct {
 	// ID is the link's ID.
 	ID types.LinkID `json:"link"`
@@ -37,8 +39,10 @@ type Link struct {
 // refuses a link from a node to itself, or with an end missing, with
 // INVALID_TOPOLOGY.
 //
-// Example: NewLink("builder-1~dgx-spark", "builder-1", "dgx-spark", true) is a
-// required direct link nothing is known about yet, which Usable reports false.
+// Example:
+//
+//	NewLink("builder-1~dgx-spark", "builder-1", "dgx-spark", true) is a
+//	required direct link nothing is known about yet, which Usable reports false.
 func NewLink(id types.LinkID, a, b types.NodeID, required bool) (*Link, error) {
 	if a == "" || b == "" || a == b {
 		return nil, types.Errf(types.ErrInvalidTopology, "link "+string(id), "a link needs two different ends, got %q and %q", a, b)
@@ -56,7 +60,9 @@ func NewLink(id types.LinkID, a, b types.NodeID, required bool) (*Link, error) {
 // link is not usable until proven, and an assumed link is usable until a failure
 // arrives.
 //
-// Example: a new direct link is not usable and a new hub-spoke link is.
+// Example:
+//
+//	a new direct link is not usable and a new hub-spoke link is.
 func (l *Link) Usable() bool {
 	switch l.State {
 	case Healthy, Degraded:
@@ -101,8 +107,10 @@ func (l *Link) ends() []types.NodeID {
 
 // Decision records one change in a link's health, and why.
 //
-// Example: a link going from Healthy to Down at 45 s because three probes failed is one
-// Decision with Before Healthy, After Down and a Reason that says so.
+// Example:
+//
+//	a link going from Healthy to Down at 45 s because three probes failed is one
+//	Decision with Before Healthy, After Down and a Reason that says so.
 type Decision struct {
 	// Link is the link that changed.
 	Link types.LinkID `json:"link"`
@@ -120,8 +128,10 @@ type Decision struct {
 // Skipped is a signal the evaluator did not apply, with the reason. Nothing is
 // dropped silently: the caller sees what was ignored and why.
 //
-// Example: a signal for a link the evaluator does not track is returned as a Skipped with
-// Why "the link is not tracked".
+// Example:
+//
+//	a signal for a link the evaluator does not track is returned as a Skipped with
+//	Why "the link is not tracked".
 type Skipped struct {
 	// Signal is the signal as given.
 	Signal Signal `json:"signal"`
@@ -134,8 +144,10 @@ type Skipped struct {
 // It holds state but not a clock: every method is told the time. Give it the same
 // links and the same signals and it gives the same answer.
 //
-// Example: NewEvaluator(DefaultConfig(), direct) tracks one link; Apply folds signals into
-// it and UnusableLinks lists the links routing must avoid.
+// Example:
+//
+//	NewEvaluator(DefaultConfig(), direct) tracks one link; Apply folds signals into
+//	it and UnusableLinks lists the links routing must avoid.
 type Evaluator struct {
 	// Cfg is the thresholds and times in use.
 	Cfg Config
@@ -148,7 +160,9 @@ type Evaluator struct {
 // not pass Validate (INVALID_CONFIG) and two links with one ID
 // (INVALID_TOPOLOGY).
 //
-// Example: NewEvaluator(DefaultConfig(), direct) tracks one link.
+// Example:
+//
+//	NewEvaluator(DefaultConfig(), direct) tracks one link.
 func NewEvaluator(cfg Config, links ...*Link) (*Evaluator, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, err
@@ -234,8 +248,10 @@ func (e *Evaluator) expire(l *Link, now time.Time, decisions []Decision) []Decis
 // batch or an earlier one: a success that arrives late must not erase a failure
 // that came after it.
 //
-// Example: five good probes from each end of a new direct link make it Healthy;
-// three failed ones from each then make it Down.
+// Example:
+//
+//	five good probes from each end of a new direct link make it Healthy;
+//	three failed ones from each then make it Down.
 func (e *Evaluator) Apply(signals []Signal, now time.Time) ([]Decision, []Skipped) {
 	ordered := slices.Clone(signals)
 	slices.SortStableFunc(ordered, func(a, b Signal) int { return a.At.Compare(b.At) })
@@ -250,6 +266,18 @@ func (e *Evaluator) Apply(signals []Signal, now time.Time) ([]Decision, []Skippe
 		d := l.Dirs[s.From]
 		if d == nil {
 			skipped = append(skipped, Skipped{s, string(s.From) + " is not an end of the link"})
+			continue
+		}
+		// An unsupported kind is refused before anything changes, so it can
+		// neither advance LastSignal (which would make a real, slightly older
+		// signal look outdated) nor trigger an expiry check.
+		switch s.Kind {
+		case SignalAdmin:
+			skipped = append(skipped, Skipped{s, "admin signals are not supported yet"})
+			continue
+		case SignalProbe, SignalHandshake, SignalInterface:
+		default:
+			skipped = append(skipped, Skipped{s, "the signal has no known kind"})
 			continue
 		}
 		if s.At.Before(d.LastSignal) {
@@ -273,12 +301,6 @@ func (e *Evaluator) Apply(signals []Signal, now time.Time) ([]Decision, []Skippe
 			}
 			_, reason = d.InterfaceDown(s.At, e.Cfg)
 			reason = string(s.From) + ": " + reason
-		case SignalAdmin:
-			skipped = append(skipped, Skipped{s, "admin signals are not supported yet"})
-			continue
-		default:
-			skipped = append(skipped, Skipped{s, "the signal has no known kind"})
-			continue
 		}
 		decisions = e.settle(l, s.At, reason, decisions)
 	}
@@ -292,8 +314,10 @@ func (e *Evaluator) Apply(signals []Signal, now time.Time) ([]Decision, []Skippe
 // now, sorted: the links for which Usable is false. It is the list to mark Down
 // in the routing graph, or to hand to a simulation scenario as links_down.
 //
-// Example: with the direct link Down and the hub links assumed, it returns just
-// the direct link's ID.
+// Example:
+//
+//	with the direct link Down and the hub links assumed, it returns just
+//	the direct link's ID.
 func (e *Evaluator) UnusableLinks() []types.LinkID {
 	var out []types.LinkID
 	for _, id := range e.linkIDs() {

@@ -9,8 +9,10 @@ import (
 
 // TextOptions tune the text report.
 //
-// Example: TextOptions{Title: "three-site", Verbose: true} writes the header
-// "SIMULATION three-site · ..." and lists every flow.
+// Example:
+//
+//	TextOptions{Title: "three-site", Verbose: true} writes the header
+//	"SIMULATION three-site · ..." and lists every flow.
 type TextOptions struct {
 	// Title names the network in the header, for example "three-site". It is
 	// left out of the header when empty.
@@ -43,8 +45,10 @@ var alwaysListed = map[Verdict]bool{
 // to see zero of even when they are zero, and any other verdict that occurs. The
 // text is the same for the same report, so it can be kept as a golden file.
 //
-// Example: a report whose one flow builder-1 to dgx-spark was delivered both ways
-// ends "PASS".
+// Example:
+//
+//	a report whose one flow builder-1 to dgx-spark was delivered both ways
+//	ends "PASS".
 func (report Report) Text(opts TextOptions) string {
 	return reportText(report, opts, "", nil)
 }
@@ -54,8 +58,10 @@ func (report Report) Text(opts TextOptions) string {
 // scenario cut off. The scenario passes only if the flows pass and every
 // expectation is met.
 //
-// Example: a scenario whose expectation said OK for a flow that was BLACK_HOLE
-// ends "FAIL" and lists that flow after the summary.
+// Example:
+//
+//	a scenario whose expectation said OK for a flow that was BLACK_HOLE
+//	ends "FAIL" and lists that flow after the summary.
 func (result ScenarioResult) Text(opts TextOptions) string {
 	return reportText(result.Report, opts, result.Name, &result)
 }
@@ -200,13 +206,17 @@ func yesNo(value bool) string {
 // bytes: suitable for a golden file and for comparing two runs. It returns an
 // error rather than write a flow whose verdict or hop result is unknown.
 //
-// Example: two runs of the same scenario give byte-identical JSON.
+// Example:
+//
+//	two runs of the same scenario give byte-identical JSON.
 func (report Report) JSON() ([]byte, error) { return marshalStable(report) }
 
 // JSON writes the scenario result, its report included, as stable JSON in the
 // same way as Report.JSON.
 //
-// Example: the result of the scenario "hub-down" starts {"name": "hub-down".
+// Example:
+//
+//	the result of the scenario "hub-down" starts {"name": "hub-down".
 func (result ScenarioResult) JSON() ([]byte, error) { return marshalStable(result) }
 
 // marshalStable writes value as two-space-indented JSON ending in a newline.
