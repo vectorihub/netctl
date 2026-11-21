@@ -749,8 +749,11 @@ github.com/vectorihub/netctl/topology: field Selector.Key string
 github.com/vectorihub/netctl/topology: field Selector.Kind SelectorKind
 github.com/vectorihub/netctl/topology: field Selector.Value string
 github.com/vectorihub/netctl/topology: field Site.ID types.SiteID
+github.com/vectorihub/netctl/topology: field Site.Override *SiteOverride
 github.com/vectorihub/netctl/topology: field Site.Provider string
 github.com/vectorihub/netctl/topology: field Site.Region string
+github.com/vectorihub/netctl/topology: field SiteOverride.Pool string
+github.com/vectorihub/netctl/topology: field SiteOverride.Reason string
 github.com/vectorihub/netctl/topology: field Suppression.Reason string
 github.com/vectorihub/netctl/topology: field Suppression.Rule string
 github.com/vectorihub/netctl/topology: field Suppression.Subject string
@@ -810,6 +813,7 @@ github.com/vectorihub/netctl/topology: type Rule string
 github.com/vectorihub/netctl/topology: type Selector struct
 github.com/vectorihub/netctl/topology: type SelectorKind int
 github.com/vectorihub/netctl/topology: type Site struct
+github.com/vectorihub/netctl/topology: type SiteOverride struct
 github.com/vectorihub/netctl/topology: type Suppression struct
 github.com/vectorihub/netctl/topology: type Topology struct
 github.com/vectorihub/netctl/topology: type Validation struct

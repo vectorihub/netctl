@@ -44,7 +44,12 @@ func reconcileAddresses(m *ipam.IPAM, t *topology.Topology) error {
 		}
 	}
 	for _, s := range sorted(t.Sites, func(s topology.Site) string { return string(s.ID) }) {
-		if _, err := m.Allocate(SitesPool, ipam.Site(string(s.ID))); err != nil {
+		pool, opts := SitesPool, []ipam.Option(nil)
+		if s.Override != nil {
+			// A site that asks for another pool on purpose, with a reason, takes its block there.
+			pool, opts = ipam.PoolName(s.Override.Pool), []ipam.Option{ipam.WithOverride(s.Override.Reason)}
+		}
+		if _, err := m.Allocate(pool, ipam.Site(string(s.ID)), opts...); err != nil {
 			errs.Add(problem(err))
 		}
 	}
