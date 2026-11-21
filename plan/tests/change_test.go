@@ -2,6 +2,7 @@ package tests
 
 import (
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/vectorihub/netctl/ipam"
@@ -134,5 +135,43 @@ func TestChangeIsDescribedOnOneLine(t *testing.T) {
 	r := mustPlan(t, fresh(t))
 	if got := r.Changes[0].String(); got != "allocated site:aws 10.42.0.0/20" {
 		t.Errorf("%q", got)
+	}
+}
+
+// TestARenameIsExplainedAsTwoMachines checks the plan says why the new name got a new
+// address, so nobody is surprised that nothing moved silently.
+func TestARenameIsExplainedAsTwoMachines(t *testing.T) {
+	first := mustPlan(t, fresh(t))
+	in := fresh(t)
+	in.IPAM = first.IPAM
+	for i := range in.Topology.Nodes {
+		if in.Topology.Nodes[i].ID == "dgx-spark" {
+			in.Topology.Nodes[i].ID = "dgx-spark-2"
+		}
+	}
+	for i := range in.Topology.Links {
+		if in.Topology.Links[i].A == "dgx-spark" {
+			in.Topology.Links[i].A = "dgx-spark-2"
+		}
+		if in.Topology.Links[i].B == "dgx-spark" {
+			in.Topology.Links[i].B = "dgx-spark-2"
+		}
+	}
+	in.Topology = dropDeadIntents(in.Topology)
+	r := mustPlan(t, in)
+	if len(r.Decisions) != 1 || r.Decisions[0].Kind != "AddressNotCarried" {
+		t.Fatalf("decisions: %+v", r.Decisions)
+	}
+	for _, want := range []string{"node:dgx-spark left", "node:dgx-spark-2 joined", "10.42.240.3/32", "quarantined"} {
+		if !strings.Contains(r.Decisions[0].Reason, want) {
+			t.Errorf("the explanation lacks %q: %s", want, r.Decisions[0].Reason)
+		}
+	}
+}
+
+// TestAPlanWithNoDeparturesHasNothingToExplain checks a quiet plan carries no decisions.
+func TestAPlanWithNoDeparturesHasNothingToExplain(t *testing.T) {
+	if r := mustPlan(t, fresh(t)); len(r.Decisions) != 0 {
+		t.Errorf("decisions: %+v", r.Decisions)
 	}
 }

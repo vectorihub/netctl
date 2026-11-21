@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/netip"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/vectorihub/netctl/config"
@@ -110,7 +109,8 @@ type Inputs struct {
 //	Change{Kind: "allocated", Subject: "node:builder-1", Prefix: 10.42.240.2/32}.
 type Change struct {
 	// Kind is "allocated" for a new allocation, "released" for one given back (it is
-	// quarantined, not free) and "expired" for a quarantine that has ended.
+	// quarantined, not free) and "expired" for a quarantine that has ended. An address never
+	// moves: a rename is a "released" and an "allocated".
 	//
 	// Example:
 	//
@@ -137,7 +137,9 @@ type Change struct {
 //	Decision{Kind: "FailoverRejected", Reason: "the new plan fails validation; keeping three-site@7f3c9e1a"}.
 type Decision struct {
 	// Kind names the decision. "FailoverRejected" means the new plan failed validation
-	// when the plan in force passed, and the plan in force is kept.
+	// when the plan in force passed, and the plan in force is kept. "AddressNotCarried"
+	// says a machine that left and one that joined in the same plan are two machines to
+	// netctl: the old address is quarantined and the new name gets a new one.
 	//
 	// Example:
 	//
@@ -277,41 +279,6 @@ func problem(err error) *types.Error {
 	return types.Errf(types.ErrInvalidValue, "plan", "%v", err)
 }
 
-// diff lists what changed in the address plan between two snapshots.
-func diff(before, after ipam.Snapshot) []Change {
-	held := map[netip.Prefix]ipam.Allocation{}
-	for _, a := range before.Allocations {
-		held[a.Prefix] = a
-	}
-	now := map[netip.Prefix]ipam.Allocation{}
-	var out []Change
-	for _, a := range after.Allocations {
-		now[a.Prefix] = a
-		was, had := held[a.Prefix]
-		switch {
-		case !had:
-			out = append(out, Change{Kind: "allocated", Subject: a.Owner.String(), Prefix: a.Prefix})
-		case was.State != ipam.Quarantined && a.State == ipam.Quarantined:
-			out = append(out, Change{Kind: "released", Subject: a.Owner.String(), Prefix: a.Prefix})
-		}
-	}
-	for _, a := range before.Allocations {
-		if _, still := now[a.Prefix]; !still && a.State == ipam.Quarantined {
-			out = append(out, Change{Kind: "expired", Subject: a.Owner.String(), Prefix: a.Prefix})
-		}
-	}
-	slices.SortFunc(out, func(a, b Change) int {
-		if c := a.Prefix.Addr().Compare(b.Prefix.Addr()); c != 0 {
-			return c
-		}
-		if a.Prefix.Bits() != b.Prefix.Bits() {
-			return a.Prefix.Bits() - b.Prefix.Bits()
-		}
-		return strings.Compare(a.Kind, b.Kind)
-	})
-	return out
-}
-
 // healthLinks builds the health links for every link of the topology, taking the state of
 // each from the evaluator by ID and starting the rest Unknown. The evaluator is not changed.
 func healthLinks(t *topology.Topology, from *health.Evaluator) (*health.Evaluator, error) {
@@ -386,6 +353,7 @@ func Plan(in Inputs) (Result, error) {
 		return Result{IPAM: in.IPAM}, err
 	}
 	result := Result{IPAM: registry.Snapshot(), Changes: diff(snapshot, registry.Snapshot())}
+	result.Decisions = renames(result.Changes, quarantine)
 
 	evaluator, err := healthLinks(t, in.Health) // 6
 	if err != nil {
