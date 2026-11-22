@@ -9,7 +9,7 @@ changes, and each one is listed under **Breaking Changes** for that release.
 
 ## [Unreleased]
 
-# Release (unreleased) (R11)
+# Release 2026-11-22 (v0.10.0)
 
 ## Announcements
 The Phase 1 end-to-end suite and its gate tooling. This release changes the library in two small ways, both
